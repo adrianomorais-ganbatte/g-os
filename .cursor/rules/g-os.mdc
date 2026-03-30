@@ -1,0 +1,17 @@
+---
+description: G-OS project rule for Cursor
+alwaysApply: true
+---
+
+Use o `G-OS` como framework enxuto para:
+
+- design-to-code
+- Figma, Figma Make e Stitch
+- React e Next.js
+- sprint planning e ClickUp
+
+Leia primeiro:
+
+- `AGENTS.md`
+- `CLAUDE.md`
+- `docs/toolchain-map.md`

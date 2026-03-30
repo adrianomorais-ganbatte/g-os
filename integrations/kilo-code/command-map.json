@@ -1,0 +1,11 @@
+{
+  "ide": "kilo-code",
+  "version": "1.0.0",
+  "mappings": [
+    { "canonicalCommand": "a8z.search", "coreArtifact": "prompts/01-search.md" },
+    { "canonicalCommand": "a8z.spec", "coreArtifact": "prompts/02-spec.md" },
+    { "canonicalCommand": "a8z.tasks", "coreArtifact": "prompts/03-tasks.md" },
+    { "canonicalCommand": "a8z.code", "coreArtifact": "prompts/04-code.md" },
+    { "canonicalCommand": "a8z.review", "coreArtifact": "prompts/05-reviews.md" }
+  ]
+}

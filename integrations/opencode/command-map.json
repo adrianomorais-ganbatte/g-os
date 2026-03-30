@@ -1,0 +1,46 @@
+{
+  "ide": "opencode",
+  "version": "2.0.0",
+  "status": "active",
+  "notes": {
+    "compatReads": "OpenCode le AGENTS.md e CLAUDE.md nativamente, alem de .claude/skills/",
+    "skillsSync": "npm run sync:opencode-skills gera .opencode/skills/a8z-{slug}/SKILL.md",
+    "configFile": "opencode.json (projeto) ou ~/.config/opencode/opencode.json (global)"
+  },
+  "mappings": [
+    {
+      "canonicalCommand": "a8z.search",
+      "coreArtifact": "prompts/01-search.md",
+      "opencodeEquiv": "commands/search.md ou skill a8z-sdd"
+    },
+    {
+      "canonicalCommand": "a8z.spec",
+      "coreArtifact": "prompts/02-spec.md",
+      "opencodeEquiv": "commands/spec.md ou skill a8z-sdd"
+    },
+    {
+      "canonicalCommand": "a8z.tasks",
+      "coreArtifact": "prompts/03-tasks.md",
+      "opencodeEquiv": "commands/tasks.md ou skill a8z-plan-to-tasks"
+    },
+    {
+      "canonicalCommand": "a8z.code",
+      "coreArtifact": "prompts/04-code.md",
+      "opencodeEquiv": "commands/code.md ou skill a8z-be / a8z-fe"
+    },
+    {
+      "canonicalCommand": "a8z.review",
+      "coreArtifact": "prompts/05-reviews.md",
+      "opencodeEquiv": "commands/review.md ou skill a8z-review-pr"
+    }
+  ],
+  "equivalenceTable": {
+    "a8z → opencode": {
+      ".a8z/skills/*/SKILL.md": ".opencode/skills/a8z-*/SKILL.md",
+      "agents/.base/index.json": "opencode.json → agent {}",
+      "rules/*.md": "AGENTS.md ou instructions[]",
+      "playbooks/*.md": ".opencode/commands/*.md",
+      "MCP (.claude/settings.json)": "opencode.json → mcp {}"
+    }
+  }
+}
