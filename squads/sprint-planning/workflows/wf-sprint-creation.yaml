@@ -1,0 +1,59 @@
+workflow:
+  id: wf-sprint-creation
+  name: "Sprint Creation Pipeline"
+  version: "1.0.0"
+  description: >
+    End-to-end sprint creation: from planning artifacts to ClickUp workspace.
+    Reads sprint plan, validates structure, creates ClickUp folder/lists,
+    imports tasks, sets custom fields, and produces sprint overview.
+  trigger: "*sprint-create"
+  entry_agent: sprint-chief
+  type: sequential
+
+phases:
+  - id: phase_0
+    name: "Pre-flight Check"
+    agent: sprint-chief
+    description: "Verify env vars, space ID, and sprint plan availability."
+    checkpoint:
+      gate: "CLICKUP_API_KEY set, space ID known, plan file exists"
+      veto: "Missing env vars or plan file"
+
+  - id: phase_1
+    name: "Plan Validation"
+    agent: sprint-planner-agent
+    task: create-sprint.md
+    depends_on: [phase_0]
+    description: "Validate sprint plan JSON against schema, check IDs and priorities."
+    checkpoint:
+      gate: "Schema validates, all tasks have unique IDs and priorities"
+      veto: "Schema validation failed or circular dependencies detected"
+
+  - id: phase_2
+    name: "ClickUp Sprint Setup"
+    agent: sprint-planner-agent
+    task: create-sprint.md
+    depends_on: [phase_1]
+    description: "Create ClickUp folder (sprint container) and lists (tracks)."
+    checkpoint:
+      gate: "Folder and all lists created, IDs captured"
+      veto: "API auth failure or space not found"
+
+  - id: phase_3
+    name: "Task Import"
+    agent: task-importer
+    task: import-tasks.md
+    depends_on: [phase_2]
+    description: "Bulk create tasks in ClickUp lists, set fields, add tags."
+    checkpoint:
+      gate: "All tasks created, IDs mapped back to local plan"
+      veto: "Rate limit exceeded or task creation failures > 10%"
+
+  - id: phase_4
+    name: "Status Sync & Notification"
+    agent: sprint-tracker
+    task: sync-status.md
+    depends_on: [phase_3]
+    description: "Read back sprint status, generate overview, notify Slack."
+    checkpoint:
+      gate: "Sprint overview generated, Slack notified"

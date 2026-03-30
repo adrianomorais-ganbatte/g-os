@@ -1,0 +1,13 @@
+{
+  "name": "g-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Framework enxuto para design-to-code, squads de entrega e sprint sync com ClickUp.",
+  "scripts": {
+    "clickup": "node scripts/tools/clickup.js",
+    "doctor": "node -e \"console.log('g-os doctor ok')\""
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

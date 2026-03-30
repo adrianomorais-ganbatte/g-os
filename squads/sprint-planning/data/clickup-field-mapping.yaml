@@ -1,0 +1,64 @@
+# ClickUp Custom Field Mapping
+# Maps a8z task fields to ClickUp custom fields
+# field_id values must be configured per workspace (discovered via `clickup.js field list`)
+
+version: "1.0"
+
+fields:
+  a8z_ref:
+    description: "Reference code (M/F/B) from spec"
+    clickup_type: short_text
+    a8z_source: ref
+    field_id: ""  # Set per workspace
+
+  sprint_points:
+    description: "Story points / sprint points"
+    clickup_type: number
+    a8z_source: points
+    field_id: ""
+
+  business_rules:
+    description: "Business rules (BR-NNN)"
+    clickup_type: text
+    a8z_source: businessRules
+    field_id: ""
+
+  track:
+    description: "Development track"
+    clickup_type: drop_down
+    a8z_source: area
+    options: [backend, frontend, qa, devops, general]
+    field_id: ""
+
+  acceptance_criteria:
+    description: "Acceptance criteria"
+    clickup_type: text
+    a8z_source: acceptanceCriteria
+    field_id: ""
+
+  depends_on:
+    description: "Task dependencies (T-NNN list)"
+    clickup_type: text
+    a8z_source: dependencies
+    field_id: ""
+
+tag_conventions:
+  sprint_id: "sprint:{SPRINT_ID}"          # e.g. sprint:S01
+  sprint_status: "sprint-status:{STATUS}"  # e.g. sprint-status:active
+  track: "track:{TRACK}"                   # e.g. track:backend
+  task_id: "{TASK_ID}"                     # e.g. T-001
+
+status_mapping:
+  a8z_to_clickup:
+    todo: "to do"
+    in-progress: "in progress"
+    review: "in review"
+    done: "complete"
+    blocked: "blocked"
+  clickup_to_a8z:
+    "to do": todo
+    "in progress": in-progress
+    "in review": review
+    "complete": done
+    "closed": done
+    "blocked": blocked

@@ -1,0 +1,9 @@
+bundle:
+  name: Team IDE Minimal
+  description: Only the bare minimum for the IDE PO SM dev qa cycle.
+agents:
+  - po
+  - sm
+  - dev
+  - qa
+workflows: null

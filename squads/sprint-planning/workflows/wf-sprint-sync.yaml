@@ -1,0 +1,35 @@
+workflow:
+  id: wf-sprint-sync
+  name: "Sprint Bidirectional Sync"
+  version: "1.0.0"
+  description: >
+    Sync sprint status between ClickUp and local files.
+    Pulls remote state, diffs against local, applies changes.
+  trigger: "*sprint-sync"
+  entry_agent: sprint-chief
+  type: sequential
+
+phases:
+  - id: phase_0
+    name: "Pull Remote State"
+    agent: sprint-tracker
+    task: sync-status.md
+    description: "Fetch current sprint status from ClickUp."
+    checkpoint:
+      gate: "Remote state fetched successfully"
+
+  - id: phase_1
+    name: "Diff Local vs Remote"
+    agent: sprint-tracker
+    depends_on: [phase_0]
+    description: "Compare local task states with ClickUp states."
+    checkpoint:
+      gate: "Diff generated with change list"
+
+  - id: phase_2
+    name: "Apply Changes"
+    agent: sprint-chief
+    depends_on: [phase_1]
+    description: "Apply changes to local files or push to ClickUp."
+    checkpoint:
+      gate: "All changes applied, registry updated"

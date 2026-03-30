@@ -1,0 +1,83 @@
+bundle:
+  name: Team QA-Focused
+  description: >
+    Quality-focused team that orchestrates code review, testing, and deployment
+    validation. Ideal for pre-PR reviews, deployment gates, and comprehensive
+    quality assurance.
+
+agents:
+  - dev
+  - qa
+  - devops
+
+workflows:
+  - code-quality-gate.yaml
+  - pr-validation.yaml
+  - deployment-safety-check.yaml
+
+tasks:
+  - qa-run-tests.md
+  - pr-automation.md
+
+purpose: |
+  This team ensures code quality throughout the development lifecycle:
+
+  1. **Development Phase** (@dev):
+     - Pre-commit reviews catch issues early
+     - Fix CRITICAL issues before commit
+     - Document HIGH issues in story notes
+
+  2. **QA Phase** (@qa):
+     - Automated code review before human QA
+     - Run comprehensive test suites
+     - Validate story acceptance criteria
+     - Block completion on CRITICAL issues
+
+  3. **PR Phase** (@devops):
+     - Pre-PR quality gate (0 CRITICAL issues required)
+     - Automated PR validation workflow
+     - Lint + Tests + scan
+     - Generate comprehensive PR validation report
+
+  4. **Deployment Phase** (@devops):
+     - Deep security scan
+     - Risk analysis and blocking issue detection
+     - Environment configuration validation
+     - Migration status checks
+     - Generate deployment safety report
+
+when_to_use:
+  - Before marking stories "Ready for Review"
+  - Before creating pull requests
+  - Before production/staging deployments
+  - During QA story validation
+  - When enforcing quality standards
+  - For comprehensive code quality audits
+
+quality_gates:
+  pre_commit:
+    trigger: Developer marks story complete
+    agent: dev
+    checks:
+      - Fix all CRITICAL issues
+      - Document HIGH issues
+    threshold: 0 CRITICAL issues
+
+  pre_pr:
+    trigger: Before creating PR
+    agent: devops
+    checks:
+      - Code review scan
+      - npm run lint
+      - npm test
+    threshold: 0 CRITICAL issues, lint PASS, tests PASS
+
+  pre_deployment:
+    trigger: Before production/staging deploy
+    agent: devops
+    checks:
+      - Deep scan (last 10 commits)
+      - Environment configuration validation
+      - Database migration status
+      - Test suite execution
+    threshold: 0 CRITICAL, env 100%, tests PASS

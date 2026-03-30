@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "schema": "g-os.skills.registry.v1",
+  "skills": [
+    { "slug": "design-to-code", "path": "skills/design-to-code/SKILL.md" },
+    { "slug": "figma-implement-design", "path": "skills/figma-implement-design/SKILL.md" },
+    { "slug": "figma-make-analyzer", "path": "skills/figma-make-analyzer/SKILL.md" },
+    { "slug": "make-code-triage", "path": "skills/make-code-triage/SKILL.md" },
+    { "slug": "make-version-diff", "path": "skills/make-version-diff/SKILL.md" },
+    { "slug": "component-dedup", "path": "skills/component-dedup/SKILL.md" },
+    { "slug": "frontend-dev", "path": "skills/frontend-dev/SKILL.md" },
+    { "slug": "interface-design", "path": "skills/interface-design/SKILL.md" },
+    { "slug": "react-best-practices", "path": "skills/react-best-practices/SKILL.md" },
+    { "slug": "react-doctor", "path": "skills/react-doctor/SKILL.md" },
+    { "slug": "sprint-planner", "path": "skills/sprint-planner/SKILL.md" },
+    { "slug": "clickup", "path": "skills/clickup/SKILL.md" },
+    { "slug": "plan-to-tasks", "path": "skills/plan-to-tasks/SKILL.md" },
+    { "slug": "agent-teams", "path": "skills/agent-teams/SKILL.md" }
+  ]
+}
