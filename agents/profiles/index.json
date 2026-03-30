@@ -6,6 +6,7 @@
     { "id": "dev", "path": "dev.md" },
     { "id": "sm", "path": "sm.md" },
     { "id": "po", "path": "po.md" },
+    { "id": "qa", "path": "qa.md" },
     { "id": "devops", "path": "devops.md" },
     { "id": "squad-creator", "path": "squad-creator.md" }
   ]

@@ -5,7 +5,9 @@
   "description": "Framework enxuto para design-to-code, squads de entrega e sprint sync com ClickUp.",
   "scripts": {
     "clickup": "node scripts/tools/clickup.js",
-    "doctor": "node -e \"console.log('g-os doctor ok')\""
+    "sync:ides": "node scripts/integrations/setup-ide-adapters.js",
+    "check:ides": "node scripts/integrations/check-ide-compat.js",
+    "doctor": "npm run sync:ides && npm run check:ides"
   },
   "engines": {
     "node": ">=18"

@@ -1,0 +1,8 @@
+{
+  "project": "g-os",
+  "instructions": [
+    "instructions.md",
+    "../AGENTS.md",
+    "../CLAUDE.md"
+  ]
+}

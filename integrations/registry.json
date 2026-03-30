@@ -1,0 +1,20 @@
+{
+  "version": "0.1.0",
+  "lastUpdated": "2026-03-30",
+  "canonicalCommands": [
+    { "id": "a8z.search", "coreArtifact": "prompts/01-search.md" },
+    { "id": "a8z.spec", "coreArtifact": "prompts/02-spec.md" },
+    { "id": "a8z.tasks", "coreArtifact": "prompts/03-tasks.md" },
+    { "id": "a8z.code", "coreArtifact": "prompts/04-code.md" },
+    { "id": "a8z.review", "coreArtifact": "prompts/05-reviews.md" }
+  ],
+  "supportedIdes": {
+    "claude-code": { "workspaceDir": ".claude", "adapter": "integrations/claude", "status": "active" },
+    "antigravity": { "workspaceDir": ".antigravity", "adapter": "integrations/antigravity", "status": "active" },
+    "gemini-cli": { "workspaceDir": ".gemini", "contextFile": "GEMINI.md", "status": "active" },
+    "cursor": { "workspaceDir": ".cursor", "ruleFile": ".cursor/rules/g-os.mdc", "status": "active" },
+    "codex": { "workspaceDir": ".codex", "adapter": "integrations/codex", "status": "active" },
+    "opencode": { "workspaceDir": ".opencode", "adapter": "integrations/opencode", "status": "active" },
+    "kilo-code": { "workspaceDir": ".kilocode", "ruleFile": ".kilocode/rules/g-os.md", "status": "active" }
+  }
+}
