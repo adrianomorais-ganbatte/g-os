@@ -1,4 +1,4 @@
-# a8z.tasks
+# gos.tasks
 
 Quebre a especificacao em tarefas pequenas e ordenadas.
 

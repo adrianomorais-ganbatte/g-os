@@ -18,7 +18,7 @@ Verificar antes de criar sprint no ClickUp.
 
 ## ClickUp Space
 - [ ] Space existe e esta acessivel
-- [ ] Custom fields criados (se necessario): a8z_ref, sprint_points
+- [ ] Custom fields criados (se necessario): gos_ref, sprint_points
 - [ ] Statuses configurados: to do, in progress, in review, complete, blocked
 
 ## Team

@@ -4,23 +4,23 @@
   "status": "active",
   "mappings": [
     {
-      "canonicalCommand": "a8z.search",
+      "canonicalCommand": "gos.search",
       "coreArtifact": "prompts/01-search.md"
     },
     {
-      "canonicalCommand": "a8z.spec",
+      "canonicalCommand": "gos.spec",
       "coreArtifact": "prompts/02-spec.md"
     },
     {
-      "canonicalCommand": "a8z.tasks",
+      "canonicalCommand": "gos.tasks",
       "coreArtifact": "prompts/03-tasks.md"
     },
     {
-      "canonicalCommand": "a8z.code",
+      "canonicalCommand": "gos.code",
       "coreArtifact": "prompts/04-code.md"
     },
     {
-      "canonicalCommand": "a8z.review",
+      "canonicalCommand": "gos.review",
       "coreArtifact": "prompts/05-reviews.md"
     }
   ]

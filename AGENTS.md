@@ -28,4 +28,4 @@ Este repo existe para acelerar design-to-code e entrega de sprint.
 
 ## Runtime
 
-As skills usam suporte interno em `.a8z/` para regras, templates e bibliotecas.
+As skills usam suporte interno em `.G-OS/` para regras, templates e bibliotecas.

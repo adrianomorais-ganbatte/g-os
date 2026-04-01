@@ -4,28 +4,28 @@
   "lastUpdated": "2026-03-01",
   "mappings": [
     {
-      "ideCommand": "/a8z-search",
-      "canonicalCommand": "a8z.search",
+      "ideCommand": "/gos-search",
+      "canonicalCommand": "gos.search",
       "coreArtifact": "prompts/01-search.md"
     },
     {
-      "ideCommand": "/a8z-spec",
-      "canonicalCommand": "a8z.spec",
+      "ideCommand": "/gos-spec",
+      "canonicalCommand": "gos.spec",
       "coreArtifact": "prompts/02-spec.md"
     },
     {
-      "ideCommand": "/a8z-tasks",
-      "canonicalCommand": "a8z.tasks",
+      "ideCommand": "/gos-tasks",
+      "canonicalCommand": "gos.tasks",
       "coreArtifact": "prompts/03-tasks.md"
     },
     {
-      "ideCommand": "/a8z-code",
-      "canonicalCommand": "a8z.code",
+      "ideCommand": "/gos-code",
+      "canonicalCommand": "gos.code",
       "coreArtifact": "prompts/04-code.md"
     },
     {
-      "ideCommand": "/a8z-review",
-      "canonicalCommand": "a8z.review",
+      "ideCommand": "/gos-review",
+      "canonicalCommand": "gos.review",
       "coreArtifact": "prompts/05-reviews.md"
     }
   ]

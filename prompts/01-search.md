@@ -1,4 +1,4 @@
-# a8z.search
+# gos.search
 
 Use este prompt quando a tarefa for descobrir contexto antes de construir.
 

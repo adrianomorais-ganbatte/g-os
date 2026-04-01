@@ -27,7 +27,7 @@ function agentWrapper(agentId, target) {
 }
 
 function skillWrapper(slug, target) {
-  return `# a8z-${slug}\n\nFonte canonica: \`${target}\`\n\nLeia e siga a skill em \`${target}\`.\nEste arquivo existe apenas como adapter fino para a IDE.`;
+  return `# gos-${slug}\n\nFonte canonica: \`${target}\`\n\nLeia e siga a skill em \`${target}\`.\nEste arquivo existe apenas como adapter fino para a IDE.`;
 }
 
 function main() {
@@ -35,17 +35,17 @@ function main() {
   const skills = readJson(path.join(root, 'skills', 'registry.json')).skills;
 
   for (const agent of agents) {
-    const claudeFile = path.join(root, '.claude', 'commands', 'a8z', 'agents', `${agent.id}.md`);
+    const claudeFile = path.join(root, '.claude', 'commands', 'gos', 'agents', `${agent.id}.md`);
     const target = relativeTarget(claudeFile, path.join(root, 'agents', 'profiles', agent.path));
     writeFile(claudeFile, agentWrapper(agent.id, target));
   }
 
   for (const skill of skills) {
     const skillTargetPath = skill.skillFile || skill.path;
-    const claudeSkill = path.join(root, '.claude', 'commands', 'a8z', 'skills', `${skill.slug}.md`);
-    const codexSkill = path.join(root, '.codex', 'skills', `a8z-${skill.slug}.md`);
-    const geminiSkill = path.join(root, '.gemini', 'skills', `a8z-${skill.slug}`, 'SKILL.md');
-    const opencodeSkill = path.join(root, '.opencode', 'skills', `a8z-${skill.slug}`, 'SKILL.md');
+    const claudeSkill = path.join(root, '.claude', 'commands', 'gos', 'skills', `${skill.slug}.md`);
+    const codexSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}.md`);
+    const geminiSkill = path.join(root, '.gemini', 'skills', `gos-${skill.slug}`, 'SKILL.md');
+    const opencodeSkill = path.join(root, '.opencode', 'skills', `gos-${skill.slug}`, 'SKILL.md');
 
     writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, path.join(root, skillTargetPath))));
     writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, path.join(root, skillTargetPath))));

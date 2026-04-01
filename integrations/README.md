@@ -1,6 +1,6 @@
 # Integrations Layer (Multi-IDE / Multi-LLM)
 
-Este diretório define como o core do A8Z (na raiz) é exposto para cada IDE.
+Este diretório define como o core do G-OS (na raiz) é exposto para cada IDE.
 
 ## Princípio
 
@@ -23,15 +23,15 @@ integrations/
 
 ## Comandos canônicos
 
-A8Z usa IDs neutros para comandos compartilhados (ex.: `a8z.search`, `a8z.spec`, `a8z.tasks`, `a8z.code`, `a8z.review`).
+G-OS usa IDs neutros para comandos compartilhados (ex.: `gos.search`, `gos.spec`, `gos.tasks`, `gos.code`, `gos.review`).
 
 Cada IDE mapeia esses IDs para sua forma nativa (slash command, menu, atalho, workflow).
 
 ## Perfis de agentes
 
 - Fonte canônica: `agents/profiles/`
-- Adapter Claude: `.claude/commands/a8z/agents/`
-- Sincronização: `node scripts/integrations/sync-claude-agent-adapters.js`
+- Adapter Claude: `.claude/commands/gos/agents/`
+- Sincronização: `npm run sync:ides`
 
 ## Validacao do catalogo de integracoes
 

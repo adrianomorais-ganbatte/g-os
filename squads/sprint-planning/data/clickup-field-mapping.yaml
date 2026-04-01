@@ -42,6 +42,36 @@ fields:
     a8z_source: dependencies
     field_id: ""
 
+  context:
+    description: "Contexto de negócio — motivação da task para leitor não-técnico"
+    clickup_type: text
+    a8z_source: context
+    mapped_to: description  # Integrado na descrição rica via buildTaskDescription()
+
+  steps:
+    description: "Passo a passo de implementação (3-7 steps acionáveis)"
+    clickup_type: checklist
+    a8z_source: steps
+    mapped_to: "checklist:Implementation Steps"  # Vira checklist automaticamente
+
+  technical_notes:
+    description: "Notas técnicas, decisões de arquitetura, caveats"
+    clickup_type: text
+    a8z_source: technicalNotes
+    mapped_to: description  # Integrado na descrição rica
+
+  estimated_hours:
+    description: "Estimativa em horas (0.5-16)"
+    clickup_type: number
+    a8z_source: estimatedHours
+    mapped_to: time_estimate  # Convertido para milissegundos no import
+
+  dod:
+    description: "Definition of Done — como verificar que está pronto"
+    clickup_type: text
+    a8z_source: dod
+    mapped_to: description  # Integrado na descrição rica
+
 tag_conventions:
   sprint_id: "sprint:{SPRINT_ID}"          # e.g. sprint:S01
   sprint_status: "sprint-status:{STATUS}"  # e.g. sprint-status:active

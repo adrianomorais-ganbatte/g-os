@@ -245,7 +245,7 @@ Se o projeto envolve APIs:
 
 ## Phase 5 — Task Decomposition
 
-**Objetivo:** Decompor roadmap em tasks executaveis.
+**Objetivo:** Decompor roadmap em tasks executaveis e detalhadas o suficiente para que qualquer pessoa (tecnica ou nao) entenda o que deve ser feito.
 
 1. Executar `/plan-to-tasks sprint-planner/<slug>/PRD.md`
 2. Cada task segue formato padrao:
@@ -259,7 +259,64 @@ Se o projeto envolve APIs:
 4. Ordenar por dependencias — tasks sem dependencia primeiro
 5. Scoring de complexidade (1-25) conforme playbook de story creation
 
-**Gate:** Tasks acionaveis sem interpretacao subjetiva.
+### Regras de Enriquecimento Obrigatorio
+
+Cada task DEVE conter os seguintes campos com nivel de detalhe minimo:
+
+| Campo | Regra | Exemplo |
+|-------|-------|---------|
+| `description` | Min 2 sentencas: O QUE fazer + POR QUE fazer | "Inicializar o projeto Next.js com App Router. Necessario para estabelecer a base de codigo do projeto." |
+| `context` | Motivacao para leitor nao-tecnico. Por que esta task existe no contexto do projeto | "Primeiro passo do projeto. Todas as demais tasks dependem desta estrutura estar funcional." |
+| `acceptanceCriteria` | Formato DADO/QUANDO/ENTAO. Min 2 criterios verificaveis | "DADO que o repo foi clonado QUANDO rodar pnpm dev ENTAO o servidor sobe sem erros" |
+| `steps` | Passo a passo de implementacao (3-7 steps acionaveis) | "1. Rodar pnpm create next-app 2. Configurar Prettier 3. Criar estrutura de pastas" |
+| `points` | Story points obrigatorio (1, 2, 3, 5, 8, 13) | 3 |
+| `files` | Paths especificos, NAO diretorios genericos | `app/layout.tsx` em vez de `app/` |
+| `dependencies` | Array de T-IDs que bloqueiam esta task (vazio se nenhum) | `["T-005"]` ou `[]` |
+| `dod` | Definition of Done resumido em 1 linha | "Projeto roda localmente, estrutura match spec, preview Vercel OK" |
+| `subtasks` | Obrigatorio para tasks >5 pontos | Array de sub-items |
+| `businessRules` | IDs de regras de negocio (vazio se nenhuma) | `["BR-001"]` ou `[]` |
+
+### Exemplo de Task Enriquecida
+
+```json
+{
+  "id": "T-006",
+  "title": "Scaffold Next.js App Router",
+  "description": "Inicializar o projeto Next.js com App Router, TypeScript, Tailwind v4, ESLint e Prettier. Configurar a estrutura de pastas conforme a especificacao arquitetural (secao 2.1 do ADR) para garantir consistencia e escalabilidade do codebase.",
+  "context": "Este e o primeiro passo do projeto Fractus. Todos os demais tasks (backend e frontend) dependem desta estrutura base estar correta e funcional. A estrutura de pastas define convencoes que serao seguidas por toda a equipe.",
+  "priority": "P0",
+  "area": "backend",
+  "points": 3,
+  "assignee": "Douglas Oliveira",
+  "steps": [
+    "Rodar pnpm create next-app@latest com App Router, TypeScript, Tailwind, ESLint",
+    "Configurar Prettier com regras do projeto (.prettierrc)",
+    "Criar estrutura de pastas: app/, components/ui/, lib/, hooks/, types/, services/",
+    "Configurar path aliases no tsconfig.json (@/ para src/)",
+    "Adicionar scripts no package.json (dev, build, lint, format)",
+    "Validar que pnpm dev sobe sem erros",
+    "Fazer deploy preview no Vercel e confirmar que a pagina padrao renderiza"
+  ],
+  "acceptanceCriteria": [
+    "DADO que o repo foi clonado QUANDO rodar pnpm install && pnpm dev ENTAO o servidor sobe em localhost:3000 sem erros",
+    "DADO a estrutura de pastas QUANDO comparar com secao 2.1 do ADR ENTAO todos os diretorios listados existem",
+    "DADO o projeto deployado QUANDO acessar a preview URL no Vercel ENTAO a pagina renderiza com status 200"
+  ],
+  "files": [
+    "package.json", "tsconfig.json", "next.config.ts", "tailwind.config.ts",
+    ".prettierrc", ".eslintrc.json", "app/layout.tsx", "app/page.tsx"
+  ],
+  "dependencies": [],
+  "businessRules": [],
+  "dod": "Projeto roda localmente, estrutura match spec, preview Vercel funcional"
+}
+```
+
+### Validacao Pre-Import
+
+O CLI `clickup.js sprint import` agora valida cada task automaticamente (score 0-100). Tasks com score < 30 bloqueiam o import. Use `--skip-validation` para bypass.
+
+**Gate:** Tasks acionaveis, detalhadas e sem interpretacao subjetiva.
 
 ## Phase 6 — Environment & Setup Tasks
 
@@ -297,34 +354,30 @@ Se o projeto envolve APIs:
    - Ordem de execucao sugerida
    - Proximos passos (qual skill usar para executar)
 
-2. Registrar decisoes em `.a8z/memory/decision-log.json`
+2. Registrar decisoes em `.G-OS/memory/decision-log.json`
 
 ### ClickUp-Ready Output (Opcional)
 
 Se o projeto usa ClickUp para gestao, gerar tambem o JSON de import:
 
 1. Gerar `sprint-planner/<slug>/sprint-import.json` no formato do schema `data/schemas/sprint-clickup.schema.json`
-2. Cada task com campos: `id`, `title`, `description`, `priority`, `area`, `assignee`, `businessRules`, `acceptanceCriteria`, `files`
-3. Criterios de aceite em formato simples (viram checklists no ClickUp automaticamente)
-4. Campo `assignee` com nome do responsavel (resolvido pelo CLI via `--team-id`)
-5. Importar via: `node scripts/tools/clickup.js sprint import --folder-id <id> --file sprint-import.json --team-id <id>`
-
-**Formato de entrega para ClickUp (sem markdown):**
-```
-TAREFA: [Nome]
-Descricao: [o que e e por que]
-Criterios de aceite:
-- DADO QUE ... QUANDO ... ENTAO ...
-Dependencias: ...
-Responsavel: [FE/BE/QA/UX/Produto]
-Subtarefas:
-- ...
-```
+2. Cada task com TODOS os campos de enriquecimento obrigatorio (ver Phase 5):
+   - `id`, `title`, `description`, `context`, `priority`, `area`, `points`
+   - `assignee`, `steps`, `acceptanceCriteria` (DADO/QUANDO/ENTAO)
+   - `files` (paths especificos), `dependencies`, `businessRules`, `dod`
+   - `subtasks` (obrigatorio para tasks >5 pontos)
+   - `estimatedHours` (0.5-16), `technicalNotes` (quando aplicavel)
+3. Criterios de aceite viram checklist "Acceptance Criteria" no ClickUp automaticamente
+4. Steps viram checklist "Implementation Steps" no ClickUp automaticamente
+5. Campo `assignee` com nome do responsavel (resolvido pelo CLI via `--team-id`)
+6. Textos passam por sanitizacao automatica (correcao de acentos + deteccao de padroes de IA)
+7. Importar via: `node scripts/tools/clickup.js sprint import --folder-id <id> --file sprint-import.json --team-id <id>`
+8. Para enriquecer tasks ja importadas: `node scripts/tools/clickup.js task enrich --file enriched.json`
 
 ### Artefatos Finais
 
 ```
-.a8z/sprint-planner/<slug>/
+.G-OS/sprint-planner/<slug>/
   input-analysis.md
   PRD.md
   ADR-001.md (... ADR-NNN.md)
@@ -333,7 +386,7 @@ Subtarefas:
   SPRINT-OVERVIEW.md
   sprint-import.json (se ClickUp habilitado)
 
-.a8z/tasks/
+.G-OS/tasks/
   TASK-YYYYMM-001.md
   TASK-YYYYMM-002.md
   ...

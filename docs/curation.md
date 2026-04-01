@@ -2,7 +2,7 @@
 
 ## Escopo
 
-O `G-OS` foi montado como uma distribuicao enxuta do `.a8z-OS` para cobrir apenas:
+O `G-OS` foi montado como uma distribuicao enxuta para cobrir apenas:
 
 - design to code
 - Figma MCP
@@ -42,7 +42,7 @@ O `G-OS` foi montado como uma distribuicao enxuta do `.a8z-OS` para cobrir apena
 - `design-squad`
 - `sprint-planning`
 
-## Camada `.a8z`
+## Camada `.G-OS`
 
 Foram mantidos apenas os suportes exigidos pelas skills copiadas:
 
@@ -56,5 +56,5 @@ Foram mantidos apenas os suportes exigidos pelas skills copiadas:
 - proposals
 - marketing squads
 - memoria completa do framework
-- CLI completa `a8z`
+- CLI legada do framework anterior
 - runtime multi-IDE integral

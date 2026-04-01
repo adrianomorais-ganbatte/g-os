@@ -15,7 +15,7 @@ Framework enxuto para transformar design em produto com IA.
 - `skills/` skills curadas para design-to-code e sprint delivery
 - `squads/` squads prontos para design delivery e sprint planning
 - `scripts/tools/clickup.js` CLI zero-dep para ClickUp
-- `.a8z/` runtime enxuto com regras, bibliotecas e templates que as skills referenciam
+- `.G-OS/` runtime enxuto com regras, bibliotecas e templates que as skills referenciam
 
 ## Fluxo recomendado
 

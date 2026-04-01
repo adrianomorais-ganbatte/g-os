@@ -158,11 +158,11 @@ node scripts/tools/clickup.js sprint get --folder-id <FOLDER_ID> --assignee doug
 
 Retorna: total tasks, done, in-progress, blocked, completion %, por-track e por-assignee.
 
-## Custom Field Mapping (a8z -> ClickUp)
+## Custom Field Mapping (G-OS -> ClickUp)
 
-| Campo a8z | ClickUp Custom Field | Tipo |
+| Campo G-OS | ClickUp Custom Field | Tipo |
 |-----------|---------------------|------|
-| ref (M/F/B) | a8z_ref | Short Text |
+| ref (M/F/B) | gos_ref | Short Text |
 | points | sprint_points | Number |
 | businessRules | business_rules | Text |
 | area | track | Drop Down |

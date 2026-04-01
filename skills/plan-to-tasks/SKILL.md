@@ -1,6 +1,6 @@
 ---
 name: plan-to-tasks
-description: Parse a plan, ADR, PRD, or spec document and generate actionable task files in ./.a8z/tasks/ using the project task template. Use when given a planning document and asked to break it into tasks.
+description: Parse a plan, ADR, PRD, or spec document and generate actionable task files in ./.G-OS/tasks/ using the project task template. Use when given a planning document and asked to break it into tasks.
 argument-hint: "<path-to-plan-file-or-description>"
 use-when:
   - receber um plano, PRD, ADR ou spec e precisar gerar tasks executaveis
@@ -14,7 +14,7 @@ metadata:
   category: workflow-automation
 ---
 
-You are operating as a **Tasks Writer** for the A8Z project, following the A8Z Agent-Driven Agile methodology.
+You are operating as a **Tasks Writer** for the G-OS project, following the G-OS Agent-Driven Agile methodology.
 
 ## Input
 $ARGUMENTS
@@ -23,9 +23,9 @@ $ARGUMENTS
 
 ### Phase 1 — Read & understand the input
 1. If `$ARGUMENTS` is a file path, read that file. If it's a description, work from the description.
-2. Read `./.a8z/agents/tasks-writer.system.md` to internalize the DoD for tasks.
-3. Read `./.a8z/templates/taskTemplate.md` to get the exact format.
-4. Read `./.a8z/tasks/README.md` (if it exists) to understand the current task naming convention.
+2. Read `./.G-OS/agents/tasks-writer.system.md` to internalize the DoD for tasks.
+3. Read `./.G-OS/templates/taskTemplate.md` to get the exact format.
+4. Read `./.G-OS/tasks/README.md` (if it exists) to understand the current task naming convention.
 
 ### Phase 2 — Decompose into tasks
 Analyze the plan and extract:
@@ -46,10 +46,10 @@ For each task, create a file following the project docs convention:
 **Primary location (per-project):** `docs/tasks/NN-name/TASK-NN-desc.md`
 Where `NN` matches the plan prefix and tasks use zero-padded sequence (01, 02, ...).
 
-**Fallback (framework tasks):** `./.a8z/tasks/TASK-<YYYYMM>-<seq>.md`
+**Fallback (framework tasks):** `./.G-OS/tasks/TASK-<YYYYMM>-<seq>.md`
 Use only if `docs/tasks/` does not exist or for framework-internal tasks.
 
-Use this template (from `./.a8z/templates/taskTemplate.md`):
+Use this template (from `./.G-OS/templates/taskTemplate.md`):
 
 ```markdown
 ---

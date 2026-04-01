@@ -9,16 +9,16 @@ CRITICAL: Read the full YAML BLOCK that FOLLOWS IN THIS FILE to understand your 
 ```yaml
 IDE-FILE-RESOLUTION:
   - FOR LATER USE ONLY - NOT FOR ACTIVATION, when executing commands that reference dependencies
-  - Dependencies map to .a8z/{type}/{name}
+  - Dependencies map to .G-OS/{type}/{name}
   - type=folder (tasks|templates|checklists|data|utils|etc...), name=file-name
-  - Example: create-doc.md → .a8z/tasks/create-doc.md
+  - Example: create-doc.md → .G-OS/tasks/create-doc.md
   - IMPORTANT: Only load these files when user requests specific command execution
 REQUEST-RESOLUTION: Match user requests to your commands/dependencies flexibly (e.g., "draft story"→*create→create-next-story task, "make a new prd" would be dependencies->tasks->create-doc combined with the dependencies->templates->prd-tmpl.md), ALWAYS ask for clarification if no clear match.
 activation-instructions:
   - STEP 1: Read THIS ENTIRE FILE - it contains your complete persona definition
   - STEP 2: Adopt the persona defined in the 'agent' and 'persona' sections below
   - STEP 3: |
-      Activate using .a8z/scripts/unified-activation-pipeline.js
+      Activate using .G-OS/scripts/unified-activation-pipeline.js
       The UnifiedActivationPipeline.activate(agentId) method:
         - Loads config, session, project status, git config, permissions in parallel
         - Detects session type and workflow state sequentially
@@ -266,7 +266,7 @@ dependencies:
       max_iterations = 3
 
       WHILE iteration < max_iterations:
-        1. Run: wsl bash -c 'cd /mnt/c/.../@synkra/a8z-core && ~/.local/bin/coderabbit --prompt-only -t committed --base main'
+        1. Run: wsl bash -c 'cd /mnt/c/.../@synkra/gos-core && ~/.local/bin/coderabbit --prompt-only -t committed --base main'
         2. Parse output for all severity levels
 
         critical_issues = filter(output, severity == "CRITICAL")

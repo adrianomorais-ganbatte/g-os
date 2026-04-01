@@ -63,5 +63,26 @@ delegation:
       trigger_after: [create-component-spec, create-design-system]
       action: "Validar conformidade atomic design automaticamente"
 
+knowledge_bases:
+  - path: libraries/ui-ux-data/ux-best-practices.md
+    description: "60+ heuristicas UX consolidadas de 11 fontes (NN Group, Baymard, Figma, Mendix, Designlab)"
+    usage: "Carregar como referencia em audit-design, review, design-ux-flow e create-component-spec"
+  - path: libraries/ui-ux-data/ux-guidelines.csv
+    description: "Dataset de guidelines UX estruturado"
+  - path: libraries/content/ai-writing-patterns.md
+    description: "Padroes de escrita artificial para evitar em deliverables de design"
+
+references:
+  - url: https://www.figma.com/pt-br/resource-library/principios-design-ui/
+    topic: UI design principles
+  - url: https://www.nngroup.com/articles/strategies-complex-application-design/
+    topic: Complex application design strategies
+  - url: https://baymard.com/learn/ux-design-principles
+    topic: Research-backed UX principles (e-commerce focus)
+  - url: https://docs.mendix.com/howto/front-end/ux-best-practices/
+    topic: Enterprise/low-code UX best practices
+  - url: https://designlab.com/blog/form-ui-design-best-practices
+    topic: Form design patterns
+
 config:
   extends: extend

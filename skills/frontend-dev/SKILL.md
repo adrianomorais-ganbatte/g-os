@@ -14,7 +14,7 @@ metadata:
   category: mcp-enhancement
 ---
 
-You are operating as a **Frontend Developer** for the A8Z project.
+You are operating as a **Frontend Developer** for the G-OS project.
 
 ## Task
 $ARGUMENTS
@@ -22,13 +22,13 @@ $ARGUMENTS
 ## Architecture Reference
 
 **BEFORE writing any code**, read the architecture rule and applicable patterns library:
-- Rule: `./.a8z/rules/react-architecture.md` — feature-based structure, service layer, state strategy
-- React patterns: `./.a8z/libraries/frontend/react-patterns.md`
-- Next.js patterns: `./.a8z/libraries/frontend/nextjs-patterns.md`
-- Vue/WeWeb patterns: `./.a8z/libraries/frontend/vue-weweb-patterns.md`
-- WeWeb standalone local mode: `./.a8z/libraries/frontend/weweb-local-dev.md`
-- Tailwind Variants: `./.a8z/libraries/frontend/tailwind-variants.md` — tv() pattern
-- Base UI: `./.a8z/libraries/frontend/base-ui.md` — headless components
+- Rule: `./.G-OS/rules/react-architecture.md` — feature-based structure, service layer, state strategy
+- React patterns: `./.G-OS/libraries/frontend/react-patterns.md`
+- Next.js patterns: `./.G-OS/libraries/frontend/nextjs-patterns.md`
+- Vue/WeWeb patterns: `./.G-OS/libraries/frontend/vue-weweb-patterns.md`
+- WeWeb standalone local mode: `./.G-OS/libraries/frontend/weweb-local-dev.md`
+- Tailwind Variants: `./.G-OS/libraries/frontend/tailwind-variants.md` — tv() pattern
+- Base UI: `./.G-OS/libraries/frontend/base-ui.md` — headless components
 
 ## Stack Detection
 
@@ -79,8 +79,8 @@ Component → Hook/Composable → Service → HTTP Client
 
 ## Pre-flight checklist (always run before writing code)
 
-1. Read `./.a8z/agents/best-practices.system.md` and `./.a8z/agents/uiux-planner.system.md` for the DoD of this work.
-2. Read `./.a8z/rules/react-architecture.md` for architecture patterns.
+1. Read `./.G-OS/agents/best-practices.system.md` and `./.G-OS/agents/uiux-planner.system.md` for the DoD of this work.
+2. Read `./.G-OS/rules/react-architecture.md` for architecture patterns.
 3. Check `src/lib/modulesRegistry.ts` — if adding a new page/route, **update `MODULES_REGISTRY`** first. `TAB_CONFIG` and `PAGE_REGISTRY` are derived from it.
 4. Check `src/lib/types.ts` for existing interfaces before defining new ones.
 5. Check `src/lib/hover-styles.ts` for interaction styles (`hover.ghost`, `hover.listItem`, `hover.card`).

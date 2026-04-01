@@ -82,6 +82,212 @@ async function apiWithDelay(method, path, body, delayMs = 200) {
   return result
 }
 
+// --- Text Quality: Sanitize + AI Pattern Detection ---
+
+const ACCENT_FIXES = {
+  'nao': 'não', 'entao': 'então', 'tambem': 'também', 'codigo': 'código',
+  'pagina': 'página', 'unico': 'único', 'analise': 'análise', 'modulo': 'módulo',
+  'numero': 'número', 'especifico': 'específico', 'diretorio': 'diretório',
+  'padrao': 'padrão', 'configuracao': 'configuração', 'validacao': 'validação',
+  'implementacao': 'implementação', 'descricao': 'descrição', 'opcao': 'opção',
+  'sessao': 'sessão', 'secao': 'seção', 'funcao': 'função', 'acao': 'ação',
+  'informacao': 'informação', 'versao': 'versão', 'conexao': 'conexão',
+  'excecao': 'exceção', 'condicao': 'condição', 'operacao': 'operação',
+  'autenticacao': 'autenticação', 'migracao': 'migração', 'integracao': 'integração',
+}
+
+const AI_PATTERNS = [
+  /\bvale ressaltar\b/gi, /\bé importante destacar\b/gi,
+  /\bnesse sentido\b/gi, /\bdiante disso\b/gi,
+  /\bem suma\b/gi, /\bpor fim\b/gi,
+  /\brobusto\b/gi, /\babrangente\b/gi,
+  /\binovador\b/gi, /\bestratégico\b/gi,
+  /\bholístic[oa]\b/gi, /\balém disso\b/gi,
+  /\badicionalmente\b/gi, /\bpor outro lado\b/gi,
+]
+
+function fixAccents(text) {
+  if (!text) return text
+  for (const [wrong, right] of Object.entries(ACCENT_FIXES)) {
+    text = text.replace(new RegExp(`\\b${wrong}\\b`, 'gi'), (match) => {
+      // Preserve capitalization: Nao → Não, NAO → NÃO, nao → não
+      if (match === match.toUpperCase()) return right.toUpperCase()
+      if (match[0] === match[0].toUpperCase()) return right[0].toUpperCase() + right.slice(1)
+      return right
+    })
+  }
+  return text
+}
+
+function countAiPatterns(text) {
+  if (!text) return 0
+  let count = 0
+  for (const p of AI_PATTERNS) {
+    const m = text.match(p)
+    if (m) count += m.length
+  }
+  return count
+}
+
+function sanitizeTaskTexts(task) {
+  const textFields = ['description', 'context', 'technicalNotes', 'dod']
+  const arrayFields = ['acceptanceCriteria', 'steps']
+  let aiPatternCount = 0
+
+  for (const f of textFields) {
+    if (task[f]) {
+      task[f] = fixAccents(task[f])
+      aiPatternCount += countAiPatterns(task[f])
+    }
+  }
+  for (const f of arrayFields) {
+    if (task[f]?.length) {
+      task[f] = task[f].map(item => {
+        item = fixAccents(item)
+        aiPatternCount += countAiPatterns(item)
+        return item
+      })
+    }
+  }
+  return { task, aiPatternCount }
+}
+
+// --- Rich Description Builder ---
+
+function buildTaskDescription(task) {
+  const sections = []
+
+  if (task.description) {
+    sections.push(`## O que\n${task.description}`)
+  }
+  if (task.context) {
+    sections.push(`## Contexto\n${task.context}`)
+  }
+  if (task.steps?.length) {
+    sections.push(`## Como fazer\n${task.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`)
+  }
+  if (task.acceptanceCriteria?.length) {
+    sections.push(`## Critérios de Aceite\n${task.acceptanceCriteria.map(a => `- ${a}`).join('\n')}`)
+  }
+  if (task.businessRules?.length) {
+    sections.push(`## Regras de Negócio\n${task.businessRules.map(r => `- ${r}`).join('\n')}`)
+  }
+  if (task.dependencies?.length) {
+    sections.push(`## Dependências\n${task.dependencies.map(d => `- ${d}`).join('\n')}`)
+  }
+  if (task.files?.length) {
+    sections.push(`## Arquivos\n${task.files.map(f => `- ${f}`).join('\n')}`)
+  }
+  if (task.ref) {
+    sections.push(`## Referência\n${task.ref}`)
+  }
+  if (task.technicalNotes) {
+    sections.push(`## Notas Técnicas\n${task.technicalNotes}`)
+  }
+  if (task.dod) {
+    sections.push(`## Definition of Done\n${task.dod}`)
+  }
+
+  return sections.join('\n\n---\n\n')
+}
+
+// --- Task Completeness Validation ---
+
+function validateTaskCompleteness(task) {
+  let score = 0
+  const suggestions = []
+
+  // description (20 pts)
+  if (task.description && task.description.length > 50) {
+    score += 20
+  } else if (task.description) {
+    score += 5
+    suggestions.push(`Descrição muito curta (${task.description.length} chars). Expandir com contexto e motivação.`)
+  } else {
+    suggestions.push('Sem descrição. Adicionar O QUE fazer e POR QUE.')
+  }
+
+  // acceptanceCriteria (25 pts)
+  if (task.acceptanceCriteria?.length >= 2 && task.acceptanceCriteria.every(a => a.length > 20)) {
+    score += 25
+    if (task.acceptanceCriteria.some(a => /\b(dado|quando|então|given|when|then)\b/i.test(a))) {
+      // bonus: using Given/When/Then
+    } else {
+      suggestions.push('ACs sem formato DADO/QUANDO/ENTÃO. Reescrever para verificabilidade.')
+    }
+  } else if (task.acceptanceCriteria?.length) {
+    score += 10
+    suggestions.push(`ACs insuficientes (${task.acceptanceCriteria.length} item(ns), min 2 com >20 chars).`)
+  } else {
+    suggestions.push('Sem critérios de aceite. Adicionar mínimo 2 ACs verificáveis.')
+  }
+
+  // steps or subtasks (15 pts)
+  if (task.steps?.length || task.subtasks?.length) {
+    score += 15
+  } else {
+    suggestions.push('Sem steps de implementação. Adicionar passo a passo (3-7 steps).')
+  }
+
+  // files (10 pts)
+  if (task.files?.length) {
+    score += 10
+    if (task.files.some(f => f.endsWith('/'))) {
+      suggestions.push('Files contém diretórios genéricos. Preferir paths específicos (ex: app/page.tsx).')
+    }
+  } else {
+    suggestions.push('Sem arquivos listados. Adicionar paths dos arquivos envolvidos.')
+  }
+
+  // points (10 pts)
+  if (task.points && task.points >= 1 && task.points <= 13) {
+    score += 10
+  } else {
+    suggestions.push('Sem story points. Adicionar estimativa (1, 2, 3, 5, 8, 13).')
+  }
+
+  // dependencies (5 pts)
+  if (task.dependencies?.length >= 0) {
+    score += 5 // present even if empty means it was considered
+  }
+
+  // context or businessRules (10 pts)
+  if (task.context || task.businessRules?.length) {
+    score += 10
+  } else {
+    suggestions.push('Sem contexto de negócio. Adicionar motivação para leitor não-técnico.')
+  }
+
+  // dod or AC with Given/When/Then (5 pts)
+  if (task.dod || task.acceptanceCriteria?.some(a => /\b(dado|quando|então|given|when|then)\b/i.test(a))) {
+    score += 5
+  } else {
+    suggestions.push('Sem Definition of Done explícito.')
+  }
+
+  return { score, suggestions }
+}
+
+function validateAllTasks(tasks, skipValidation) {
+  if (skipValidation) return true
+  let hasErrors = false
+  for (const task of tasks) {
+    const { score, suggestions } = validateTaskCompleteness(task)
+    if (score < 30) {
+      console.error(`❌ ${task.id} "${task.title}" (score: ${score}/100) — requer enriquecimento`)
+      suggestions.forEach(s => console.error(`   - ${s}`))
+      hasErrors = true
+    } else if (score < 50) {
+      console.warn(`⚠ ${task.id} "${task.title}" (score: ${score}/100) — detalhamento insuficiente`)
+      suggestions.forEach(s => console.warn(`   - ${s}`))
+    } else if (suggestions.length > 0) {
+      console.warn(`ℹ ${task.id} "${task.title}" (score: ${score}/100)`)
+      suggestions.forEach(s => console.warn(`   - ${s}`))
+    }
+  }
+  return !hasErrors
+}
+
 // --- Sprint Abstraction Layer ---
 
 function sprintFolderName(id, name, start, end) {
@@ -254,8 +460,93 @@ async function main() {
           result = await api('DELETE', `/task/${rest[0]}`)
           break
         }
+        case 'enrich': {
+          // Enrich existing ClickUp tasks with rich descriptions from a JSON file
+          if (!args.file) { result = { error: '--file (enriched JSON path) required. Optionally --task-id for single task.' }; break }
+
+          const { readFileSync } = require('node:fs')
+          let enrichData
+          try {
+            enrichData = JSON.parse(readFileSync(args.file, 'utf-8'))
+          } catch (e) {
+            result = { error: `Failed to read/parse ${args.file}: ${e.message}` }; break
+          }
+
+          // Load registry for ID mapping
+          const { resolve, join } = require('node:path')
+          const { existsSync } = require('node:fs')
+          const repoRoot = process.cwd()
+          const registryPaths = [
+            resolve(repoRoot, 'data/sprints/registry.json'),
+            resolve(repoRoot, '.a8z/data/sprints/registry.json'),
+          ]
+          const registryPath = registryPaths.find(p => existsSync(p))
+          let taskMap = {}
+          if (registryPath) {
+            try { taskMap = JSON.parse(readFileSync(registryPath, 'utf-8')).taskMap || {} } catch {}
+          }
+
+          const tasks = enrichData.tasks || [enrichData]
+          const updated = []
+          const enrichFailed = []
+
+          for (const task of tasks) {
+            // Resolve ClickUp task ID
+            let clickupId = task.clickupTaskId || taskMap[task.id] || null
+            if (args['task-id'] && tasks.length === 1) clickupId = args['task-id']
+            if (!clickupId) {
+              enrichFailed.push({ task: task.id, error: `No ClickUp ID found. Add clickupTaskId or ensure registry has mapping.` })
+              continue
+            }
+
+            // Sanitize
+            const { task: sanitized, aiPatternCount } = sanitizeTaskTexts({ ...task })
+            if (aiPatternCount >= 3) {
+              console.warn(`⚠ Task "${sanitized.title}": ${aiPatternCount} padrões de IA detectados.`)
+            }
+
+            // Build rich description and update
+            const description = buildTaskDescription(sanitized)
+            const updateBody = { description }
+            if (sanitized.points) updateBody.points = sanitized.points
+            if (sanitized.estimatedHours) updateBody.time_estimate = sanitized.estimatedHours * 3600000
+
+            const res = await apiWithDelay('PUT', `/task/${clickupId}`, updateBody)
+            if (res.id) {
+              updated.push({ localId: sanitized.id, clickupId, name: sanitized.title })
+
+              // Create Implementation Steps checklist if steps present
+              if (sanitized.steps?.length > 0) {
+                const stepsRes = await apiWithDelay('POST', `/task/${clickupId}/checklist`, { name: 'Implementation Steps' })
+                if (stepsRes.checklist?.id) {
+                  for (const step of sanitized.steps) {
+                    await apiWithDelay('POST', `/checklist/${stepsRes.checklist.id}/checklist_item`, { name: step })
+                  }
+                }
+              }
+
+              // Create subtasks if present
+              if (sanitized.subtasks?.length > 0) {
+                // Need a list ID — get it from the task
+                const taskDetail = await api('GET', `/task/${clickupId}`)
+                const listId = taskDetail.list?.id
+                if (listId) {
+                  for (const st of sanitized.subtasks) {
+                    const stBody = { name: st.title || st.name, parent: clickupId, description: st.description || '' }
+                    await apiWithDelay('POST', `/list/${listId}/task`, stBody)
+                  }
+                }
+              }
+            } else {
+              enrichFailed.push({ task: sanitized.id, error: res.error || res.err || 'unknown' })
+            }
+          }
+
+          result = { enriched: updated.length, failed: enrichFailed.length, updated, errors: enrichFailed }
+          break
+        }
         default:
-          result = { error: 'Unknown task subcommand. Use: list, get, create, update, delete' }
+          result = { error: 'Unknown task subcommand. Use: list, get, create, update, delete, enrich' }
       }
       break
 
@@ -557,31 +848,38 @@ async function main() {
           const failed = []
           const tasks = plan.tasks || plan
 
+          // Pre-import validation
+          if (!validateAllTasks(tasks, args['skip-validation'])) {
+            result = { error: 'Validação falhou. Tasks com score < 30 precisam de enriquecimento. Use --skip-validation para bypass.' }
+            break
+          }
+
           for (const task of tasks) {
             const track = (task.area || task.track || 'backend').toLowerCase()
             const listId = listByTrack[track] || lists[0]?.id
             if (!listId) { failed.push({ task: task.id, error: `No list for track: ${track}` }); continue }
 
+            // Sanitize texts (accent fixes + AI pattern detection)
+            const { task: sanitized, aiPatternCount } = sanitizeTaskTexts({ ...task })
+            if (aiPatternCount >= 3) {
+              console.warn(`⚠ Task "${sanitized.title}": ${aiPatternCount} padrões de IA detectados. Considere revisar com /humanizer.`)
+            }
+
             const body = {
-              name: task.title || task.name,
-              description: [
-                task.description || '',
-                task.ref ? `\nRef: ${task.ref}` : '',
-                task.businessRules?.length ? `\nBusiness Rules: ${task.businessRules.join(', ')}` : '',
-                task.acceptanceCriteria?.length ? `\nAC:\n${task.acceptanceCriteria.map(a => `- ${a}`).join('\n')}` : '',
-                task.files?.length ? `\nFiles: ${task.files.join(', ')}` : '',
-              ].filter(Boolean).join('\n'),
-              tags: [task.id, `track:${track}`].filter(Boolean),
+              name: sanitized.title || sanitized.name,
+              description: buildTaskDescription(sanitized),
+              tags: [sanitized.id, `track:${track}`].filter(Boolean),
             }
-            if (task.priority) {
+            if (sanitized.priority) {
               const pMap = { P0: 1, P1: 2, P2: 3 }
-              body.priority = pMap[task.priority] || 3
+              body.priority = pMap[sanitized.priority] || 3
             }
-            if (task.points) body.points = task.points
-            if (task.status) body.status = task.status
+            if (sanitized.points) body.points = sanitized.points
+            if (sanitized.status) body.status = sanitized.status
+            if (sanitized.estimatedHours) body.time_estimate = sanitized.estimatedHours * 3600000
 
             // Resolve assignees from task.assignee or task.assignees
-            const rawAssignees = task.assignees || (task.assignee ? [task.assignee] : [])
+            const rawAssignees = sanitized.assignees || (sanitized.assignee ? [sanitized.assignee] : [])
             if (rawAssignees.length > 0) {
               const ids = rawAssignees.map(a => {
                 if (typeof a === 'number') return a
@@ -592,11 +890,11 @@ async function main() {
 
             const res = await apiWithDelay('POST', `/list/${listId}/task`, body)
             if (res.id) {
-              created.push({ localId: task.id, clickupId: res.id, name: body.name, track })
+              created.push({ localId: sanitized.id, clickupId: res.id, name: body.name, track })
 
               // Create subtasks if present
-              if (task.subtasks?.length) {
-                for (const st of task.subtasks) {
+              if (sanitized.subtasks?.length) {
+                for (const st of sanitized.subtasks) {
                   const stBody = {
                     name: st.title || st.name,
                     parent: res.id,
@@ -613,16 +911,26 @@ async function main() {
               }
 
               // Create checklist from acceptanceCriteria if present
-              if (task.acceptanceCriteria?.length > 0) {
+              if (sanitized.acceptanceCriteria?.length > 0) {
                 const clRes = await apiWithDelay('POST', `/task/${res.id}/checklist`, { name: 'Acceptance Criteria' })
                 if (clRes.checklist?.id) {
-                  for (const ac of task.acceptanceCriteria) {
+                  for (const ac of sanitized.acceptanceCriteria) {
                     await apiWithDelay('POST', `/checklist/${clRes.checklist.id}/checklist_item`, { name: ac })
                   }
                 }
               }
+
+              // Create checklist from steps if present
+              if (sanitized.steps?.length > 0) {
+                const stepsRes = await apiWithDelay('POST', `/task/${res.id}/checklist`, { name: 'Implementation Steps' })
+                if (stepsRes.checklist?.id) {
+                  for (const step of sanitized.steps) {
+                    await apiWithDelay('POST', `/checklist/${stepsRes.checklist.id}/checklist_item`, { name: step })
+                  }
+                }
+              }
             } else {
-              failed.push({ task: task.id, error: res.error || res.err || 'unknown' })
+              failed.push({ task: sanitized.id, error: res.error || res.err || 'unknown' })
             }
           }
 
@@ -721,7 +1029,7 @@ async function main() {
           space: 'space [list|get] [id] --team-id <id>',
           folder: 'folder [list|get|create] [id] --space-id <id> --name <name>',
           list: 'list [list|create] --folder-id <id> --name <name>',
-          task: 'task [list|get|create|update|delete] [id] --list-id <id> --task-id <id> --name <name> [--assignees id1,id2]',
+          task: 'task [list|get|create|update|delete|enrich] [id] --list-id <id> --task-id <id> --name <name> [--assignees id1,id2] [--file enriched.json]',
           subtask: 'subtask create --list-id <id> --parent <id> --name <name>',
           field: 'field [list|set] --list-id <id> --task-id <id> --field-id <id> --value <val>',
           tag: 'tag add --task-id <id> --tag <name>',
@@ -731,11 +1039,12 @@ async function main() {
             create: 'sprint create --space-id <id> --name <name> --start YYYY-MM-DD --end YYYY-MM-DD [--tracks backend,frontend] [--id S01]',
             get: 'sprint get --folder-id <id> [--assignee <name/email>] [--status <status>]',
             status: 'sprint status --folder-id <id>',
-            import: 'sprint import --folder-id <id> --file <plan.json> [--team-id <id>] [--sprint-id S01]',
+            import: 'sprint import --folder-id <id> --file <plan.json> [--team-id <id>] [--sprint-id S01] [--skip-validation]',
           },
         },
         flags: {
           '--dry-run': 'Show request without executing',
+          '--skip-validation': 'Skip task completeness validation on sprint import',
         }
       }
   }
