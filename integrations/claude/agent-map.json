@@ -3,64 +3,44 @@
   "version": "1.0.0",
   "agentAdapters": [
     {
-      "agentId": "a8z-master",
-      "canonicalProfile": "agents/profiles/a8z-master.md",
-      "adapterPath": ".claude/commands/a8z/agents/a8z-master.md"
-    },
-    {
-      "agentId": "analyst",
-      "canonicalProfile": "agents/profiles/analyst.md",
-      "adapterPath": ".claude/commands/a8z/agents/analyst.md"
+      "agentId": "ux-design-expert",
+      "canonicalProfile": "agents/profiles/ux-design-expert.md",
+      "adapterPath": ".claude/commands/gos/agents/ux-design-expert.md"
     },
     {
       "agentId": "architect",
       "canonicalProfile": "agents/profiles/architect.md",
-      "adapterPath": ".claude/commands/a8z/agents/architect.md"
-    },
-    {
-      "agentId": "data-engineer",
-      "canonicalProfile": "agents/profiles/data-engineer.md",
-      "adapterPath": ".claude/commands/a8z/agents/data-engineer.md"
+      "adapterPath": ".claude/commands/gos/agents/architect.md"
     },
     {
       "agentId": "dev",
       "canonicalProfile": "agents/profiles/dev.md",
-      "adapterPath": ".claude/commands/a8z/agents/dev.md"
-    },
-    {
-      "agentId": "devops",
-      "canonicalProfile": "agents/profiles/devops.md",
-      "adapterPath": ".claude/commands/a8z/agents/devops.md"
-    },
-    {
-      "agentId": "pm",
-      "canonicalProfile": "agents/profiles/pm.md",
-      "adapterPath": ".claude/commands/a8z/agents/pm.md"
-    },
-    {
-      "agentId": "po",
-      "canonicalProfile": "agents/profiles/po.md",
-      "adapterPath": ".claude/commands/a8z/agents/po.md"
-    },
-    {
-      "agentId": "qa",
-      "canonicalProfile": "agents/profiles/qa.md",
-      "adapterPath": ".claude/commands/a8z/agents/qa.md"
+      "adapterPath": ".claude/commands/gos/agents/dev.md"
     },
     {
       "agentId": "sm",
       "canonicalProfile": "agents/profiles/sm.md",
-      "adapterPath": ".claude/commands/a8z/agents/sm.md"
+      "adapterPath": ".claude/commands/gos/agents/sm.md"
+    },
+    {
+      "agentId": "po",
+      "canonicalProfile": "agents/profiles/po.md",
+      "adapterPath": ".claude/commands/gos/agents/po.md"
+    },
+    {
+      "agentId": "qa",
+      "canonicalProfile": "agents/profiles/qa.md",
+      "adapterPath": ".claude/commands/gos/agents/qa.md"
+    },
+    {
+      "agentId": "devops",
+      "canonicalProfile": "agents/profiles/devops.md",
+      "adapterPath": ".claude/commands/gos/agents/devops.md"
     },
     {
       "agentId": "squad-creator",
       "canonicalProfile": "agents/profiles/squad-creator.md",
-      "adapterPath": ".claude/commands/a8z/agents/squad-creator.md"
-    },
-    {
-      "agentId": "ux-design-expert",
-      "canonicalProfile": "agents/profiles/ux-design-expert.md",
-      "adapterPath": ".claude/commands/a8z/agents/ux-design-expert.md"
+      "adapterPath": ".claude/commands/gos/agents/squad-creator.md"
     }
   ]
 }

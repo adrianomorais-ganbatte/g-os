@@ -1,6 +1,6 @@
 # G-OS Rule
 
-Este projeto usa um recorte do `.a8z-OS` com foco em:
+Este projeto usa um recorte do `.G-OS` com foco em:
 
 - design-to-code
 - Figma, Figma Make e Stitch

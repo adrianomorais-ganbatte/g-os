@@ -1,4 +1,4 @@
-# a8z.review
+# gos.review
 
 Revise a entrega com foco em regressao, fidelidade ao design e prontidao para sprint.
 

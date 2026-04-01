@@ -4,39 +4,39 @@
   "status": "active",
   "notes": {
     "compatReads": "OpenCode le AGENTS.md e CLAUDE.md nativamente, alem de .claude/skills/",
-    "skillsSync": "npm run sync:opencode-skills gera .opencode/skills/a8z-{slug}/SKILL.md",
+    "skillsSync": "npm run sync:ides gera .opencode/skills/gos-{slug}/SKILL.md",
     "configFile": "opencode.json (projeto) ou ~/.config/opencode/opencode.json (global)"
   },
   "mappings": [
     {
-      "canonicalCommand": "a8z.search",
+      "canonicalCommand": "gos.search",
       "coreArtifact": "prompts/01-search.md",
-      "opencodeEquiv": "commands/search.md ou skill a8z-sdd"
+      "opencodeEquiv": "commands/search.md ou skill gos-sdd"
     },
     {
-      "canonicalCommand": "a8z.spec",
+      "canonicalCommand": "gos.spec",
       "coreArtifact": "prompts/02-spec.md",
-      "opencodeEquiv": "commands/spec.md ou skill a8z-sdd"
+      "opencodeEquiv": "commands/spec.md ou skill gos-sdd"
     },
     {
-      "canonicalCommand": "a8z.tasks",
+      "canonicalCommand": "gos.tasks",
       "coreArtifact": "prompts/03-tasks.md",
-      "opencodeEquiv": "commands/tasks.md ou skill a8z-plan-to-tasks"
+      "opencodeEquiv": "commands/tasks.md ou skill gos-plan-to-tasks"
     },
     {
-      "canonicalCommand": "a8z.code",
+      "canonicalCommand": "gos.code",
       "coreArtifact": "prompts/04-code.md",
-      "opencodeEquiv": "commands/code.md ou skill a8z-be / a8z-fe"
+      "opencodeEquiv": "commands/code.md ou skill gos-be / gos-fe"
     },
     {
-      "canonicalCommand": "a8z.review",
+      "canonicalCommand": "gos.review",
       "coreArtifact": "prompts/05-reviews.md",
-      "opencodeEquiv": "commands/review.md ou skill a8z-review-pr"
+      "opencodeEquiv": "commands/review.md ou skill gos-review-pr"
     }
   ],
   "equivalenceTable": {
-    "a8z → opencode": {
-      ".a8z/skills/*/SKILL.md": ".opencode/skills/a8z-*/SKILL.md",
+    "gos → opencode": {
+      ".G-OS/skills/*/SKILL.md": ".opencode/skills/gos-*/SKILL.md",
       "agents/.base/index.json": "opencode.json → agent {}",
       "rules/*.md": "AGENTS.md ou instructions[]",
       "playbooks/*.md": ".opencode/commands/*.md",

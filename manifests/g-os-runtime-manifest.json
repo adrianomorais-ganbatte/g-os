@@ -1,7 +1,7 @@
 {
-  "runtime": "g-os-design-delivery",
+  "runtime": "gos-design-delivery",
   "version": "0.1.0",
-  "description": "Subset curado do a8z-OS para design-to-code, sprint planning e ClickUp delivery.",
+  "description": "Runtime curado do G-OS para design-to-code, sprint planning e ClickUp delivery.",
   "modules": {
     "agents": [
       "ux-design-expert",

@@ -8,6 +8,6 @@ Use para:
 
 Padrao:
 
-1. ler skill e referencias `.a8z/`
+1. ler skill e referencias `.G-OS/`
 2. implementar o menor corte funcional
 3. validar com `react-doctor` quando houver React

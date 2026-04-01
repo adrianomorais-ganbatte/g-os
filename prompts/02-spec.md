@@ -1,4 +1,4 @@
-# a8z.spec
+# gos.spec
 
 Converta a descoberta em especificacao curta e executavel.
 

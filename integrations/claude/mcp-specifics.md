@@ -5,7 +5,7 @@
 
 ## MCP Configuration Architecture
 
-A8Z usa **Docker MCP Toolkit** como infraestrutura principal para MCP.
+G-OS usa **Docker MCP Toolkit** como infraestrutura principal para MCP.
 
 ### Global (~/.claude.json) — MCP_DOCKER
 
@@ -42,7 +42,7 @@ O gateway Docker MCP Toolkit é registrado globalmente no Claude Code:
 | MCP | Purpose |
 |-----|---------|
 | **context7** (stdio) | Context7 direto via npx (alternativa ao Docker) |
-| **a8z** (http) | A8Z framework API |
+| **g-os** (http) | G-OS framework API |
 
 ## CRITICAL: Tool Selection Priority
 

@@ -4,9 +4,9 @@ Adapter ativo para ambiente OpenCode (opencode.ai).
 
 ## Status: Ativo
 
-- Skills sincronizadas automaticamente via `npm run sync:opencode-skills`
-- 73 skills do a8z disponiveis como `.opencode/skills/a8z-{slug}/SKILL.md`
-- CLI `a8z init` gera adapters automaticamente
+- Skills sincronizadas automaticamente via `npm run sync:ides`
+- 73 skills do G-OS disponiveis como `.opencode/skills/gos-{slug}/SKILL.md`
+- `npm run sync:ides` gera adapters automaticamente
 
 ## Compatibilidade nativa
 
@@ -15,17 +15,17 @@ OpenCode le nativamente:
 - `CLAUDE.md` (compatibilidade retroativa)
 - `.claude/skills/` (skills do Claude Code)
 
-Isso significa que projetos com a8z ja funcionam no OpenCode sem configuracao adicional.
+Isso significa que projetos com G-OS ja funcionam no OpenCode sem configuracao adicional.
 
 ## Setup
 
 ```bash
-# 1. Instalar a8z no projeto
-npx @imdouglasoliveira/a8z-framework init
+# 1. Sincronizar adapters do G-OS no projeto
+npm run sync:ides
 
 # 2. OpenCode detecta automaticamente:
 #    - AGENTS.md (regras do projeto)
-#    - .opencode/skills/ (skills do a8z)
+#    - .opencode/skills/ (skills do G-OS)
 #    - CLAUDE.md (instrucoes adicionais)
 
 # 3. Usar skills no OpenCode
@@ -35,21 +35,21 @@ npx @imdouglasoliveira/a8z-framework init
 ## Sync manual
 
 ```bash
-# Regenerar adapters de skills
-npm run sync:opencode-skills
+# Regenerar adapters
+npm run sync:ides
 
 # Validar adapters
-npm run check:opencode-skills
+npm run check:ides
 
-# Sync todas as IDEs (inclui OpenCode)
-npm run sync:all-ides
+# Regenerar e validar tudo
+npm run doctor
 ```
 
-## Equivalencia a8z <-> OpenCode
+## Equivalencia G-OS <-> OpenCode
 
-| a8z | OpenCode |
+| G-OS | OpenCode |
 |-----|----------|
-| `.a8z/skills/*/SKILL.md` | `.opencode/skills/*/SKILL.md` |
+| `.G-OS/skills/*/SKILL.md` | `.opencode/skills/*/SKILL.md` |
 | `agents/.base/index.json` | `opencode.json` → `agent` |
 | `rules/*.md` | `AGENTS.md` ou `instructions[]` |
 | `playbooks/*.md` | `.opencode/commands/*.md` |
@@ -77,10 +77,10 @@ projeto/
 ├── opencode.json                      # Config OpenCode (opcional)
 ├── .opencode/
 │   └── skills/
-│       ├── a8z-commit-dev/SKILL.md    # Adapter auto-gerado
-│       ├── a8z-fe/SKILL.md            # Adapter auto-gerado
-│       └── ...                        # 73 skills
-└── .a8z/
+│       ├── gos-commit-dev/SKILL.md     # Adapter auto-gerado
+│       ├── gos-fe/SKILL.md             # Adapter auto-gerado
+│       └── ...                        # skills sincronizadas
+└── .G-OS/
     └── skills/                        # Fonte canonica
 ```
 
@@ -88,4 +88,4 @@ projeto/
 
 - [Documentacao OpenCode](https://opencode.ai/docs/)
 - `integrations/opencode/command-map.json` — mapeamento de comandos
-- `scripts/integrations/sync-opencode-skills.js` — script de sync
+- `scripts/integrations/setup-ide-adapters.js` — script de sync

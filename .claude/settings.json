@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "REGRA ADVISORY (NAO-BLOQUEANTE): Se o arquivo sendo escrito/editado e um .md, .txt, ou contem texto externo (proposals, emails, copy, landing pages) — NAO codigo fonte: verificar rapidamente se o conteudo contem 3+ padroes de escrita artificial (frases como 'vale ressaltar', 'e importante destacar', 'nesse sentido', 'diante disso', 'em suma', 'por fim', listas excessivas com 'Alem disso/Adicionalmente/Por outro lado', paragrafos que comecam com gerundio, uso excessivo de 'robusto/abrangente/inovador/estrategico'). Se detectar 3+ padroes: emitir AVISO inline (nao bloquear) sugerindo '/humanizer' para refinar o texto. Se <3 padroes ou se for codigo/config: prosseguir sem output. NUNCA bloquear a operacao Write/Edit.",
+            "statusMessage": "Verificando padroes de escrita..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "REGRA: NAO bloqueie, NAO pergunte, NAO pare. Execute silenciosamente e finalize. Se arquivos .tsx/.ts/.jsx/.vue/.md/.txt foram criados/modificados nesta sessao: varrer strings pt-BR buscando erros de acentuacao. Palavras comuns sem acento que DEVEM ser corrigidas: aplicacao->aplicação, solucao->solução, funcao->função, comunicacao->comunicação, integracao->integração, operacao->operação, producao->produção, manutencao->manutenção, automacao->automação, descricao->descrição, configuracao->configuração, especificacao->especificação, aplicacoes->aplicações, disponivel->disponível, titulo->título, diagnostico->diagnóstico, tecnico->técnica/técnico, analise->análise, estrategia->estratégia, logica->lógica, proximo->próximo, proprio->próprio, prototipo->protótipo, rapido->rápido, padrao->padrão, visao->visão, revisao->revisão, nao->não, sao->são, esta (verbo)->está, voce->você, tambem->também, codigo->código, conteudo->conteúdo, Abraco->Abraço. NAO alterar variaveis, keys, enums, campos DB, nomes de funcoes, slugs, IDs. Se encontrar erros, corrija-os diretamente com a tool Edit e informe em 1 linha o que corrigiu. Se nao encontrar, finalize sem output.",
+            "statusMessage": "Corrigindo ortografia pt-BR..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "REGRA: NAO bloqueie, NAO pergunte. Se arquivos .md ou .txt EXTERNOS (proposals, emails, copy, landing pages, apresentacoes — NAO CLAUDE.md, SKILL.md, AGENT.md, README.md ou docs tecnicos) foram criados/modificados nesta sessao: fazer scan rapido por padroes de escrita artificial. Categorias a verificar: (1) Content patterns — listas excessivas, bullet-point-itis, falsa completude. (2) Language patterns — 'vale ressaltar', 'e importante destacar', 'nesse sentido', 'diante disso', hedging excessivo. (3) Style patterns — paragrafos uniformes, tom robotico, transicoes mecanicas. (4) Filler — 'robusto', 'abrangente', 'inovador', 'estrategico', 'holistic'. Se score estimado >30: informar em 1 linha 'Texto com padroes de IA detectados (score ~N). Considere rodar /humanizer para refinar.' NAO corrigir automaticamente — apenas informar. Se score <=30 ou se nenhum arquivo externo foi modificado, finalizar sem output.",
+            "statusMessage": "Verificando autenticidade de texto..."
+          }
+        ]
+      }
+    ]
+  },
+  "outputStyle": "concise",
+  "language": "portuguese"
+}

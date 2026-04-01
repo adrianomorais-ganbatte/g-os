@@ -1,4 +1,4 @@
-# a8z.code
+# gos.code
 
 Implemente a entrega usando os artefatos do `G-OS`.
 

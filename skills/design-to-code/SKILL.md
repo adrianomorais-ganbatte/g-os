@@ -38,10 +38,10 @@ $ARGUMENTS
 ## MANDATORY: Read References First
 
 Antes de qualquer codigo:
-- `./.a8z/libraries/frontend/tailwind-variants.md` — tv(), VariantProps, twMerge
-- `./.a8z/libraries/frontend/base-ui.md` — Dialog, Tabs, Select, Menu headless
-- `./.a8z/libraries/frontend/tailwindcss.md` — Tailwind v4, @theme, CSS variables
-- `./.a8z/rules/react-architecture.md` — convencoes de arquivo, acessibilidade
+- `./.G-OS/libraries/frontend/tailwind-variants.md` — tv(), VariantProps, twMerge
+- `./.G-OS/libraries/frontend/base-ui.md` — Dialog, Tabs, Select, Menu headless
+- `./.G-OS/libraries/frontend/tailwindcss.md` — Tailwind v4, @theme, CSS variables
+- `./.G-OS/rules/react-architecture.md` — convencoes de arquivo, acessibilidade
 
 ## Stack Detection
 
