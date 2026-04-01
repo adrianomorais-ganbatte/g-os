@@ -1,0 +1,27 @@
+workflow:
+  id: wf-safe-commit
+  name: "Safe Commit Pipeline"
+  entry_agent: dev
+  type: sequential
+
+phases:
+  - id: validate
+    name: "Pre-Commit Quality Gate"
+    owner: dev
+    goal: "Rodar node scripts/hooks/pre-commit-validate.js --json. Se falhar, corrigir erros e re-validar (max 2 tentativas)."
+  - id: pre-check
+    name: "SSH Identity Check"
+    owner: dev
+    goal: "Carregar ssh-identity.json, validar que o remote URL usa o alias SSH correto."
+  - id: stage
+    name: "Stage Changes"
+    owner: dev
+    goal: "Adicionar mudancas relevantes ao staging area com git add."
+  - id: commit
+    name: "Create Commit"
+    owner: dev
+    goal: "Criar commit com Conventional Commits. Alias SSH nao pode aparecer na mensagem."
+  - id: safe-push
+    name: "Safe Push"
+    owner: devops
+    goal: "Validar remote URL contra ssh-identity.json, corrigir se necessario, executar git push."

@@ -7,3 +7,10 @@ coverage/
 .idea/
 .vscode/
 tmp/
+
+# G-OS local (nao versionado)
+.gos-local/
+
+# Conteudo de usuario
+packages/*/node_modules/
+packages/*/figma-make/

@@ -25,12 +25,14 @@
       "sprint-planner",
       "clickup",
       "plan-to-tasks",
-      "agent-teams"
+      "agent-teams",
+      "git-ssh-setup"
     ],
     "squads": [
       "design-delivery",
       "design-squad",
-      "sprint-planning"
+      "sprint-planning",
+      "git-operations"
     ]
   }
 }
