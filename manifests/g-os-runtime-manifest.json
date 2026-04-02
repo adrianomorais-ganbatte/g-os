@@ -4,7 +4,7 @@
   "description": "Runtime curado do G-OS para design-to-code, sprint planning e ClickUp delivery.",
   "modules": {
     "agents": [
-      "a8z-master",
+      "gos-master",
       "ux-design-expert",
       "architect",
       "dev",

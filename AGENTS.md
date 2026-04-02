@@ -6,7 +6,7 @@ Este repo existe para acelerar design-to-code e entrega de sprint.
 
 ## Agentes principais
 
-- `a8z-master`: orquestrador master — roteia para o skill/agent/squad certo conforme a complexidade
+- `gos-master`: orquestrador master — roteia para o skill/agent/squad certo conforme a complexidade
 - `ux-design-expert`: leitura de design, tokens, componentes e handoff
 - `architect`: define stack e cortes de integracao para React/Next.js
 - `dev`: implementa componentes, paginas, hooks e refinamentos

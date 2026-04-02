@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "profiles": [
-    { "id": "a8z-master", "path": "a8z-master.md" },
+    { "id": "gos-master", "path": "gos-master.md" },
     { "id": "ux-design-expert", "path": "ux-design-expert.md" },
     { "id": "architect", "path": "architect.md" },
     { "id": "dev", "path": "dev.md" },
