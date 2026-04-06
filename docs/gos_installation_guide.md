@@ -4,6 +4,9 @@ ganbatte-os is a modern operational framework designed for **design-to-code**, d
 
 ---
 
+[![NPM Version](https://img.shields.io/npm/v/ganbatte-os)](https://www.npmjs.com/package/ganbatte-os)
+[![NPM Registry](https://img.shields.io/badge/NPM-Registry-red)](https://www.npmjs.com/package/ganbatte-os)
+
 ## 🛠 Prerequisites
 
 Before starting, ensure you have the following installed:
