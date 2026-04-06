@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * gos-cli.js — CLI do G-OS para setup, update e validacao de workspace.
+ * gos-cli.js — CLI do ganbatte-os para setup, update e validacao de workspace.
  * Zero dependencies externas. Usa apenas modulos nativos do Node.js.
  *
  * Comandos:
@@ -29,7 +29,7 @@ const MANIFEST_PATH = 'manifests/gos-install-manifest.json';
 // Utilitarios
 // ---------------------------------------------------------------------------
 
-const log   = (msg) => console.log(`[G-OS] ${msg}`);
+const log   = (msg) => console.log(`[ganbatte-os] ${msg}`);
 const info  = (msg) => console.log(`  i  ${msg}`);
 const ok    = (msg) => console.log(`  v  ${msg}`);
 const warn  = (msg) => console.log(`  !  ${msg}`);
@@ -159,7 +159,7 @@ function mergeGitignore(root, entries) {
 function cmdInit(root, args) {
   const force = args.includes('--force');
 
-  log('Inicializando workspace G-OS...');
+  log('Inicializando workspace ganbatte-os...');
 
   // 1. Validar Node >= 18
   const nodeVersion = parseInt(process.version.slice(1), 10);
@@ -187,7 +187,7 @@ function cmdInit(root, args) {
     ok('Remote upstream ja existe.');
   } else {
     warn('Nenhum remote origin encontrado. Configure manualmente:');
-    info(`  git remote add ${UPSTREAM_REMOTE} https://github.com/adrianomorais-ganbatte/g-os.git`);
+    info(`  git remote add ${UPSTREAM_REMOTE} https://github.com/adrianomorais-ganbatte/ganbatte-os.git`);
   }
 
   // 4. Criar diretorios locais
@@ -235,7 +235,7 @@ function cmdInit(root, args) {
 
   // 10. Sucesso
   console.log('');
-  ok('Workspace G-OS inicializado com sucesso!');
+  ok('Workspace ganbatte-os inicializado com sucesso!');
   console.log('');
   console.log(`  Versao:     ${VERSION}`);
   console.log(`  Local dir:  ${LOCAL_DIR}/`);
@@ -268,11 +268,11 @@ function cmdInstall(args) {
     return;
   }
 
-  log(`Instalando G-OS em: ${targetRoot}`);
+  log(`Instalando ganbatte-os em: ${targetRoot}`);
   
   // 1. Validar se diretorio ja tem G-OS (a menos que use --force)
   if (pathExists(path.join(targetRoot, LOCAL_DIR)) && !args.includes('--force')) {
-    fail('Workspace G-OS ja detectado neste diretorio.');
+    fail('Workspace ganbatte-os ja detectado neste diretorio.');
     info('Use --force para reinstalar/sobrescrever.');
     process.exit(1);
   }
@@ -295,7 +295,7 @@ function cmdInstall(args) {
   const remotes = gitCapture(['remote'], { cwd: targetRoot });
   if (!remotes.includes(UPSTREAM_REMOTE)) {
     try {
-      git(['remote', 'add', UPSTREAM_REMOTE, 'https://github.com/adrianomorais-ganbatte/g-os.git'], { cwd: targetRoot });
+      git(['remote', 'add', UPSTREAM_REMOTE, 'https://github.com/adrianomorais-ganbatte/ganbatte-os.git'], { cwd: targetRoot });
       ok(`Remote "${UPSTREAM_REMOTE}" adicionado.`);
     } catch {
       warn(`Nao foi possivel adicionar o remote "${UPSTREAM_REMOTE}". Configure manualmente.`);
@@ -310,13 +310,13 @@ function cmdInstall(args) {
 function cmdUpdate(root, args) {
   const skipStash = args.includes('--no-stash');
 
-  log('Atualizando workspace G-OS...');
+  log('Atualizando workspace ganbatte-os...');
 
   // 1. Verificar remote upstream
   const remotes = gitCapture(['remote'], { cwd: root });
   if (!remotes.includes(UPSTREAM_REMOTE)) {
     fail(`Remote "${UPSTREAM_REMOTE}" nao encontrado.`);
-    info(`Adicione com: git remote add ${UPSTREAM_REMOTE} https://github.com/adrianomorais-ganbatte/g-os.git`);
+    info(`Adicione com: git remote add ${UPSTREAM_REMOTE} https://github.com/adrianomorais-ganbatte/ganbatte-os.git`);
     process.exit(1);
   }
 
@@ -461,7 +461,7 @@ function cmdUpdate(root, args) {
 // ---------------------------------------------------------------------------
 
 function cmdDoctor(root) {
-  log('Validando workspace G-OS...');
+  log('Validando workspace ganbatte-os...');
   console.log('');
 
   let issues = 0;
@@ -582,7 +582,7 @@ function cmdVersion(root) {
   const pkg = readJson(path.join(root, 'package.json'), {});
   const localVersion = pkg.version || VERSION;
 
-  console.log(`G-OS v${localVersion}`);
+  console.log(`ganbatte-os v${localVersion}`);
 
   // Checar se ha commits novos no upstream
   const remotes = gitCapture(['remote'], { cwd: root });
@@ -647,7 +647,7 @@ function main() {
     case '-h':
     case '--help':
       console.log(`
-G-OS CLI v${VERSION}
+ganbatte-os CLI v${VERSION}
 
 Comandos:
   gos install   Instalar G-OS no diretorio atual (via npx ou global)
@@ -662,7 +662,7 @@ Flags:
   --no-stash    Nao fazer stash automatico (update)
 
 Exemplos:
-  npx g-os install
+  npx ganbatte-os install
   node scripts/cli/gos-cli.js init
   npm run gos:update
   npm run gos:doctor

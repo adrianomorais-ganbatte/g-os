@@ -1,6 +1,6 @@
-# G-OS Context
+# ganbatte-os Context
 
-G-OS e uma distribuicao enxuta do framework operacional G-OS para:
+ganbatte-os e uma distribuicao enxuta do framework operacional ganbatte-os para:
 
 - converter design em codigo
 - organizar squads de entrega
@@ -11,17 +11,17 @@ Priorize React e Next.js. Quando houver input vindo de Figma Make ou Stitch, tra
 
 ## Orquestração
 
-O G-OS herda o modelo de orquestração do .a8z-OS (framework pai):
+O ganbatte-os herda o modelo de orquestração do .a8z-OS (framework pai):
 
 | Tier | Componente | Função |
 |------|-----------|--------|
-| 1 | `gos-master` | Orquestrador master — routing matrix, skills, squads, workflows |
+| 1 | `ganbatte-os-master` | Orquestrador master — routing matrix, skills, squads, workflows |
 | 2 | `workflow-select` | Scoring de workflows (Ralph, SDD, Rapid Bug Fix, Escalation) |
 | 2 | `composer` | Sequências de skills com decision gates |
 | 2 | `model-router` | Roteamento para modelo mais barato adequado |
 | 3 | `agent-teams` / `dispatching-parallel-agents` | Paralelização multi-agente |
 
-Para tarefas complexas multi-domínio, invocar `gos-master` (agents/profiles/gos-master.md).
+Para tarefas complexas multi-domínio, invocar `ganbatte-os-master` (agents/profiles/gos-master.md).
 
 ## Qualidade de Texto
 

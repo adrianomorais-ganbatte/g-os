@@ -1,10 +1,10 @@
 {
-  "runtime": "gos-design-delivery",
+  "runtime": "ganbatte-os-design-delivery",
   "version": "0.1.0",
-  "description": "Runtime curado do G-OS para design-to-code, sprint planning e ClickUp delivery.",
+  "description": "Runtime curado do ganbatte-os para design-to-code, sprint planning e ClickUp delivery.",
   "modules": {
     "agents": [
-      "gos-master",
+      "ganbatte-os-master",
       "ux-design-expert",
       "architect",
       "dev",
