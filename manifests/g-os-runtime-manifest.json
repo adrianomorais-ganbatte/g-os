@@ -4,6 +4,7 @@
   "description": "Runtime curado do G-OS para design-to-code, sprint planning e ClickUp delivery.",
   "modules": {
     "agents": [
+      "gos-master",
       "ux-design-expert",
       "architect",
       "dev",
@@ -25,12 +26,14 @@
       "sprint-planner",
       "clickup",
       "plan-to-tasks",
-      "agent-teams"
+      "agent-teams",
+      "git-ssh-setup"
     ],
     "squads": [
       "design-delivery",
       "design-squad",
-      "sprint-planning"
+      "sprint-planning",
+      "git-operations"
     ]
   }
 }

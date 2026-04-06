@@ -15,6 +15,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Doctor check
+        run: node scripts/cli/gos-cli.js doctor
+
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"

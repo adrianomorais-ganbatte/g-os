@@ -1,0 +1,27 @@
+name: git-operations
+version: "1.0.0"
+short-title: "Git Operations Squad"
+description: "Gerencia operacoes git seguras com validacao de identidade SSH, quality gate pre-commit (tsc + testes) e commits padronizados."
+slashPrefix: "git-ops"
+
+components:
+  agents:
+    - devops.md
+    - dev.md
+  workflows:
+    - wf-ssh-setup.yaml
+    - wf-safe-commit.yaml
+
+routing_matrix:
+  ssh_setup:
+    primary: devops
+    triggers: ["ssh setup", "configurar ssh", "identidade ssh", "trocar conta github"]
+  safe_commit:
+    primary: dev
+    triggers: ["commit", "push", "commit e push", "safe commit", "commitar"]
+  ssh_validation:
+    primary: devops
+    triggers: ["validar ssh", "verificar remote", "remote url"]
+  pre_commit:
+    primary: dev
+    triggers: ["validar antes do commit", "rodar testes", "tsc", "quality gate"]

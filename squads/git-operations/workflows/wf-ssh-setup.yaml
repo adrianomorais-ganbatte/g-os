@@ -1,0 +1,27 @@
+workflow:
+  id: wf-ssh-setup
+  name: "SSH Identity Setup"
+  entry_agent: devops
+  type: sequential
+
+phases:
+  - id: detect
+    name: "Detect SSH Config"
+    owner: devops
+    goal: "Verificar se ssh-identity.json existe e se o remote URL ja usa um alias SSH."
+  - id: key-check
+    name: "Key Availability Check"
+    owner: devops
+    goal: "Testar conexao SSH com o alias detectado ou solicitado via ssh -T."
+  - id: configure
+    name: "Configure Workspace"
+    owner: devops
+    goal: "Gravar ssh-identity.json no diretorio local gitignored (.gos-local/ ou .a8z/local/)."
+  - id: validate
+    name: "Validate Connection"
+    owner: devops
+    goal: "Confirmar que git fetch funciona com a identidade configurada."
+  - id: identity
+    name: "Set Git Identity"
+    owner: devops
+    goal: "Configurar git user.name e user.email localmente no repositorio."
