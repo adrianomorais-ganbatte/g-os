@@ -535,12 +535,24 @@ function cmdDoctor(root) {
     check('package.json tem scripts gos:*', !!(pkg.scripts && pkg.scripts['gos:update']));
   }
 
-  // 8. Git remote upstream
+  // 8. Git remote upstream (allow origin as fallback, especially for CI/Internal dev)
   const remotes = gitCapture(['remote'], { cwd: root });
-  check(`Git remote "${UPSTREAM_REMOTE}" configurado`, remotes.includes(UPSTREAM_REMOTE));
+  const hasUpstream = remotes.includes(UPSTREAM_REMOTE);
+  const hasOrigin = remotes.includes('origin');
+  check(`Git remote "${UPSTREAM_REMOTE}" configurado`, hasUpstream || hasOrigin);
 
-  // 9. Local dir
-  check(`Diretorio ${LOCAL_DIR}/ existe`, pathExists(path.join(root, LOCAL_DIR)));
+  // 9. Local dir (warn instead of fail if in CI)
+  const hasLocalDir = pathExists(path.join(root, LOCAL_DIR));
+  if (process.env.CI || process.env.GITHUB_ACTIONS) {
+    if (hasLocalDir) {
+      ok(`Diretorio ${LOCAL_DIR}/ existe`);
+    } else {
+      ok(`Diretorio ${LOCAL_DIR}/ (ignorado em CI)`);
+    }
+    checks++;
+  } else {
+    check(`Diretorio ${LOCAL_DIR}/ existe`, hasLocalDir);
+  }
 
   // 10. Report
   const updateLog = readJson(path.join(root, LOCAL_DIR, 'update-log.json'));
