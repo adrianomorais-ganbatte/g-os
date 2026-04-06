@@ -31,12 +31,12 @@ function skillWrapper(slug, target) {
 }
 
 function main() {
-  const agents = readJson(path.join(root, 'agents', 'profiles', 'index.json')).profiles;
-  const skills = readJson(path.join(root, 'skills', 'registry.json')).skills;
+  const agents = readJson(path.join(root, '.gos', 'agents', 'profiles', 'index.json')).profiles;
+  const skills = readJson(path.join(root, '.gos', 'skills', 'registry.json')).skills;
 
   for (const agent of agents) {
     const claudeFile = path.join(root, '.claude', 'commands', 'gos', 'agents', `${agent.id}.md`);
-    const target = relativeTarget(claudeFile, path.join(root, 'agents', 'profiles', agent.path));
+    const target = relativeTarget(claudeFile, path.join(root, '.gos', 'agents', 'profiles', agent.path));
     writeFile(claudeFile, agentWrapper(agent.id, target));
   }
 
@@ -47,10 +47,10 @@ function main() {
     const geminiSkill = path.join(root, '.gemini', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const opencodeSkill = path.join(root, '.opencode', 'skills', `gos-${skill.slug}`, 'SKILL.md');
 
-    writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, path.join(root, skillTargetPath))));
-    writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, path.join(root, skillTargetPath))));
-    writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, path.join(root, skillTargetPath))));
-    writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, path.join(root, skillTargetPath))));
+    writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, path.join(root, '.gos', skillTargetPath))));
+    writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, path.join(root, '.gos', skillTargetPath))));
+    writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, path.join(root, '.gos', skillTargetPath))));
+    writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, path.join(root, '.gos', skillTargetPath))));
   }
 
   const antigravityInstructions = [
@@ -59,7 +59,7 @@ function main() {
     'Leia sempre:',
     '- `AGENTS.md`',
     '- `CLAUDE.md`',
-    '- `docs/toolchain-map.md`',
+    '- `.gos/docs/toolchain-map.md`',
     '',
     'Agentes disponiveis:',
     ...agents.map((agent) => `- ${agent.id}`),

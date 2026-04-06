@@ -3,9 +3,10 @@
 Leia sempre:
 - `AGENTS.md`
 - `CLAUDE.md`
-- `docs/toolchain-map.md`
+- `.gos/docs/toolchain-map.md`
 
 Agentes disponiveis:
+- gos-master
 - ux-design-expert
 - architect
 - dev
@@ -30,3 +31,4 @@ Skills curadas:
 - clickup
 - plan-to-tasks
 - agent-teams
+- git-ssh-setup

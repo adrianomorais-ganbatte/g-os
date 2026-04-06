@@ -6,6 +6,7 @@ Framework operacional para design-to-code, squads de entrega e sprint sync com C
 ---
 
 [![NPM Version](https://img.shields.io/npm/v/ganbatte-os)](https://www.npmjs.com/package/ganbatte-os)
+[![NPM Home](https://img.shields.io/badge/NPM-Registry-red)](https://www.npmjs.com/package/ganbatte-os)
 ![Node >= 18](https://img.shields.io/badge/Node.js-%3E%3D18-green)
 
 O ganbatte-os organiza agentes de IA, skills e squads num workspace pronto para uso. Ele conecta Figma, ClickUp e 7 IDEs diferentes para acelerar a entrega de projetos de software. Baseado no framework .a8z-OS.

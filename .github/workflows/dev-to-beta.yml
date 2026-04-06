@@ -20,7 +20,7 @@ jobs:
           node-version: '22'
 
       - name: Doctor check
-        run: node scripts/cli/gos-cli.js doctor
+        run: node .gos/scripts/cli/gos-cli.js doctor
 
       - name: Configure Git
         run: |
