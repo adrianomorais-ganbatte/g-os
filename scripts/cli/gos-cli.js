@@ -243,8 +243,8 @@ function cmdInit(root, args) {
   console.log('');
   console.log('  Proximos passos:');
   
-  const remotes = gitCapture(['remote'], { cwd: root });
-  if (!remotes.includes('origin')) {
+  const finalRemotes = gitCapture(['remote'], { cwd: root });
+  if (!finalRemotes.includes('origin')) {
     console.log('    1. Adicione seu remote: git remote add origin <seu-repo>');
   }
   
