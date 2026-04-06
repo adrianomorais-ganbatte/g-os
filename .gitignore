@@ -1,16 +1,73 @@
-node_modules/
-.env
-.DS_Store
-dist/
-coverage/
-*.log
-.idea/
-.vscode/
-tmp/
-
 # G-OS local (nao versionado)
 .gos-local/
 
 # Conteudo de usuario
 packages/*/node_modules/
 packages/*/figma-make/
+
+# .a8z-OS and AI system files
+.a8z/*
+.antigravity/*
+.claude/*
+.gemini/*
+.codex/*
+.opencode/*
+*/AGENTS.md
+*/CLAUDE.md
+.playwright-mcp/*
+.devcontainer/*
+
+# temp files
+.temp/*
+temp/*
+.backups/*
+backups/*
+logs/*
+*.log
+.a8z/temp/*.json
+.a8z/outputs/*.json
+.a8z/outputs/*.md
+.a8z/temp/*.html
+.a8z/outputs/*.html
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.mp4
+*.mp3
+*.wav
+*.csv
+*.pptx
+*.pdf
+
+# local runtime files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*
+!.env.example
+
+# build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# dependencies
+*/node_modules
+node_modules/*
+.pnp
+.pnp.js
+
+# OS & tools
+.DS_Store
+.vscode/
+.idea/
+coverage/
+.npm
+.cache/
+pids
+*.pid

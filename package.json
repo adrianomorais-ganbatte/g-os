@@ -20,8 +20,27 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/imdouglasoliveira/g-os.git"
+    "url": "https://github.com/adrianomorais-ganbatte/g-os.git"
   },
   "license": "MIT",
-  "author": "Douglas Oliveira"
+  "author": "Adriano Morais",
+  "files": [
+    "agents/",
+    "skills/",
+    "squads/",
+    "scripts/",
+    "manifests/",
+    "docs/",
+    "integrations/",
+    "templates/",
+    "prompts/",
+    "rules/",
+    "playbooks/",
+    "config.json",
+    "opencode.json",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    "README.md"
+  ]
 }

@@ -80,6 +80,26 @@ persona:
     - Validate before committing (tsc + tests via pre-commit-validate.js)
     - Follow Conventional Commits for all git operations
     - Treat Figma Make output as triage material, not production code
+    - "Comprehension Gate: Before delegating to any agent, skill, or workflow, first understand what needs to be done — read relevant code, docs, and state; document findings; only then route"
+
+# ─── COMPREHENSION GATE ──────────────────────────────────────
+# Applies before any delegation to agent, skill, or workflow.
+# Exceptions: direct commands (*help, *status, *exit),
+#             explicit user instruction to skip ("just do X", "direto").
+comprehension_gate:
+  trigger: "Before any delegation to agent, skill, or workflow"
+  protocol:
+    step_0_scan: "Read relevant files, docs, recent commits related to the request"
+    step_1_document: "State what exists (current state, patterns, constraints) in factual terms"
+    step_2_assess: "Determine which agent/skill/workflow is appropriate based on evidence, not assumption"
+    step_3_delegate: "Route with context summary so the target has full picture"
+  exceptions:
+    - "Direct command execution (*help, *status, *exit)"
+    - "Explicit user instruction to skip comprehension ('just do X', 'direto')"
+  complementary_rules:
+    - "research-discipline.md"
+    - "think-before-act.md"
+    - "context-first-antes-acao.md"
 
 # ─── ROUTING MATRIX ───────────────────────────────────────────
 #

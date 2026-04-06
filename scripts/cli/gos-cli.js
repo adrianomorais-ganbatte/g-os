@@ -13,7 +13,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+const { execFileSync, execSync } = require('node:child_process');
 
 // ---------------------------------------------------------------------------
 // Constantes
@@ -99,6 +99,30 @@ function getRoot() {
   return path.resolve(__dirname, '..', '..');
 }
 
+/** 
+ * Copia recursiva de diretórios (zero dependencies). 
+ */
+function copyDirRecursive(source, target, options = {}) {
+  const { exclude = [] } = options;
+  if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });
+
+  const entries = fs.readdirSync(source, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(source, entry.name);
+    const destPath = path.join(target, entry.name);
+
+    // Skip excluded names
+    if (exclude.includes(entry.name)) continue;
+
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath, options);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
 function getManifest(root) {
   const manifestFile = path.join(root, MANIFEST_PATH);
   const manifest = readJson(manifestFile);
@@ -163,7 +187,7 @@ function cmdInit(root, args) {
     ok('Remote upstream ja existe.');
   } else {
     warn('Nenhum remote origin encontrado. Configure manualmente:');
-    info(`  git remote add ${UPSTREAM_REMOTE} https://github.com/imdouglasoliveira/g-os.git`);
+    info(`  git remote add ${UPSTREAM_REMOTE} https://github.com/adrianomorais-ganbatte/g-os.git`);
   }
 
   // 4. Criar diretorios locais
@@ -218,10 +242,65 @@ function cmdInit(root, args) {
   console.log(`  .gitignore: ${gitignoreUpdated ? 'atualizado' : 'ja estava ok'}`);
   console.log('');
   console.log('  Proximos passos:');
-  console.log('    1. Adicione seu remote: git remote add origin <seu-repo>');
+  
+  const remotes = gitCapture(['remote'], { cwd: root });
+  if (!remotes.includes('origin')) {
+    console.log('    1. Adicione seu remote: git remote add origin <seu-repo>');
+  }
+  
   console.log('    2. Crie projetos em packages/');
   console.log('    3. Para atualizar o framework: npm run gos:update');
   console.log('');
+}
+
+// ---------------------------------------------------------------------------
+// gos install
+// ---------------------------------------------------------------------------
+
+function cmdInstall(args) {
+  const targetRoot = process.cwd();
+  const sourceRoot = getRoot();
+  
+  // Se ja estamos na raiz do G-OS, apenas rodamos o init
+  if (path.resolve(sourceRoot) === path.resolve(targetRoot)) {
+    log('Executando na raiz do framework. Redirecionando para "init"...');
+    cmdInit(targetRoot, args);
+    return;
+  }
+
+  log(`Instalando G-OS em: ${targetRoot}`);
+  
+  // 1. Validar se diretorio ja tem G-OS (a menos que use --force)
+  if (pathExists(path.join(targetRoot, LOCAL_DIR)) && !args.includes('--force')) {
+    fail('Workspace G-OS ja detectado neste diretorio.');
+    info('Use --force para reinstalar/sobrescrever.');
+    process.exit(1);
+  }
+
+  // 2. Copiar arquivos do framework (exceto os internos/git)
+  const exclude = ['.git', '.gos-local', 'node_modules', 'package-lock.json', 'install-log.json', 'update-log.json'];
+  log('Copiando arquivos do framework...');
+  try {
+    copyDirRecursive(sourceRoot, targetRoot, { exclude });
+    ok('Arquivos copiados com sucesso.');
+  } catch (e) {
+    fail(`Erro ao copiar arquivos: ${e.message}`);
+    process.exit(1);
+  }
+
+  // 3. Executar o init no target para finalizar configs
+  cmdInit(targetRoot, args);
+  
+  // 4. Garantir que o remote upstream existe caso tenha sido instalado via npx
+  const remotes = gitCapture(['remote'], { cwd: targetRoot });
+  if (!remotes.includes(UPSTREAM_REMOTE)) {
+    try {
+      git(['remote', 'add', UPSTREAM_REMOTE, 'https://github.com/adrianomorais-ganbatte/g-os.git'], { cwd: targetRoot });
+      ok(`Remote "${UPSTREAM_REMOTE}" adicionado.`);
+    } catch {
+      warn(`Nao foi possivel adicionar o remote "${UPSTREAM_REMOTE}". Configure manualmente.`);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -237,7 +316,7 @@ function cmdUpdate(root, args) {
   const remotes = gitCapture(['remote'], { cwd: root });
   if (!remotes.includes(UPSTREAM_REMOTE)) {
     fail(`Remote "${UPSTREAM_REMOTE}" nao encontrado.`);
-    info(`Adicione com: git remote add ${UPSTREAM_REMOTE} https://github.com/imdouglasoliveira/g-os.git`);
+    info(`Adicione com: git remote add ${UPSTREAM_REMOTE} https://github.com/adrianomorais-ganbatte/g-os.git`);
     process.exit(1);
   }
 
@@ -534,6 +613,10 @@ function main() {
       cmdInit(root, args.slice(1));
       break;
 
+    case 'install':
+      cmdInstall(args.slice(1));
+      break;
+
     case 'update':
       cmdUpdate(root, args.slice(1));
       break;
@@ -555,6 +638,7 @@ function main() {
 G-OS CLI v${VERSION}
 
 Comandos:
+  gos install   Instalar G-OS no diretorio atual (via npx ou global)
   gos init      Setup pos-clone (remote, dirs, IDEs)
   gos update    Atualizar do upstream/main
   gos doctor    Validar integridade do workspace
@@ -562,10 +646,11 @@ Comandos:
   gos help      Exibir esta ajuda
 
 Flags:
-  --force       Reinicializar mesmo se ja configurado (init)
+  --force       Sobrescrever arquivos existentes (install/init)
   --no-stash    Nao fazer stash automatico (update)
 
 Exemplos:
+  npx g-os install
   node scripts/cli/gos-cli.js init
   npm run gos:update
   npm run gos:doctor

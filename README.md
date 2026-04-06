@@ -9,8 +9,17 @@ O G-OS organiza agentes de IA, skills e squads num workspace pronto para uso. El
 
 ## Quick Start
 
+A maneira mais rápida de começar é usando `npx` para instalar o framework diretamente no seu diretório de projeto:
+
 ```bash
-git clone https://github.com/imdouglasoliveira/g-os.git meu-workspace
+mkdir meu-projeto && cd meu-projeto
+npx g-os install
+```
+
+Ou via clone tradicional:
+
+```bash
+git clone https://github.com/adrianomorais-ganbatte/g-os.git meu-workspace
 cd meu-workspace
 node scripts/cli/gos-cli.js init
 ```
@@ -92,6 +101,7 @@ g-os/
 
 | Script | O que faz |
 |--------|-----------|
+| `npx g-os install` | Instalação via NPX no diretório atual |
 | `npm run gos:init` | Setup pos-clone |
 | `npm run gos:update` | Atualizar do upstream |
 | `npm run gos:doctor` | Validar integridade |
