@@ -277,11 +277,20 @@ function cmdInstall(args) {
     process.exit(1);
   }
 
-  // 2. Copiar arquivos do framework (exceto os internos/git)
-  const exclude = ['.git', '.gos-local', 'node_modules', 'package-lock.json', 'install-log.json', 'update-log.json'];
+  // 2. Copiar arquivos do framework
   log('Copiando arquivos do framework...');
   try {
-    copyDirRecursive(sourceRoot, targetRoot, { exclude });
+    // Copiar pasta .gos inteira
+    copyDirRecursive(path.join(sourceRoot, '.gos'), path.join(targetRoot, '.gos'));
+    
+    // Copiar arquivos .md da raiz
+    const rootFiles = ['AGENTS.md', 'CLAUDE.md', 'GEMINI.md', 'README.md', 'LICENSE'];
+    for (const file of rootFiles) {
+      const src = path.join(sourceRoot, file);
+      if (pathExists(src)) {
+        fs.copyFileSync(src, path.join(targetRoot, file));
+      }
+    }
     ok('Arquivos copiados com sucesso.');
   } catch (e) {
     fail(`Erro ao copiar arquivos: ${e.message}`);
