@@ -1,38 +1,63 @@
-# G-OS
+# ganbatte-os
+# ganbatte-os
 
 Framework operacional para design-to-code, squads de entrega e sprint sync com ClickUp.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+---
+
+[![NPM Version](https://img.shields.io/npm/v/ganbatte-os)](https://www.npmjs.com/package/ganbatte-os)
 ![Node >= 18](https://img.shields.io/badge/Node.js-%3E%3D18-green)
 
-O G-OS organiza agentes de IA, skills e squads num workspace pronto para uso. Ele conecta Figma, ClickUp e 7 IDEs diferentes para acelerar a entrega de projetos de software. Baseado no framework .a8z-OS.
+O ganbatte-os organiza agentes de IA, skills e squads num workspace pronto para uso. Ele conecta Figma, ClickUp e 7 IDEs diferentes para acelerar a entrega de projetos de software. Baseado no framework .a8z-OS.
 
 ## Quick Start
 
-A maneira mais rápida de começar é usando `npx` para instalar o framework diretamente no seu diretório de projeto:
+### 1. Instalação (Recomendado)
+Para criar um novo workspace ganbatte-os em qualquer diretório:
 
 ```bash
 mkdir meu-projeto && cd meu-projeto
-npx g-os install
+npx ganbatte-os install
 ```
 
 Ou via clone tradicional:
 
 ```bash
-git clone https://github.com/adrianomorais-ganbatte/g-os.git meu-workspace
-cd meu-workspace
-node scripts/cli/gos-cli.js init
+git clone https://github.com/adrianomorais-ganbatte/ganbatte-os.git .
+node scripts/cli/ganbatte-os-cli.js init
 ```
 
-O comando `init` renomeia o remote para `upstream`, cria os diretorios locais e sincroniza os adapters de todas as IDEs.
+### 2. Comandos Disponíveis
+Apos a instalação, você terá acesso aos comandos via `npm run`:
 
-## Atualizando
+- `npm run ganbatte-os:doctor` — Validar integridade do workspace
+- `npm run ganbatte-os:update` — Buscar atualizações do framework
+- `npm run ganbatte-os:version` — Mostrar versão instalada
 
-```bash
-npm run gos:update
+## Funcionalidades
+
+- **Design-to-Code**: Pipeline automatizado para converter frames do Figma em código.
+- **Squads de Entrega**: Agentes pré-configurados para SM, PO, Dev e QA.
+- **Integração ClickUp**: Sincronização automática de tarefas e status.
+- **Suporte Multi-IDE**: Configurações otimizadas para Claude Code, Gemini, Cursor e outras.
+
+## Estrutura do Projeto
+
+```text
+├── agents/          # Perfis e instruções dos agentes
+├── skills/          # Catálogo de funcionalidades reutilizáveis
+├── squads/          # Definições de times de agentes
+├── scripts/         # CLI e utilitários de sistema
+├── manifests/       # Configurações de runtime e instalação
+└── packages/        # Seus projetos e código-fonte
 ```
 
-O update faz fetch do `upstream/main`, merge automatico (com stash se necessario), e re-sincroniza os IDE adapters.
+## Contribuição
+
+Este é um projeto interno da **Ganbatte**. Para sugestões ou bugs, abra uma issue no repositório.
+
+---
+© 2026 Ganbatte. Todos os direitos reservados.
 
 ## Agentes
 

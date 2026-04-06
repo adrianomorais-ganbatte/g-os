@@ -1,6 +1,6 @@
-# G-OS (Gemini AI Operational System) — CLI Installation Guide
+# ganbatte-os — CLI Installation Guide
 
-G-OS is a modern operational framework designed for **design-to-code**, delivery squads, and automated sprint synchronization with ClickUp. Built upon the `.a8z-OS` architecture, it integrates Figma, ClickUp, and 7 primary IDEs (Claude Code, Cursor, Gemini, etc.) into a seamless workspace.
+ganbatte-os is a modern operational framework designed for **design-to-code**, delivery squads, and automated sprint synchronization with ClickUp. Built upon the `.a8z-OS` architecture, it integrates Figma, ClickUp, and 7 primary IDEs (Claude Code, Cursor, Gemini, etc.) into a seamless workspace.
 
 ---
 
@@ -15,20 +15,20 @@ Before starting, ensure you have the following installed:
 
 ## 🚀 Quick Start (Installation)
 
-There are two main ways to set up G-OS in your project:
+There are two main ways to set up ganbatte-os in your project:
 
 ### Method A: Direct Installation (Recommended)
 Use `npx` to install the framework directly into an existing or new project directory. This is the fastest way to get the latest version.
 
 ```bash
-npx g-os install
+npx ganbatte-os install
 ```
 
 ### Method B: Repository Clone
 Ideal for framework developers or those who want to maintain a separate fork.
 
 ```bash
-git clone https://github.com/adrianomorais-ganbatte/g-os.git my-workspace
+git clone https://github.com/adrianomorais-ganbatte/ganbatte-os.git my-workspace
 cd my-workspace
 node scripts/cli/gos-cli.js init
 ```
@@ -56,7 +56,7 @@ The `gos` CLI utility handles the workspace lifecycle:
 | `gos init` | Mandatory setup. Renames remotes and creates directories. | `--force`: Re-run on already initialized workspaces. |
 | `gos update` | Fetches framework updates from `upstream/main` and merges them. | `--no-stash`: Skip the automatic git stash process. |
 | `gos doctor` | Diagnostic tool to check workspace health and IDE compatibility. | — |
-| `gos version` | Displays the current G-OS version and checks for updates. | — |
+| `gos version` | Displays the current ganbatte-os version and checks for updates. | — |
 
 ---
 
@@ -79,7 +79,7 @@ my-workspace/
 
 ## 🔄 Updating the Framework
 
-G-OS is an evolving system. To stay up to date with the latest skills and agents, run:
+ganbatte-os is an evolving system. To stay up to date with the latest skills and agents, run:
 
 ```bash
 npm run gos:update
@@ -111,4 +111,4 @@ This will automatically:
 ---
 
 > [!IMPORTANT]
-> The G-OS CLI uses native Node.js modules only—no external dependencies required. This makes it light and portable.
+> The ganbatte-os CLI uses native Node.js modules only—no external dependencies required. This makes it light and portable.

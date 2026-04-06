@@ -1,4 +1,4 @@
-# G-OS For Gemini CLI
+# ganbatte-os For Gemini CLI
 
 Use este projeto como um kit de design-to-code e sprint ops.
 
