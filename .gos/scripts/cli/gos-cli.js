@@ -23,7 +23,7 @@ const VERSION = '0.2.0';
 const UPSTREAM_REMOTE = 'upstream';
 const UPSTREAM_BRANCH = 'main';
 const LOCAL_DIR = '.gos-local';
-const MANIFEST_PATH = 'manifests/gos-install-manifest.json';
+const MANIFEST_PATH = '.gos/manifests/gos-install-manifest.json';
 
 // ---------------------------------------------------------------------------
 // Utilitarios
@@ -96,7 +96,7 @@ function getFlagValue(args, flag) {
 }
 
 function getRoot() {
-  return path.resolve(__dirname, '..', '..');
+  return path.resolve(__dirname, '..', '..', '..');
 }
 
 /** 
@@ -492,24 +492,24 @@ function cmdDoctor(root) {
   }
 
   // 3. Runtime manifest
-  const runtime = readJson(path.join(root, 'manifests', 'g-os-runtime-manifest.json'));
+  const runtime = readJson(path.join(root, '.gos', 'manifests', 'g-os-runtime-manifest.json'));
   check('Runtime manifest g-os-runtime-manifest.json', !!runtime);
 
   // 4. Agents
   if (runtime && runtime.modules && runtime.modules.agents) {
     for (const agent of runtime.modules.agents) {
-      const agentFile = path.join(root, 'agents', 'profiles', `${agent}.md`);
+      const agentFile = path.join(root, '.gos', 'agents', 'profiles', `${agent}.md`);
       check(`Agent: ${agent}`, pathExists(agentFile));
     }
   }
 
   // 5. Skills
-  const skillsRegistry = readJson(path.join(root, 'skills', 'registry.json'));
+  const skillsRegistry = readJson(path.join(root, '.gos', 'skills', 'registry.json'));
   check('Skills registry', !!skillsRegistry);
 
   if (runtime && runtime.modules && runtime.modules.skills) {
     for (const skill of runtime.modules.skills) {
-      const skillFile = path.join(root, 'skills', skill, 'SKILL.md');
+      const skillFile = path.join(root, '.gos', 'skills', skill, 'SKILL.md');
       check(`Skill: ${skill}`, pathExists(skillFile));
     }
   }

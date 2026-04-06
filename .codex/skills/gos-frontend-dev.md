@@ -1,6 +1,6 @@
 # gos-frontend-dev
 
-Fonte canonica: `../../skills/frontend-dev/SKILL.md`
+Fonte canonica: `../../.gos/skills/frontend-dev/SKILL.md`
 
-Leia e siga a skill em `../../skills/frontend-dev/SKILL.md`.
+Leia e siga a skill em `../../.gos/skills/frontend-dev/SKILL.md`.
 Este arquivo existe apenas como adapter fino para a IDE.
