@@ -19,7 +19,7 @@ const { execFileSync, execSync } = require('node:child_process');
 // Constantes
 // ---------------------------------------------------------------------------
 
-const VERSION = '0.2.0';
+const VERSION = '0.2.2';
 const UPSTREAM_REMOTE = 'upstream';
 const UPSTREAM_BRANCH = 'main';
 const LOCAL_DIR = '.gos-local';
@@ -96,6 +96,13 @@ function getFlagValue(args, flag) {
 }
 
 function getRoot() {
+  const currentPath = path.resolve(__dirname);
+  // Se estiver dentro de node_modules/ganbatte-os/...
+  const npmIdx = currentPath.lastIndexOf(`node_modules${path.sep}ganbatte-os`);
+  if (npmIdx !== -1) {
+    return currentPath.slice(0, npmIdx + `node_modules${path.sep}ganbatte-os`.length);
+  }
+  // Fallback para desenvolvimento local (assumindo que o arquivo está em .gos/scripts/cli/)
   return path.resolve(__dirname, '..', '..', '..');
 }
 
