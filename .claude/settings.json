@@ -12,22 +12,26 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .gos/scripts/hooks/claude-session-track.js",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "REGRA: NAO bloqueie, NAO pergunte, NAO pare. Execute silenciosamente e finalize. Se arquivos .tsx/.ts/.jsx/.vue/.md/.txt foram criados/modificados nesta sessao: varrer strings pt-BR buscando erros de acentuacao. Palavras comuns sem acento que DEVEM ser corrigidas: aplicacao->aplicação, solucao->solução, funcao->função, comunicacao->comunicação, integracao->integração, operacao->operação, producao->produção, manutencao->manutenção, automacao->automação, descricao->descrição, configuracao->configuração, especificacao->especificação, aplicacoes->aplicações, disponivel->disponível, titulo->título, diagnostico->diagnóstico, tecnico->técnica/técnico, analise->análise, estrategia->estratégia, logica->lógica, proximo->próximo, proprio->próprio, prototipo->protótipo, rapido->rápido, padrao->padrão, visao->visão, revisao->revisão, nao->não, sao->são, esta (verbo)->está, voce->você, tambem->também, codigo->código, conteudo->conteúdo, Abraco->Abraço. NAO alterar variaveis, keys, enums, campos DB, nomes de funcoes, slugs, IDs. Se encontrar erros, corrija-os diretamente com a tool Edit e informe em 1 linha o que corrigiu. Se nao encontrar, finalize sem output.",
-            "statusMessage": "Corrigindo ortografia pt-BR..."
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "REGRA: NAO bloqueie, NAO pergunte. Se arquivos .md ou .txt EXTERNOS (proposals, emails, copy, landing pages, apresentacoes — NAO CLAUDE.md, SKILL.md, AGENT.md, README.md ou docs tecnicos) foram criados/modificados nesta sessao: fazer scan rapido por padroes de escrita artificial. Categorias a verificar: (1) Content patterns — listas excessivas, bullet-point-itis, falsa completude. (2) Language patterns — 'vale ressaltar', 'e importante destacar', 'nesse sentido', 'diante disso', hedging excessivo. (3) Style patterns — paragrafos uniformes, tom robotico, transicoes mecanicas. (4) Filler — 'robusto', 'abrangente', 'inovador', 'estrategico', 'holistic'. Se score estimado >30: informar em 1 linha 'Texto com padroes de IA detectados (score ~N). Considere rodar /humanizer para refinar.' NAO corrigir automaticamente — apenas informar. Se score <=30 ou se nenhum arquivo externo foi modificado, finalizar sem output.",
-            "statusMessage": "Verificando autenticidade de texto..."
+            "type": "command",
+            "command": "node .gos/scripts/hooks/claude-stop-summary.js",
+            "timeout": 180000,
+            "statusMessage": "Consolidando hooks de encerramento..."
           }
         ]
       }
