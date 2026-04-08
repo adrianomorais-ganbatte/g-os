@@ -39,8 +39,8 @@ Antes de executar qualquer tarefa complexa, SEMPRE entre em plan mode.
 
 **Protocolo:**
 1. **RESEARCH** — leia arquivos relevantes sem alterar nada
-2. **PLAN** — crie `implementation_plan.md` com `[NEW]`/`[MODIFY]`/`[DELETE]`, perguntas abertas, plano de verificação. Apresente e **PARE**
+2. **PLAN** — crie `implementation_plan.md` com `[NEW]`/`[MODIFY]`/`[DELETE]`, perguntas abertas, plano de verificação. Apresente e aguarde aprovação na resposta principal, sem bloquear via hook
 3. **AWAIT** — aguarde aprovação: "ok", "aprovado", "go", "execute", "pode ir"
 4. **EXECUTE + TRACK** — crie `task.md`, execute, finalize com `walkthrough.md`
 
-**Exceções — NÃO ativar:** git operations, leitura/explicação, edições simples de 1 arquivo, lint/typo, "execute direto", "sem plano", quando já aprovado na sessão.
+**Exceções — NÃO ativar:** git operations, leitura/explicação, edições simples de 1 arquivo, lint/typo, "execute direto", "sem plano", comandos de retomada como `continue`/`continuar`/`resume`, aprovações como `ok`/`aprovado`/`pode ir`, quando já aprovado na sessão.
