@@ -7,6 +7,10 @@
     "clickup": {
       "type": "url",
       "url": "https://mcp.clickup.com/mcp"
+    },
+    "slack": {
+      "type": "url",
+      "url": "https://mcp.slack.com/mcp"
     }
   }
 }

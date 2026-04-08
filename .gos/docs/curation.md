@@ -58,3 +58,21 @@ Foram mantidos apenas os suportes exigidos pelas skills copiadas:
 - memoria completa do framework
 - CLI legada do framework anterior
 - runtime multi-IDE integral
+
+## Decisoes de Curadoria
+
+### Lessons Loop / `tasks/lessons.md`
+
+O `G-OS` NAO ativa o loop de `tasks/lessons.md` e NAO replica o `Livro de Ouro` do framework principal.
+
+Motivos:
+
+- esta distribuicao nao inclui o subsistema completo de memoria do `.a8z-framework`
+- o custo de manter memoria graduada localmente aqui seria desproporcional ao escopo enxuto do `G-OS`
+- o ciclo canonico desta distribuicao permanece: `implementation_plan.md` -> `task.md` -> `walkthrough.md`
+
+Decisao operacional:
+
+- nao criar `tasks/lessons.md` neste repo
+- nao adicionar hooks de captura automatica de lessons
+- registrar aprendizados duraveis por curadoria manual em `docs/curation.md` ou promover direto para `rules/` quando houver padrao estavel

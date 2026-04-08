@@ -48,6 +48,9 @@ function readState(statePath, sessionId) {
       sessionId,
       touchedFiles: [],
       commands: [],
+      gitCommit: false,
+      lastCommitMessage: "",
+      taskRefs: [],
       significantAction: false,
       updatedAt: new Date().toISOString(),
     };
@@ -60,6 +63,9 @@ function readState(statePath, sessionId) {
       sessionId,
       touchedFiles: [],
       commands: [],
+      gitCommit: false,
+      lastCommitMessage: "",
+      taskRefs: [],
       significantAction: false,
       updatedAt: new Date().toISOString(),
     };
@@ -125,7 +131,19 @@ function main() {
   const toolName = String(payload.tool || payload.tool_name || payload.matcher || "");
   if (/Bash/i.test(toolName)) {
     const command = extractCommand(payload);
-    if (command) uniquePush(state.commands, command);
+    if (command) {
+      uniquePush(state.commands, command);
+      if (/\bgit\s+commit\b/i.test(command)) {
+        state.gitCommit = true;
+        const msgMatch = command.match(/-m\s+["']([^"']+)["']/);
+        if (msgMatch) {
+          const message = msgMatch[1].trim();
+          state.lastCommitMessage = message;
+          const refs = message.match(/\bT-\d{3}\b/g);
+          if (refs) state.taskRefs = [...new Set(refs)];
+        }
+      }
+    }
   }
 
   if (state.touchedFiles.length > 0 || state.commands.length > 0) {

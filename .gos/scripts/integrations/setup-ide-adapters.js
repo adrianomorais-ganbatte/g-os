@@ -46,11 +46,14 @@ function main() {
     const codexSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}.md`);
     const geminiSkill = path.join(root, '.gemini', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const opencodeSkill = path.join(root, '.opencode', 'skills', `gos-${skill.slug}`, 'SKILL.md');
+    const qwenSkill = path.join(root, '.qwen', 'skills', `gos-${skill.slug}`, 'SKILL.md');
 
     writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, path.join(root, '.gos', skillTargetPath))));
     writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, path.join(root, '.gos', skillTargetPath))));
     writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, path.join(root, '.gos', skillTargetPath))));
     writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, path.join(root, '.gos', skillTargetPath))));
+    ensureDir(path.dirname(qwenSkill));
+    writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, path.join(root, '.gos', skillTargetPath))));
   }
 
   const antigravityInstructions = [
