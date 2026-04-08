@@ -20,7 +20,10 @@ Ativar **PLAN MODE** automaticamente sempre que o input do usuário envolver **q
 - Git operations: `commit`, `push`, `pull`, `branch`, `merge`, `status`, `log`
 - Leitura e explicação: "o que é", "como funciona", "onde está", "mostre", "explique"
 - Edições simples: 1 arquivo, 1 mudança isolada (ex: corrigir typo, ajustar 1 linha)
+- Correções de lint, typo, formatação, ortografia
 - Quando o usuário inclui: `"só faça"`, `"execute direto"`, `"sem plano"`, `"direto ao ponto"`
+- Comandos de retomada ou continuação: `"continue"`, `"continuar"`, `"retomar"`, `"resume"`, `"prosseguir"`, `"segue"`
+- Aprovações após um plano já apresentado: `"ok"`, `"aprovado"`, `"go"`, `"execute"`, `"pode ir"`, `"sim"`, `"proceed"`
 - Quando plan mode já foi ativado ou aprovado na sessão atual
 
 ---
@@ -37,7 +40,7 @@ Ativar **PLAN MODE** automaticamente sempre que o input do usuário envolver **q
   - Mudanças propostas agrupadas por componente
   - Arquivos a criar `[NEW]`, modificar `[MODIFY]`, deletar `[DELETE]`
   - Plano de verificação
-- **Apresentar o plano ao usuário e PARAR**
+- **Apresentar o plano ao usuário e aguardar aprovação na resposta principal, sem bloquear via hook**
 
 ### Fase 3 — AWAIT APPROVAL
 - Aguardar aprovação explícita do usuário (`"ok"`, `"aprovado"`, `"go"`, etc.)
