@@ -20,7 +20,8 @@ const required = [
   '.gos/integrations/antigravity/command-map.json',
   '.gos/integrations/gemini/command-map.json',
   '.gos/integrations/cursor/command-map.json',
-  '.gos/integrations/kilo-code/command-map.json'
+  '.gos/integrations/kilo-code/command-map.json',
+  '.gos/integrations/qwen/command-map.json'
 ];
 
 const missing = required.filter((entry) => !fs.existsSync(path.join(root, entry)));

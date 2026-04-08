@@ -122,6 +122,22 @@ function main() {
   const summary = [];
   const syncMatcher = /^(\.gos|\.claude|data|README\.md|CLAUDE\.md|AGENTS\.md|GEMINI\.md)/;
 
+  // Trigger post-commit notification if git commit was made
+  if (state.gitCommit) {
+    try {
+      execFileSync('node', [path.join(ROOT, '.gos', 'scripts', 'hooks', 'post-commit-notify.js')], {
+        cwd: ROOT,
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000,
+      })
+      summary.push('post-commit-notify OK')
+    } catch (error) {
+      const message = error.stderr || error.stdout || error.message || 'falha no post-commit'
+      summary.push(`post-commit-notify falhou (${String(message).split(/\r?\n/)[0]})`)
+    }
+  }
+
   if (anyPathMatches(touchedFiles, syncMatcher)) {
     try {
       runNpm(["run", "sync:ides"], { timeout: 180000 });

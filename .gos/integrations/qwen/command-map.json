@@ -1,0 +1,20 @@
+{
+  "ide": "qwen-code",
+  "version": "1.0.0",
+  "status": "active",
+  "notes": {
+    "settingsFile": ".qwen/settings.json",
+    "skillsDir": ".qwen/skills/gos-{slug}/SKILL.md",
+    "agentsDir": ".qwen/agents/{id}.md",
+    "commandsDir": ".qwen/commands/",
+    "mcpConfig": "mcpServers object in .qwen/settings.json",
+    "ignoreFile": ".qwenignore"
+  },
+  "mappings": [
+    { "canonicalCommand": "gos.search", "coreArtifact": ".gos/prompts/01-search.md" },
+    { "canonicalCommand": "gos.spec", "coreArtifact": ".gos/prompts/02-spec.md" },
+    { "canonicalCommand": "gos.tasks", "coreArtifact": ".gos/prompts/03-tasks.md" },
+    { "canonicalCommand": "gos.code", "coreArtifact": ".gos/prompts/04-code.md" },
+    { "canonicalCommand": "gos.review", "coreArtifact": ".gos/prompts/05-reviews.md" }
+  ]
+}

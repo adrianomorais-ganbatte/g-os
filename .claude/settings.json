@@ -22,6 +22,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "AUTOMACAO DE TASK VIA MCP (ADVISORY NAO-BLOQUEANTE): Se o comando Bash foi 'git commit' com T-NNN na mensagem: (1) EXTRAIR T-NNN. (2) LER .gos/data/sprints/registry.json — taskMap: T-NNN → clickup_task_id. Ignorar se nao existe. (3) CLASSIFICAR: wip|chore|refactor|test|docs|style = 'in progress'. feat|fix|close|complete|done|resolve = 'complete'. (4) ATUALIZAR: mcp__clickup__clickup_update_task com task_id e status. (5) SLACK: Enviar via Slack MCP no #a8z-automacao. In progress: 'Task T-NNN em andamento — HASH por AUTHOR'. Complete: 'Task T-NNN concluida — HASH por AUTHOR'. (6) SPRINT CHECK (se complete): Ler taskSprintMap, consultar folderId via mcp__clickup__clickup_filter_tasks. Se 100% done: 'Sprint NOME concluida'. IGNORAR se NAO foi git commit ou sem T-NNN.",
+            "statusMessage": "Verificando automacao de task..."
+          }
+        ]
       }
     ],
     "Stop": [

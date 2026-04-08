@@ -15,6 +15,7 @@
     "cursor": { "workspaceDir": ".cursor", "ruleFile": ".cursor/rules/g-os.mdc", "status": "active" },
     "codex": { "workspaceDir": ".codex", "adapter": "integrations/codex", "status": "active" },
     "opencode": { "workspaceDir": ".opencode", "adapter": "integrations/opencode", "status": "active" },
-    "kilo-code": { "workspaceDir": ".kilocode", "ruleFile": ".kilocode/rules/g-os.md", "status": "active" }
+    "kilo-code": { "workspaceDir": ".kilocode", "ruleFile": ".kilocode/rules/g-os.md", "status": "active" },
+    "qwen-code": { "workspaceDir": ".qwen", "adapter": "integrations/qwen", "status": "active" }
   }
 }
