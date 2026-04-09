@@ -4,32 +4,39 @@
 
 Este repo existe para acelerar design-to-code e entrega de sprint.
 
-## Agentes principais
+## Agentes
 
-- `ganbatte-os-master`: orquestrador master — roteia para o skill/agent/squad certo conforme a complexidade
-- `ux-design-expert`: leitura de design, tokens, componentes e handoff
-- `architect`: define stack e cortes de integração para React/Next.js
-- `dev`: implementa componentes, páginas, hooks e refinamentos
-- `sm`: transforma inputs em sprint executável
-- `po`: organiza backlog, scope e prioridades
-- `devops`: integra GitHub, branches e automações de entrega
-- `squad-creator`: monta ou ajusta squads especializados
+| ID | Slash Command | Foco |
+|----|--------------|------|
+| **gos-master** | `/gos:agents:gos-master` | Orquestrador master — routing, skills, squads, workflows |
+| **architect** | `/gos:agents:architect` | Stack, padroes tecnicos, revisoes de arquitetura |
+| **dev** | `/gos:agents:dev` | Implementacao de features, hooks, refinamentos |
+| **devops** | `/gos:agents:devops` | Git, branches, CI/CD, automacoes de entrega |
+| **po** | `/gos:agents:po` | Backlog, scope, priorizacao |
+| **qa** | `/gos:agents:qa` | Testes, quality gates, revisao de codigo |
+| **sm** | `/gos:agents:sm` | Sprint, planning, sync com stakeholders |
+| **squad-creator** | `/gos:agents:squad-creator` | Orquestracao de times multi-agentes |
+| **ux-design-expert** | `/gos:agents:ux-design-expert` | Design de interfaces, tokens, design systems |
 
-## Skills principais
+## Skills
 
-- `design-to-code`
-- `figma-implement-design`
-- `figma-make-analyzer`
-- `make-code-triage`
-- `component-dedup`
-- `frontend-dev`
-- `react-doctor`
-- `sprint-planner`
-- `clickup`
-
-## Runtime
-
-As skills usam suporte interno em `.G-OS/` para regras, templates e bibliotecas.
+| Skill | Slash Command | Funcao |
+|-------|--------------|--------|
+| **design-to-code** | `/gos:skills:design-to-code` | Converte Figma/screenshot em componentes React |
+| **figma-implement-design** | `/gos:skills:figma-implement-design` | Implementa design Figma com fidelidade 1:1 |
+| **figma-make-analyzer** | `/gos:skills:figma-make-analyzer` | Analisa output do Figma Make |
+| **make-code-triage** | `/gos:skills:make-code-triage` | Classifica codigo do Figma Make por categoria |
+| **make-version-diff** | `/gos:skills:make-version-diff` | Compara versoes de output Figma Make |
+| **component-dedup** | `/gos:skills:component-dedup` | Detecta componentes duplicados |
+| **frontend-dev** | `/gos:skills:frontend-dev` | Build componentes, pages, hooks (React/Next.js) |
+| **interface-design** | `/gos:skills:interface-design` | Design de interface com metodologia intent-first |
+| **react-best-practices** | `/gos:skills:react-best-practices` | Otimizacao de performance React/Next.js |
+| **react-doctor** | `/gos:skills:react-doctor` | Diagnostico de saude de componentes React |
+| **sprint-planner** | `/gos:skills:sprint-planner` | Planejamento completo de sprint |
+| **clickup** | `/gos:skills:clickup` | Gestao de tarefas e sprints no ClickUp |
+| **plan-to-tasks** | `/gos:skills:plan-to-tasks` | Converte plano em tasks acionaveis |
+| **agent-teams** | `/gos:skills:agent-teams` | Coordena multiplos agentes em time |
+| **git-ssh-setup** | `/gos:skills:git-ssh-setup` | Configura identidade SSH para o workspace |
 
 ## Plan Mode Protocol
 
@@ -39,8 +46,8 @@ Antes de executar qualquer tarefa complexa, SEMPRE entre em plan mode.
 
 **Protocolo:**
 1. **RESEARCH** — leia arquivos relevantes sem alterar nada
-2. **PLAN** — crie `implementation_plan.md` com `[NEW]`/`[MODIFY]`/`[DELETE]`, perguntas abertas, plano de verificação. Apresente e aguarde aprovação na resposta principal, sem bloquear via hook
-3. **AWAIT** — aguarde aprovação: "ok", "aprovado", "go", "execute", "pode ir"
+2. **PLAN** — crie `implementation_plan.md` com `[NEW]`/`[MODIFY]`/`[DELETE]`, perguntas abertas, plano de verificacao. Apresente e aguarde aprovacao na resposta principal, sem bloquear via hook
+3. **AWAIT** — aguarde aprovacao: "ok", "aprovado", "go", "execute", "pode ir"
 4. **EXECUTE + TRACK** — crie `task.md`, execute, finalize com `walkthrough.md`
 
-**Exceções — NÃO ativar:** git operations, leitura/explicação, edições simples de 1 arquivo, lint/typo, "execute direto", "sem plano", comandos de retomada como `continue`/`continuar`/`resume`, aprovações como `ok`/`aprovado`/`pode ir`, quando já aprovado na sessão.
+**Excecoes — NAO ativar:** git operations, leitura/explicacao, edicoes simples de 1 arquivo, lint/typo, "execute direto", "sem plano", comandos de retomada como `continue`/`continuar`/`resume`, aprovacoes como `ok`/`aprovado`/`pode ir`, quando ja aprovado na sessao.
