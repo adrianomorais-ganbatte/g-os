@@ -1,0 +1,134 @@
+﻿Roadmap
+"Title","Description","Status","Estimate","Priority","Theme","Start Date","End Date","Grouping"
+"Base e arquitetura geral
+","🎨 Design
+- Definição das entidades principais (Programa, Participante, Template, Resposta, Sessão)
+- Mapeamento das relações entre módulos
+- Estrutura macro de navegação
+- Definição de tokens (cores, tipografia, espaçamentos)
+- Criação dos componentes essenciais (button, input, select, table, card, badge)
+- Definição de estados globais (erro, vazio, loading)
+
+👉 Entregável: Arquitetura validada + kit base funcional.","In-progress","","","Geral","2026-03-02T00:00:00.000Z","2026-03-06T00:00:00.000Z","Upstream (produto e design)"
+"Padronização de UI","🎨 Design
+- Tela de login
+- Estados de erro
+- Fluxo de autenticação
+- Redirecionamento por perfil
+- Recuperação de link 
+
+👉 Entregável: Fluxo de acesso claro e validado.","To do","","","","2026-03-09T00:00:00.000Z","2026-03-10T00:00:00.000Z","Upstream (produto e design)"
+"Gestão de programas
+","🎨 Design
+- Criar e editar programa
+- Cadastro de participantes
+- Visualizar status do participante
+- Estrutura de sessões
+- Marcação de presença
+- Atribuição de formulários a programa/sessão
+
+👉 Entregável: Fluxo operacional completo.","To do","","","Gestão","2026-03-11T00:00:00.000Z","2026-03-13T00:00:00.000Z","Upstream (produto e design)"
+"Coleta - Criação e gestão de templates","🎨 Design
+- Interface de criação de template
+- Tipos essenciais de pergunta
+- Organização de perguntas
+- Publicar / rascunho
+- Versionamento simples
+- Preview do formulário
+- Visualização das respostas pelo gestor
+
+👉 Entregável: Construtor funcional e utilizável.","To do","","","Coleta","2026-03-16T00:00:00.000Z","2026-03-20T00:00:00.000Z","Upstream (produto e design)"
+"Autenticação","🎨 Design
+- Tela de login
+- Estados de erro
+- Fluxo de autenticação
+- Redirecionamento por perfil
+- Recuperação de link 
+
+👉 Entregável: Fluxo de acesso claro e validado.","To do","","","","2026-03-23T00:00:00.000Z","2026-03-31T00:00:00.000Z","Upstream (produto e design)"
+"Coleta - Respostas","🎨 Design
+- Visualização do formulário pelo participante
+- Estrutura de navegação entre perguntas
+- Feedback de envio","To do","","","Coleta","2026-03-23T00:00:00.000Z","2026-03-31T00:00:00.000Z","Upstream (produto e design)"
+"Impacto
+","🎨 Design
+- Dashboard padrão por programa
+- Definição de indicadores essenciais
+- Estrutura de visualização agregada
+- Hierarquia de informação
+
+👉 Entregável: Visualização clara de dados consolidados.","To do","","","Impacto","2026-04-01T00:00:00.000Z","2026-04-08T00:00:00.000Z","Upstream (produto e design)"
+"Painel do Patrocinador
+","🎨 Design
+- Área read-only
+- Simplificação da visualização
+- Ajuste de linguagem para stakeholder
+- Filtros essenciais
+
+👉 Entregável: Experiência externa clara e objetiva.","To do","","","Impacto","2026-04-01T00:00:00.000Z","2026-04-08T00:00:00.000Z","Upstream (produto e design)"
+"Integração com educacional","","","","","","2026-04-09T00:00:00.000Z","2026-05-01T00:00:00.000Z","Upstream (produto e design)"
+"Discovery V2
+
+
+rQA Geral","","","","","","2026-05-04T00:00:00.000Z","2026-05-15T00:00:00.000Z","Upstream (produto e design)"
+"QA Geral","","","","","","2026-05-11T00:00:00.000Z","2026-05-15T00:00:00.000Z","Upstream (produto e design)"
+"Ideação geral V2
+
+
+rQA Geral","","","","","","2026-05-11T00:00:00.000Z","2026-05-15T00:00:00.000Z","Upstream (produto e design)"
+"Analise do material desenvolvido até agora","","","","","","2026-03-10T00:00:00.000Z","2026-03-13T00:00:00.000Z","Downstream (desenvolvimento)"
+"Lista de itens do cronograma","","","","","","2026-03-10T00:00:00.000Z","2026-03-14T00:00:00.000Z","Downstream (desenvolvimento)"
+"Base + Padronização","💻 Desenvolvimento
+- Estrutura inicial do projeto (frontend e backend)
+- Modelagem inicial do banco de dados
+- Estrutura de rotas
+- Implementação do layout base
+- Implementação dos componentes estruturais reutilizáveis (parâmetros globais) 
+
+👉 Resultado: Aplicação estruturada e navegável.","To do","","","Geral","2026-03-16T00:00:00.000Z","2026-03-24T00:00:00.000Z","Downstream (desenvolvimento)"
+"Coleta - Criação e gestão de templates
+","💻 Desenvolvimento
+- CRUD de templates
+- Estrutura dinâmica de perguntas
+- Persistência da configuração
+- Controle de status (rascunho/publicado)
+- Versionamento básico
+
+👉 Resultado: Motor de formulários operacional.","To do","","","Coleta","2026-03-27T00:00:00.000Z","2026-04-04T00:00:00.000Z","Downstream (desenvolvimento)"
+"Login","💻 Desenvolvimento
+- Implementação da autenticação
+- Integração backend com login
+- Controle de sessão
+- Proteção de rotas por perfil
+
+👉 Resultado: Sistema com acesso seguro e segmentado.","To do","","","Geral","2026-03-27T00:00:00.000Z","2026-04-04T00:00:00.000Z","Downstream (desenvolvimento)"
+"Coleta - Respostas","💻 Desenvolvimento
+- Renderização dinâmica de formulários
+- Persistência de respostas no banco
+- Controle de status
+- Endpoint para visualização do gestor
+- Validações básicas de envio
+
+👉 Resultado: Dados sendo coletados corretamente.","To do","","","Coleta","2026-04-01T00:00:00.000Z","2026-04-08T00:00:00.000Z","Downstream (desenvolvimento)"
+"Gestão de programas ","💻 Desenvolvimento
+- CRUD de programas
+- CRUD de participantes
+- Relacionamento com templates
+- Registro de presença
+- Integração entre módulos
+
+👉 Resultado: Programa funcionando de ponta a ponta.","To do","","","","2026-04-09T00:00:00.000Z","2026-04-20T00:00:00.000Z","Downstream (desenvolvimento)"
+"Impacto","💻 Desenvolvimento
+- Agregação de dados
+- Queries de consolidação
+- Estrutura de dashboard
+- Cálculo de métricas
+
+👉 Resultado: Dados transformados em leitura estratégica.","To do","","","","2026-05-04T00:00:00.000Z","2026-05-08T00:00:00.000Z","Downstream (desenvolvimento)"
+"Painel do Patrocinador","💻 Desenvolvimento
+- Permissão de leitura restrita
+- Filtro de visualização
+- Adaptação do dashboard para perfil sponsor
+
+👉 Resultado: Área institucional segura e apresentável.","To do","","","","2026-05-04T00:00:00.000Z","2026-05-08T00:00:00.000Z","Downstream (desenvolvimento)"
+"","","","","","","2026-03-02T00:00:00.000Z","2026-03-15T00:00:00.000Z","Downstream (desenvolvimento)"
