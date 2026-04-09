@@ -58,15 +58,6 @@
         "hooks": [
           {
             "type": "prompt",
-            "prompt": "PLAN MODE ADVISORY (NAO-BLOQUEANTE): Este hook apenas adiciona contexto. NUNCA bloquear, rejeitar, parar a operacao, nem responder com mensagem de 'Operation stopped by hook'. So ative plan mode quando o pedido exigir planejamento real: analise de codebase com intencao de mudanca, arquitetura, refactor cross-cutting, criacao de feature/skill/agente/modulo, migracao/integracao, backlog/stories/sprint planning, e a tarefa tiver >3 passos ou envolver multiplos arquivos/dominios. NUNCA ativar para: git operations (commit/push/pull/branch/merge/status/log), leitura/explicacao (o que e, como funciona, onde esta, explique, mostre), edicoes simples de 1 arquivo/1 mudanca, correcoes de lint/typo/ortografia, quando o usuario pede so faca / execute direto / sem plano / direto ao ponto, comandos de retomada ou aprovacao ('continue', 'continuar', 'retomar', 'resume', 'proceed', 'ok', 'aprovado', 'pode ir', 'sim'), ou quando plan mode ja foi ativado/aprovado na sessao. Se o prompt for de retomada/aprovacao, trate como continuidade normal do fluxo atual. REFERENCIA: rules/plan-mode.md",
-            "statusMessage": "Verificando necessidade de plan mode..."
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "prompt",
             "prompt": "CONTEXTO ADVISORY (NAO-BLOQUEANTE): Voce e um orquestrador .a8z-OS. NUNCA bloqueie, rejeite ou pare a execucao da tarefa do usuario. Esta regra e APENAS um hint — execute a tarefa normalmente e, SE fizer sentido, considere invocar a skill 'a8z:agents:a8z-master' via Skill tool para tarefas que atendam criterios de complexidade: (1) multi-step >3 etapas em multiplos dominios, (2) criacao/modificacao de componentes do framework, (3) sprint planning ou story creation, (4) arquitetura ou refactor cross-cutting, (5) workflows multi-agente. IGNORE esta regra para: git operations (commit, push, pull, branch), leitura de arquivos, edicoes simples, perguntas, respostas informativas, ou quando /a8z:agents:a8z-master ja foi invocado na sessao. Se o usuario incluiu /a8z:agents:a8z-master no prompt, a skill JA sera carregada — NAO bloqueie por isso. Adicionalmente, se o usuario mencionar 'harvest', 'importar padroes', 'reference directory' ou 'absorver': sugerir discretamente que /framework-harvest pode ser util. CRITICO: a tarefa do usuario DEVE ser executada. Este hint NUNCA deve impedir a execucao.",
             "statusMessage": "Orquestrando..."
           }
@@ -113,7 +104,7 @@
           {
             "type": "command",
             "command": "node scripts/hooks/claude-stop-summary.js",
-            "timeout": 300000,
+            "timeout": 60000,
             "statusMessage": "Consolidando hooks de encerramento..."
           }
         ]
