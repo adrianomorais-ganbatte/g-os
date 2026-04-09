@@ -1,6 +1,6 @@
 {
   "name": "ganbatte-os",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "Framework operacional para design-to-code, squads de entrega e sprint sync com ClickUp.",
   "bin": {
     "ganbatte-os": ".gos/scripts/cli/gos-cli.js",
