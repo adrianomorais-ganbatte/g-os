@@ -31,11 +31,29 @@ Após rodar o install, o framework criará uma estrutura limpa na sua raiz:
 - `packages/` — Onde você deve colocar o código do seu aplicativo.
 
 ### 3. Comandos do Workspace
+
 A partir da raiz do seu projeto, você pode gerenciar o framework:
 
-- `npm run gos:doctor` — Valida se o framework está íntegro e as IDEs configuradas.
-- `npm run gos:update` — Sincroniza seu workspace com as últimas melhorias da Ganbatte.
-- `npm run sync:ides` — Regenera os adapters para Claude, Gemini, Cursor e outras.
+| Comando | Alias | O que faz |
+|---------|-------|-----------|
+| `npm run gos:init` | `npm run ganbatte-os:init` | Setup pos-clone (remote, dirs, IDEs, sync framework pai) |
+| `npm run gos:update` | `npm run ganbatte-os:update` | Fetch upstream + merge + re-sync IDEs + sync framework pai |
+| `npm run gos:doctor` | `npm run ganbatte-os:doctor` | Valida integridade do workspace e IDEs |
+| `npm run gos:version` | `npm run ganbatte-os:version` | Mostra versao e checa atualizacoes |
+| `npm run sync:ides` | — | Regenera adapters para Claude, Gemini, Cursor e outras |
+| `npm run check:ides` | — | Valida compatibilidade dos IDE adapters |
+| `npm run clickup` | — | CLI ClickUp (tarefas, sprints, status) |
+| `npm run doctor` | — | Alias direto para gos:doctor |
+
+### Via npx (instalacao/atualizacao)
+
+| Comando | O que faz |
+|---------|-----------|
+| `npx ganbatte-os install` | Instala framework em diretorio novo |
+| `npx ganbatte-os init` | Inicializa workspace existente |
+| `npx ganbatte-os update` | Atualiza framework |
+| `npx ganbatte-os doctor` | Health-check |
+| `npx ganbatte-os version` | Versao instalada |
 
 ## Estrutura do Workspace
 
@@ -63,13 +81,50 @@ O `ganbatte-os` utiliza uma estrutura **encapsulada** para manter seu projeto li
 
 ## Agentes Disponíveis
 
-| Nome | Foco |
-|------|------|
-| **ux-design-expert** | Design de interfaces, tokens e design systems. |
-| **architect** | Definição de stack, padrões técnicos e revisões de código. |
-| **dev** | Implementação de features, hooks e refinamentos visuais. |
-| **sm / po** | Gestão de sprint, priorização de backlog e sync com stakeholders. |
-| **squad-creator** | Orquestração de times multi-agentes para tarefas complexas. |
+| Agent | Slash Command | Foco |
+|-------|--------------|------|
+| **gos-master** | `/gos:agents:gos-master` | Orquestrador master — routing, skills, squads, workflows |
+| **architect** | `/gos:agents:architect` | Stack, padroes tecnicos, revisoes de arquitetura |
+| **dev** | `/gos:agents:dev` | Implementacao de features, hooks, refinamentos |
+| **devops** | `/gos:agents:devops` | Git, branches, CI/CD, automacoes de entrega |
+| **po** | `/gos:agents:po` | Backlog, scope, priorizacao |
+| **qa** | `/gos:agents:qa` | Testes, quality gates, revisao de codigo |
+| **sm** | `/gos:agents:sm` | Sprint, planning, sync com stakeholders |
+| **squad-creator** | `/gos:agents:squad-creator` | Orquestracao de times multi-agentes |
+| **ux-design-expert** | `/gos:agents:ux-design-expert` | Design de interfaces, tokens, design systems |
+
+## Skills Disponiveis
+
+| Skill | Slash Command | Funcao |
+|-------|--------------|--------|
+| **design-to-code** | `/gos:skills:design-to-code` | Converte Figma/screenshot em componentes React |
+| **figma-implement-design** | `/gos:skills:figma-implement-design` | Implementa design Figma com fidelidade 1:1 |
+| **figma-make-analyzer** | `/gos:skills:figma-make-analyzer` | Analisa output do Figma Make |
+| **make-code-triage** | `/gos:skills:make-code-triage` | Classifica codigo do Figma Make por categoria |
+| **make-version-diff** | `/gos:skills:make-version-diff` | Compara versoes de output Figma Make |
+| **component-dedup** | `/gos:skills:component-dedup` | Detecta componentes duplicados |
+| **frontend-dev** | `/gos:skills:frontend-dev` | Build componentes, pages, hooks (React/Next.js) |
+| **interface-design** | `/gos:skills:interface-design` | Design de interface com metodologia intent-first |
+| **react-best-practices** | `/gos:skills:react-best-practices` | Otimizacao de performance React/Next.js |
+| **react-doctor** | `/gos:skills:react-doctor` | Diagnostico de saude de componentes React |
+| **sprint-planner** | `/gos:skills:sprint-planner` | Planejamento completo de sprint |
+| **clickup** | `/gos:skills:clickup` | Gestao de tarefas e sprints no ClickUp |
+| **plan-to-tasks** | `/gos:skills:plan-to-tasks` | Converte plano em tasks acionaveis |
+| **agent-teams** | `/gos:skills:agent-teams` | Coordena multiplos agentes em time |
+| **git-ssh-setup** | `/gos:skills:git-ssh-setup` | Configura identidade SSH para o workspace |
+
+## Documentacao
+
+| Documento | Descricao |
+|-----------|-----------|
+| [AGENTS.md](./AGENTS.md) | Agentes, skills e slash commands disponiveis |
+| [CLAUDE.md](./CLAUDE.md) | Instrucoes para Claude Code |
+| [GEMINI.md](./GEMINI.md) | Instrucoes para Google Gemini |
+| [docs/README.md](./docs/README.md) | Indice de documentacao |
+
+**Fonte canonica dos agents**: `.gos/agents/profiles/`
+**Fonte canonica das skills**: `.gos/skills/`
+**Registry de skills**: `.gos/skills/registry.json`
 
 ## Licença
 

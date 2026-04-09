@@ -71,3 +71,6 @@ coverage/
 .cache/
 pids
 *.pid
+
+# G-OS managed entries
+.env.*.local

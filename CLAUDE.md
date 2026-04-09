@@ -9,23 +9,43 @@ ganbatte-os e uma distribuicao enxuta do framework operacional ganbatte-os para:
 
 Priorize React e Next.js. Quando houver input vindo de Figma Make ou Stitch, trate o codigo como material de triagem antes de integrar ao projeto final.
 
-## Orquestração
+## Orquestracao
 
-O ganbatte-os herda o modelo de orquestração do .a8z-OS (framework pai):
+O ganbatte-os herda o modelo de orquestracao do .a8z-OS (framework pai):
 
-| Tier | Componente | Função |
+| Tier | Componente | Funcao |
 |------|-----------|--------|
 | 1 | `ganbatte-os-master` | Orquestrador master — routing matrix, skills, squads, workflows |
 | 2 | `workflow-select` | Scoring de workflows (Ralph, SDD, Rapid Bug Fix, Escalation) |
-| 2 | `composer` | Sequências de skills com decision gates |
+| 2 | `composer` | Sequencias de skills com decision gates |
 | 2 | `model-router` | Roteamento para modelo mais barato adequado |
-| 3 | `agent-teams` / `dispatching-parallel-agents` | Paralelização multi-agente |
+| 3 | `agent-teams` / `dispatching-parallel-agents` | Paralelizacao multi-agente |
 
-Para tarefas complexas multi-domínio, invocar `ganbatte-os-master` (agents/profiles/gos-master.md).
+Para tarefas complexas multi-dominio, invocar `ganbatte-os-master` (agents/profiles/gos-master.md).
 
 ## Qualidade de Texto
 
-Todo texto gerado deve passar por correção ortográfica e remoção de padrões de IA:
-- **Ortografia pt-BR**: Stop hook automático corrige acentos
-- **Humanização**: Skill `/humanizer` remove padrões de escrita artificial (26 patterns)
-- **Referência**: `libraries/content/ai-writing-patterns.md` (taxonomia de padrões)
+Todo texto gerado deve passar por correcao ortografica e remocao de padroes de IA:
+- **Ortografia pt-BR**: Stop hook automatico corrige acentos
+- **Humanizacao**: Skill `/humanizer` remove padroes de escrita artificial (26 patterns)
+- **Referencia**: `libraries/content/ai-writing-patterns.md` (taxonomia de padroes)
+
+## Comandos do Workspace
+
+| Comando | O que faz |
+|---------|-----------|
+| `npm run gos:init` | Setup pos-clone |
+| `npm run gos:update` | Atualiza framework + re-sync IDEs |
+| `npm run gos:doctor` | Health-check do workspace |
+| `npm run gos:version` | Versao e atualizacoes |
+| `npm run sync:ides` | Regenera IDE adapters |
+| `npm run check:ides` | Valida IDE adapters |
+| `npm run clickup` | CLI ClickUp |
+
+## Slash Commands
+
+### Agents (invoke via /gos:agents:{id})
+gos-master | architect | dev | devops | po | qa | sm | squad-creator | ux-design-expert
+
+### Skills (invoke via /gos:skills:{slug})
+design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup
