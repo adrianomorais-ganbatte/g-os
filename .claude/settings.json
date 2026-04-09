@@ -1,7 +1,6 @@
 {
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
-    "SLACK_WEBHOOK_URL": "${SLACK_WEBHOOK_URL}"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
     "allow": [
@@ -78,7 +77,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit|MultiEdit|Bash",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
@@ -91,9 +90,10 @@
         "matcher": "Bash",
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "AUTOMAÇÃO DE TASK (ADVISORY NÃO-BLOQUEANTE): Se o comando Bash foi 'git commit' com T-NNN na mensagem: (1) EXTRAIR T-NNN. (2) LER data/sprints/registry.json — taskMap: T-NNN → clickup_task_id. Ignorar se não existe. (3) CLASSIFICAR: wip|chore|refactor|test|docs|style = status ClickUp 'em andamento'. feat|fix|close|complete|done|resolve = status ClickUp 'complete'. (4) CLICKUP: Se MCP disponível, mcp__clickup__clickup_update_task com task_id e status. Se falhar, ignorar silenciosamente. (5) SLACK: Executar via Bash: SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL node scripts/tools/slack-notify.js task-update --task T-NNN --status 'concluida|em andamento' --commit HASH --author AUTHOR --message 'mensagem do commit'. (6) SPRINT CHECK (se concluída): Ler taskSprintMap. Se todas as tasks do sprint estão concluídas, executar: node scripts/tools/slack-notify.js sprint-complete --sprint ID --name NOME --tasks 'T-001, T-002'. REGRA DE ESCRITA: Todas as mensagens em português brasileiro correto, com acentos (não, concluída, está). IGNORAR se NÃO foi git commit ou sem T-NNN.",
-            "statusMessage": "Verificando automacao de task..."
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "node scripts/hooks/claude-session-track.js",
+            "timeout": 5000
           }
         ]
       }
