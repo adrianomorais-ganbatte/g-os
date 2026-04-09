@@ -1,0 +1,48 @@
+{
+  "version": "0.2.0",
+  "runtime": "gos-design-delivery",
+  "preserveUserContent": [
+    "packages/",
+    "data/sprints/",
+    "data/clients/",
+    ".gos-local/",
+    ".gos/config.json"
+  ],
+  "frameworkManaged": [
+    ".gos/agents/",
+    ".gos/skills/",
+    ".gos/squads/",
+    ".gos/templates/",
+    ".gos/prompts/",
+    ".gos/integrations/",
+    ".gos/scripts/",
+    ".gos/manifests/",
+    ".gos/docs/",
+    ".gos/playbooks/",
+    ".gos/config.json",
+    ".gos/opencode.json",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md"
+  ],
+  "requiredPaths": [
+    ".gos/agents/profiles/index.json",
+    ".gos/skills/registry.json",
+    ".gos/manifests/g-os-runtime-manifest.json",
+    ".gos/scripts/cli/gos-cli.js",
+    ".gos/scripts/integrations/setup-ide-adapters.js",
+    ".gos/scripts/integrations/check-ide-compat.js",
+    "AGENTS.md",
+    "CLAUDE.md"
+  ],
+  "gitignoreEntries": [
+    ".gos-local/",
+    ".temp/",
+    ".backups/",
+    "packages/*/figma-make/",
+    "packages/*/node_modules/",
+    ".env",
+    ".env.local",
+    ".env.*.local"
+  ]
+}

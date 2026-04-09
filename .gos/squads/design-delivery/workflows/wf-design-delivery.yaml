@@ -1,0 +1,27 @@
+workflow:
+  id: wf-design-delivery
+  name: "Design Delivery Pipeline"
+  entry_agent: ux-design-expert
+  type: sequential
+
+phases:
+  - id: intake
+    name: "Input Intake"
+    owner: ux-design-expert
+    goal: "Classificar se a entrada vem de Figma, Figma Make, Stitch ou screenshot."
+  - id: architecture
+    name: "Architecture Cut"
+    owner: architect
+    goal: "Separar UI, state, service layer e riscos de integracao."
+  - id: implementation
+    name: "Implementation"
+    owner: dev
+    goal: "Transformar o material em codigo reutilizavel para React ou Next.js."
+  - id: planning
+    name: "Sprint Planning"
+    owner: sm
+    goal: "Gerar backlog, prioridades e entregaveis de sprint."
+  - id: sync
+    name: "ClickUp Sync"
+    owner: devops
+    goal: "Criar ou atualizar sprint no ClickUp."

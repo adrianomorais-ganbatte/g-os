@@ -1,0 +1,46 @@
+{
+  "ide": "claude",
+  "version": "1.0.0",
+  "agentAdapters": [
+    {
+      "agentId": "ux-design-expert",
+      "canonicalProfile": "agents/profiles/ux-design-expert.md",
+      "adapterPath": ".claude/commands/gos/agents/ux-design-expert.md"
+    },
+    {
+      "agentId": "architect",
+      "canonicalProfile": "agents/profiles/architect.md",
+      "adapterPath": ".claude/commands/gos/agents/architect.md"
+    },
+    {
+      "agentId": "dev",
+      "canonicalProfile": "agents/profiles/dev.md",
+      "adapterPath": ".claude/commands/gos/agents/dev.md"
+    },
+    {
+      "agentId": "sm",
+      "canonicalProfile": "agents/profiles/sm.md",
+      "adapterPath": ".claude/commands/gos/agents/sm.md"
+    },
+    {
+      "agentId": "po",
+      "canonicalProfile": "agents/profiles/po.md",
+      "adapterPath": ".claude/commands/gos/agents/po.md"
+    },
+    {
+      "agentId": "qa",
+      "canonicalProfile": "agents/profiles/qa.md",
+      "adapterPath": ".claude/commands/gos/agents/qa.md"
+    },
+    {
+      "agentId": "devops",
+      "canonicalProfile": "agents/profiles/devops.md",
+      "adapterPath": ".claude/commands/gos/agents/devops.md"
+    },
+    {
+      "agentId": "squad-creator",
+      "canonicalProfile": "agents/profiles/squad-creator.md",
+      "adapterPath": ".claude/commands/gos/agents/squad-creator.md"
+    }
+  ]
+}

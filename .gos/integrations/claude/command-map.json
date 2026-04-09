@@ -1,0 +1,32 @@
+{
+  "ide": "claude",
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-01",
+  "mappings": [
+    {
+      "ideCommand": "/gos-search",
+      "canonicalCommand": "gos.search",
+      "coreArtifact": "prompts/01-search.md"
+    },
+    {
+      "ideCommand": "/gos-spec",
+      "canonicalCommand": "gos.spec",
+      "coreArtifact": "prompts/02-spec.md"
+    },
+    {
+      "ideCommand": "/gos-tasks",
+      "canonicalCommand": "gos.tasks",
+      "coreArtifact": "prompts/03-tasks.md"
+    },
+    {
+      "ideCommand": "/gos-code",
+      "canonicalCommand": "gos.code",
+      "coreArtifact": "prompts/04-code.md"
+    },
+    {
+      "ideCommand": "/gos-review",
+      "canonicalCommand": "gos.review",
+      "coreArtifact": "prompts/05-reviews.md"
+    }
+  ]
+}

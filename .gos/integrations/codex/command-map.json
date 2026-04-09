@@ -1,0 +1,29 @@
+{
+  "ide": "codex",
+  "version": "1.0.0",
+  "status": "active",
+  "mappings": [
+    {
+      "canonicalCommand": "gos.search",
+      "coreArtifact": "prompts/01-search.md"
+    },
+    {
+      "canonicalCommand": "gos.spec",
+      "coreArtifact": "prompts/02-spec.md"
+    },
+    {
+      "canonicalCommand": "gos.tasks",
+      "coreArtifact": "prompts/03-tasks.md"
+    },
+    {
+      "canonicalCommand": "gos.code",
+      "coreArtifact": "prompts/04-code.md"
+    },
+    {
+      "canonicalCommand": "gos.review",
+      "coreArtifact": "prompts/05-reviews.md"
+    }
+  ]
+}
+
+

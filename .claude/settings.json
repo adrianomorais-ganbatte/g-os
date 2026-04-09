@@ -1,0 +1,133 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "SLACK_WEBHOOK_URL": "${SLACK_WEBHOOK_URL}"
+  },
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/**)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(git *)",
+      "Bash(ls *)",
+      "Bash(cp *)",
+      "Bash(mkdir *)",
+      "Bash(du *)",
+      "Bash(find *)",
+      "Bash(ssh -T git@github-imdouglas)",
+      "Bash(GIT_SSH_COMMAND=* git push *)",
+      "Bash(curl -s *)",
+      "WebFetch(domain:github.com)",
+      "Bash(grep -E \"^d.*\\\\s\\(squads|workflows|rules|hooks\\)$\")",
+      "Bash(wc -l rules/*.md)",
+      "Bash(find e:/Github/a8z-hub/.a8z/skills -maxdepth 2 -type f \\\\\\(-name *.md -o -name *.json \\\\\\))",
+      "Read(//tmp/**)",
+      "Read(//dev/**)",
+      "Read(//e/Github/.a8z-framework/**)",
+      "Bash(FW=e:/Github/.a8z-framework/templates/proposals/next-app echo 'New API routes:')",
+      "Read(//e/Github/.a8z-framework/$FW/app/api/**)",
+      "Read(//e/Github/.a8z-framework/$FW/app/components/**)",
+      "Read(//e/Github/.a8z-framework/$FW/lib/**)",
+      "Bash(grep -r \"figma\\\\|storybook\\\\|design.system\" e:/Github/.a8z-framework/skills --include=*.md -l)",
+      "Bash(grep -E \"\\\\.md$\")",
+      "Bash(grep -E \"\\\\.\\(md|ts|sql\\)$\")",
+      "Bash(grep -E \"\\\\.md$|^d\")",
+      "Bash(wc -l \"E:\\\\Github\\\\.a8z-framework/rules/\"*.md)",
+      "Bash(cp \"e:/Github/a8z-hub/.a8z/squads/brand-squad/squad.yaml\" squads/brand-squad/squad.yaml)",
+      "Bash(cp \"e:/Github/a8z-hub/.a8z/squads/brand-squad/workflows/wf-brand-creation.yaml\" squads/brand-squad/workflows/wf-brand-creation.yaml)",
+      "Bash(cp \"e:/Github/a8z-hub/.a8z/squads/copy-squad/agents/copy-chief.agent.md\" squads/copy-squad/agents/copy-chief.agent.md)",
+      "Bash(cp \"e:/Github/a8z-hub/.a8z/squads/copy-squad/agents/copywriter-whatsapp.agent.md\" squads/copy-squad/agents/copywriter-whatsapp.agent.md)",
+      "Bash(cp \"e:/Github/a8z-hub/.a8z/squads/copy-squad/agents/router.agent.md\" squads/copy-squad/agents/router.agent.md)",
+      "Bash(rm \"e:/Github/.a8z-framework/.claude/tools/optimize-images.py\" \"e:/Github/.a8z-framework/.claude/tools/prompt-evaluator.py\" \"e:/Github/.a8z-framework/.claude/tools/framework-doctor.ps1\")",
+      "Bash(rmdir \"e:/Github/.a8z-framework/.claude/tools\")",
+      "Bash(\"e:/Github/.a8z-framework/scripts/tools/framework-doctor.ps1\")",
+      "Bash(grep -E \"\\\\.\\(md|yaml|json\\)$\")",
+      "Bash(grep -E \"\\\\.md$|\\\\.json$|\\\\.yaml$\")",
+      "Bash(grep -E \"\\\\.md$|\\\\.yaml$|\\\\.json$\")",
+      "Bash(grep -E \"\\\\.md$|\\\\.yaml$\")"
+    ],
+    "additionalDirectories": [
+      "e:\\Github\\.a8z-framework\\.claude\\hooks",
+      "e:\\Github\\.a8z-framework\\templates\\proposals\\next-app\\app"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "PLAN MODE ADVISORY (NAO-BLOQUEANTE): Este hook apenas adiciona contexto. NUNCA bloquear, rejeitar, parar a operacao, nem responder com mensagem de 'Operation stopped by hook'. So ative plan mode quando o pedido exigir planejamento real: analise de codebase com intencao de mudanca, arquitetura, refactor cross-cutting, criacao de feature/skill/agente/modulo, migracao/integracao, backlog/stories/sprint planning, e a tarefa tiver >3 passos ou envolver multiplos arquivos/dominios. NUNCA ativar para: git operations (commit/push/pull/branch/merge/status/log), leitura/explicacao (o que e, como funciona, onde esta, explique, mostre), edicoes simples de 1 arquivo/1 mudanca, correcoes de lint/typo/ortografia, quando o usuario pede so faca / execute direto / sem plano / direto ao ponto, comandos de retomada ou aprovacao ('continue', 'continuar', 'retomar', 'resume', 'proceed', 'ok', 'aprovado', 'pode ir', 'sim'), ou quando plan mode ja foi ativado/aprovado na sessao. Se o prompt for de retomada/aprovacao, trate como continuidade normal do fluxo atual. REFERENCIA: rules/plan-mode.md",
+            "statusMessage": "Verificando necessidade de plan mode..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "CONTEXTO ADVISORY (NAO-BLOQUEANTE): Voce e um orquestrador .a8z-OS. NUNCA bloqueie, rejeite ou pare a execucao da tarefa do usuario. Esta regra e APENAS um hint — execute a tarefa normalmente e, SE fizer sentido, considere invocar a skill 'a8z:agents:a8z-master' via Skill tool para tarefas que atendam criterios de complexidade: (1) multi-step >3 etapas em multiplos dominios, (2) criacao/modificacao de componentes do framework, (3) sprint planning ou story creation, (4) arquitetura ou refactor cross-cutting, (5) workflows multi-agente. IGNORE esta regra para: git operations (commit, push, pull, branch), leitura de arquivos, edicoes simples, perguntas, respostas informativas, ou quando /a8z:agents:a8z-master ja foi invocado na sessao. Se o usuario incluiu /a8z:agents:a8z-master no prompt, a skill JA sera carregada — NAO bloqueie por isso. Adicionalmente, se o usuario mencionar 'harvest', 'importar padroes', 'reference directory' ou 'absorver': sugerir discretamente que /framework-harvest pode ser util. CRITICO: a tarefa do usuario DEVE ser executada. Este hint NUNCA deve impedir a execucao.",
+            "statusMessage": "Orquestrando..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "REGRA ADVISORY (NAO-BLOQUEANTE): Se o arquivo sendo escrito/editado e um .md, .txt, ou contem texto externo (proposals, emails, copy, landing pages) — NAO codigo fonte: verificar rapidamente se o conteudo contem 3+ padroes de escrita artificial (frases como 'vale ressaltar', 'e importante destacar', 'nesse sentido', 'diante disso', 'em suma', 'por fim', listas excessivas com 'Alem disso/Adicionalmente/Por outro lado', paragrafos que comecam com gerundio, uso excessivo de 'robusto/abrangente/inovador/estrategico'). Se detectar 3+ padroes: emitir AVISO inline (nao bloquear) sugerindo '/humanizer' para refinar o texto. Se <3 padroes ou se for codigo/config: prosseguir sem output. NUNCA bloquear a operacao Write/Edit.",
+            "statusMessage": "Verificando padroes de escrita..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hooks/claude-session-track.js",
+            "timeout": 5000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "AUTOMAÇÃO DE TASK (ADVISORY NÃO-BLOQUEANTE): Se o comando Bash foi 'git commit' com T-NNN na mensagem: (1) EXTRAIR T-NNN. (2) LER data/sprints/registry.json — taskMap: T-NNN → clickup_task_id. Ignorar se não existe. (3) CLASSIFICAR: wip|chore|refactor|test|docs|style = status ClickUp 'em andamento'. feat|fix|close|complete|done|resolve = status ClickUp 'complete'. (4) CLICKUP: Se MCP disponível, mcp__clickup__clickup_update_task com task_id e status. Se falhar, ignorar silenciosamente. (5) SLACK: Executar via Bash: SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL node scripts/tools/slack-notify.js task-update --task T-NNN --status 'concluida|em andamento' --commit HASH --author AUTHOR --message 'mensagem do commit'. (6) SPRINT CHECK (se concluída): Ler taskSprintMap. Se todas as tasks do sprint estão concluídas, executar: node scripts/tools/slack-notify.js sprint-complete --sprint ID --name NOME --tasks 'T-001, T-002'. REGRA DE ESCRITA: Todas as mensagens em português brasileiro correto, com acentos (não, concluída, está). IGNORAR se NÃO foi git commit ou sem T-NNN.",
+            "statusMessage": "Verificando automacao de task..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/hooks/claude-stop-summary.js",
+            "timeout": 300000,
+            "statusMessage": "Consolidando hooks de encerramento..."
+          }
+        ]
+      }
+    ]
+  },
+  "outputStyle": "concise",
+  "language": "portuguese",
+  "sandbox": {
+    "enabled": false
+  },
+  "alwaysThinkingEnabled": true,
+  "enabledMcpjsonServers": [
+    "figma-mcp",
+    "clickup"
+  ]
+}

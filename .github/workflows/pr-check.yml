@@ -1,0 +1,21 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches: [beta, main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Doctor check
+        run: node .gos/scripts/cli/gos-cli.js doctor
+
+      - name: IDE compatibility check
+        run: node .gos/scripts/integrations/check-ide-compat.js

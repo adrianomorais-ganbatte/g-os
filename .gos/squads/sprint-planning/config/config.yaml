@@ -1,0 +1,65 @@
+squad: sprint-planning
+version: "1.0.0"
+
+tiers:
+  tier0:
+    role: orchestrator
+    agent: sprint-chief
+    model_tier: sonnet
+    description: "Coordena o fluxo entre agents, decide quando escalar"
+  tier1:
+    role: specialists
+    agents:
+      - sprint-planner-agent
+      - sprint-tracker
+      - task-importer
+    model_tier: sonnet
+    description: "Especialistas em planejamento, tracking e importacao"
+
+env_required:
+  - CLICKUP_API_KEY
+  - SLACK_WEBHOOK_URL
+
+env_optional:
+  - CLICKUP_SPACE_ID
+  - CLICKUP_SPRINT_FOLDER_ID
+
+tools:
+  clickup: scripts/tools/clickup.js
+  slack: scripts/tools/slack-notify.js
+
+defaults:
+  sprint_duration_days: 7
+  tracks: [backend, frontend]
+  status_mapping:
+    todo: "to do"
+    in_progress: "in progress"
+    review: "in review"
+    done: "complete"
+    blocked: "blocked"
+
+handoffs:
+  sprint_chief_to_planner:
+    from: sprint-chief
+    to: sprint-planner-agent
+    trigger: "sprint plan validated"
+    context: [sprint_plan, space_id]
+  planner_to_importer:
+    from: sprint-planner-agent
+    to: task-importer
+    trigger: "sprint created in ClickUp"
+    context: [folder_id, list_ids, tasks_json]
+  importer_to_tracker:
+    from: task-importer
+    to: sprint-tracker
+    trigger: "tasks imported"
+    context: [folder_id, task_map]
+
+cross_cutting:
+  notifications:
+    slack_on_sprint_create: true
+    slack_on_import_complete: true
+    slack_on_sprint_close: true
+  registry:
+    path: data/sprints/registry.json
+    auto_update: true

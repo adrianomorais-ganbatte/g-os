@@ -1,0 +1,15 @@
+{
+  "name": "g-os",
+  "focus": [
+    "figma-to-code",
+    "figma-make-triage",
+    "google-stitch-to-react",
+    "sprint-planning",
+    "clickup-delivery"
+  ],
+  "defaultBranches": {
+    "production": "main",
+    "staging": "beta",
+    "development": "dev"
+  }
+}

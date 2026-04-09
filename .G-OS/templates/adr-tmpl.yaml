@@ -1,0 +1,76 @@
+# ADR Template — Architecture Decision Record
+# Padrao Michael Nygard adaptado para G-OS
+# Used by: sprint-planner, sdd (Phase 2), @architect
+version: "1.0.0"
+
+structure:
+  id: "ADR-{NNN}"
+  title: "{Decision Title}"
+  status: "proposed | accepted | deprecated | superseded"
+  date: "{YYYY-MM-DD}"
+  deciders: "{list of people/agents involved}"
+  context: |
+    Qual e o problema ou forca que motiva esta decisao?
+    Quais forcas estao em jogo (tecnicas, negocio, time)?
+  options:
+    - name: "{Option A}"
+      pros: ["{pro 1}", "{pro 2}"]
+      cons: ["{con 1}", "{con 2}"]
+    - name: "{Option B}"
+      pros: ["{pro 1}", "{pro 2}"]
+      cons: ["{con 1}", "{con 2}"]
+  decision: |
+    Qual opcao foi escolhida e por que?
+    Qual mudanca sera feita?
+  consequences:
+    positive: ["{consequencia positiva 1}"]
+    negative: ["{consequencia negativa 1}"]
+    neutral: ["{consequencia neutra 1}"]
+  references:
+    - "{link ou caminho de arquivo}"
+
+# Quando usar ADR separado vs embedded no PRD:
+# - ADR separado: 3+ opcoes com trade-offs significativos (stack, banco, auth, arquitetura)
+# - Embedded no PRD: decisoes menores com escolha obvia (lib, naming, padrao de codigo)
+
+markdownTemplate: |
+  # {id}: {title}
+
+  **Status:** {status}
+  **Date:** {date}
+  **Deciders:** {deciders}
+
+  ## Contexto
+
+  {context}
+
+  ## Opcoes Consideradas
+
+  ### Opcao 1: {options[0].name}
+  - **Pros:** {options[0].pros}
+  - **Cons:** {options[0].cons}
+
+  ### Opcao 2: {options[1].name}
+  - **Pros:** {options[1].pros}
+  - **Cons:** {options[1].cons}
+
+  ## Decisao
+
+  {decision}
+
+  ## Decision Gate (custo & risco)
+
+  - Esta decisao atende aos objetivos de negocio declarados?
+  - Respeita todas as restricoes explicitas (seguranca, compliance, stack, orcamento, time)?
+  - Cumpre os atributos de qualidade com metricas e carga-alvo (latencia/disponibilidade/throughput)?
+  - Existe alternativa mais barata ou menos arriscada que entregue os mesmos objetivos? Se sim, por que foi descartada?
+
+  ## Consequencias
+
+  **Positivas:** {consequences.positive}
+  **Negativas:** {consequences.negative}
+  **Neutras:** {consequences.neutral}
+
+  ## Referencias
+
+  {references}

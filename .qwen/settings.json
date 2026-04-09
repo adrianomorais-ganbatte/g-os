@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(findstr *)"
+    ]
+  },
+  "$version": 3,
+  "mcpServers": {
+    "clickup": {
+      "url": "https://mcp.clickup.com/mcp"
+    },
+    "slack": {
+      "url": "https://mcp.slack.com/mcp"
+    },
+    "figma-mcp": {
+      "url": "https://mcp.figma.com/mcp"
+    }
+  }
+}

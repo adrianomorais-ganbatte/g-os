@@ -1,0 +1,21 @@
+{
+  "version": "0.1.0",
+  "lastUpdated": "2026-03-30",
+  "canonicalCommands": [
+    { "id": "gos.search", "coreArtifact": "prompts/01-search.md" },
+    { "id": "gos.spec", "coreArtifact": "prompts/02-spec.md" },
+    { "id": "gos.tasks", "coreArtifact": "prompts/03-tasks.md" },
+    { "id": "gos.code", "coreArtifact": "prompts/04-code.md" },
+    { "id": "gos.review", "coreArtifact": "prompts/05-reviews.md" }
+  ],
+  "supportedIdes": {
+    "claude-code": { "workspaceDir": ".claude", "adapter": "integrations/claude", "status": "active" },
+    "antigravity": { "workspaceDir": ".antigravity", "adapter": "integrations/antigravity", "status": "active" },
+    "gemini-cli": { "workspaceDir": ".gemini", "contextFile": "GEMINI.md", "status": "active" },
+    "cursor": { "workspaceDir": ".cursor", "ruleFile": ".cursor/rules/g-os.mdc", "status": "active" },
+    "codex": { "workspaceDir": ".codex", "adapter": "integrations/codex", "status": "active" },
+    "opencode": { "workspaceDir": ".opencode", "adapter": "integrations/opencode", "status": "active" },
+    "kilo-code": { "workspaceDir": ".kilocode", "ruleFile": ".kilocode/rules/g-os.md", "status": "active" },
+    "qwen-code": { "workspaceDir": ".qwen", "adapter": "integrations/qwen", "status": "active" }
+  }
+}

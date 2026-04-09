@@ -1,0 +1,39 @@
+{
+  "runtime": "ganbatte-os-design-delivery",
+  "version": "0.1.0",
+  "description": "Runtime curado do ganbatte-os para design-to-code, sprint planning e ClickUp delivery.",
+  "modules": {
+    "agents": [
+      "ganbatte-os-master",
+      "ux-design-expert",
+      "architect",
+      "dev",
+      "sm",
+      "po",
+      "devops",
+      "squad-creator"
+    ],
+    "skills": [
+      "design-to-code",
+      "figma-implement-design",
+      "figma-make-analyzer",
+      "make-code-triage",
+      "make-version-diff",
+      "component-dedup",
+      "frontend-dev",
+      "react-best-practices",
+      "react-doctor",
+      "sprint-planner",
+      "clickup",
+      "plan-to-tasks",
+      "agent-teams",
+      "git-ssh-setup"
+    ],
+    "squads": [
+      "design-delivery",
+      "design-squad",
+      "sprint-planning",
+      "git-operations"
+    ]
+  }
+}

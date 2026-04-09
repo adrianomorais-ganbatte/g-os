@@ -1,0 +1,52 @@
+name: sprint-planning
+version: "1.0.0"
+short-title: "Sprint Planning Squad"
+description: "Orquestra o ciclo de vida de sprints no ClickUp: planejamento, criacao, importacao de tasks, tracking de status e fechamento. Usa Folders como containers de sprint e Lists como tracks (backend/frontend)."
+author: "Synkra AIOS"
+license: MIT
+slashPrefix: "sprint-squad"
+
+aios:
+  minVersion: "4.0.0"
+  type: squad
+
+tags:
+  - sprint
+  - clickup
+  - agile
+  - task-management
+  - scrum
+  - project-management
+
+components:
+  agents:
+    # Tier 0 — Orchestrator
+    - sprint-chief.md
+    # Tier 1 — Specialists
+    - sprint-planner-agent.md
+    - sprint-tracker.md
+    - task-importer.md
+  tasks:
+    - create-sprint.md
+    - import-tasks.md
+    - sync-status.md
+    - close-sprint.md
+  workflows:
+    - wf-sprint-creation.yaml
+    - wf-sprint-sync.yaml
+  checklists:
+    - sprint-readiness.md
+
+routing_matrix:
+  sprint_creation:
+    primary: sprint-planner-agent
+    triggers: ["create sprint", "new sprint", "plan sprint", "criar sprint"]
+  sprint_tracking:
+    primary: sprint-tracker
+    triggers: ["sprint status", "burndown", "track progress", "status da sprint"]
+  task_import:
+    primary: task-importer
+    triggers: ["import tasks", "sync to clickup", "push tasks", "importar tasks"]
+  sprint_close:
+    primary: sprint-chief
+    triggers: ["close sprint", "sprint review", "fechar sprint", "retrospective"]

@@ -1,0 +1,41 @@
+---
+description: "Plan mode obrigatório para tarefas complexas — G-OS"
+globs: []
+alwaysApply: true
+---
+
+# Plan Mode Obrigatório — G-OS Context
+
+Antes de executar qualquer tarefa complexa, SEMPRE entre em plan mode.
+
+## Triggers (qualquer um ativa plan mode)
+
+Verbos de intenção: `analisar`, `planejar`, `criar tasks`, `arquitetar`, `refatorar`, `implementar`, `criar`, `construir`, `migrar`, `integrar`, `redesign`, `estruturar`.
+
+Critérios adicionais:
+- Tarefa com >3 passos em múltiplos domínios
+- Novo feature, skill, agente, módulo, componente
+- Sprint, backlog, roadmap, planning
+- Revisão arquitetural ou decisão cross-cutting
+
+## Protocolo de 4 Fases
+
+1. **RESEARCH** — Leia os arquivos relevantes sem alterar nada
+2. **PLAN** — Crie `implementation_plan.md` com arquivos `[NEW]`/`[MODIFY]`/`[DELETE]`, perguntas abertas, e plano de verificação. Apresente ao usuário e aguarde aprovação na resposta principal, sem bloquear via hook.
+3. **AWAIT** — Aguarde aprovação explícita: "ok", "aprovado", "go", "execute", "pode ir", "sim"
+4. **EXECUTE + TRACK** — Crie `task.md`, execute marcando `[/]` e `[x]`, finalize com `walkthrough.md`
+
+## Exceções — NÃO ativar plan mode
+
+- Git operations: commit, push, pull, branch, merge, status, log
+- Leitura e explicação: "o que é", "como funciona", "onde está", "explique", "mostre"
+- Edições simples: 1 arquivo, 1 mudança isolada
+- Correções de lint, typo, formatação, ortografia
+- Quando o usuário inclui: "só faça", "execute direto", "sem plano", "direto ao ponto"
+- Comandos de retomada ou continuação: "continue", "continuar", "retomar", "resume", "prosseguir", "segue"
+- Aprovações após um plano já apresentado: "ok", "aprovado", "go", "execute", "pode ir", "sim", "proceed"
+- Quando plan mode já foi ativado ou aprovado na sessão atual
+
+## Referência
+
+Regra completa: `rules/plan-mode.md` (no contexto G-OS)

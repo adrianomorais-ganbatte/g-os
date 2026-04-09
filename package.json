@@ -1,0 +1,39 @@
+{
+  "name": "ganbatte-os",
+  "version": "0.2.10",
+  "description": "Framework operacional para design-to-code, squads de entrega e sprint sync com ClickUp.",
+  "bin": {
+    "ganbatte-os": ".gos/scripts/cli/gos-cli.js",
+    "gos": ".gos/scripts/cli/gos-cli.js"
+  },
+  "scripts": {
+    "ganbatte-os:init": "node .gos/scripts/cli/gos-cli.js init",
+    "ganbatte-os:update": "node .gos/scripts/cli/gos-cli.js update",
+    "ganbatte-os:doctor": "node .gos/scripts/cli/gos-cli.js doctor",
+    "ganbatte-os:version": "node .gos/scripts/cli/gos-cli.js version",
+    "gos:init": "node .gos/scripts/cli/gos-cli.js init",
+    "gos:update": "node .gos/scripts/cli/gos-cli.js update",
+    "gos:doctor": "node .gos/scripts/cli/gos-cli.js doctor",
+    "gos:version": "node .gos/scripts/cli/gos-cli.js version",
+    "clickup": "node .gos/scripts/tools/clickup.js",
+    "sync:ides": "node .gos/scripts/integrations/setup-ide-adapters.js",
+    "check:ides": "node .gos/scripts/integrations/check-ide-compat.js",
+    "doctor": "node .gos/scripts/cli/gos-cli.js doctor"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrianomorais-ganbatte/g-os.git"
+  },
+  "license": "MIT",
+  "author": "Adriano Morais",
+  "files": [
+    ".gos/",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    "README.md"
+  ]
+}

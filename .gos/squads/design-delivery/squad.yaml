@@ -1,0 +1,30 @@
+name: design-delivery
+version: "1.0.0"
+short-title: "Design Delivery Squad"
+description: "Converte design e output de ferramentas generativas em codigo pronto para sprint e sincronizacao com ClickUp."
+slashPrefix: "design-delivery"
+
+components:
+  agents:
+    - ux-design-expert.md
+    - architect.md
+    - dev.md
+    - sm.md
+    - po.md
+    - devops.md
+  workflows:
+    - wf-design-delivery.yaml
+
+routing_matrix:
+  figma_frame:
+    primary: ux-design-expert
+    triggers: ["figma frame", "figma to code", "converter frame"]
+  figma_make:
+    primary: architect
+    triggers: ["figma make", "make export", "codigo do make"]
+  stitch_code:
+    primary: dev
+    triggers: ["google stitch", "stitch", "codigo gerado pelo stitch"]
+  sprint_sync:
+    primary: sm
+    triggers: ["criar sprint", "subir clickup", "sync clickup"]
