@@ -222,6 +222,14 @@ function cmdInit(root, args) {
     warn('setup-ide-adapters.js nao encontrado. Pulando sync de IDEs.');
   }
 
+  // 6b. Sync adapters no framework pai (a8z-framework)
+  const parentSyncScript = path.join(root, '..', 'scripts', 'integrations', 'sync-gos-adapters.js');
+  if (pathExists(parentSyncScript)) {
+    log('Sincronizando adapters no framework pai...');
+    runNode(parentSyncScript, { cwd: path.join(root, '..') });
+    ok('Adapters sincronizados no framework pai.');
+  }
+
   // 7. Validar IDEs
   const ideCheckScript = path.join(root, 'scripts', 'integrations', 'check-ide-compat.js');
   if (pathExists(ideCheckScript)) {
@@ -425,6 +433,14 @@ function cmdUpdate(root, args) {
     log('Re-sincronizando IDE adapters...');
     runNode(ideSetupScript, { cwd: root, quiet: true });
     ok('IDE adapters atualizados.');
+  }
+
+  // 6b. Re-sync adapters no framework pai (a8z-framework)
+  const parentSyncScript = path.join(root, '..', 'scripts', 'integrations', 'sync-gos-adapters.js');
+  if (pathExists(parentSyncScript)) {
+    log('Re-sincronizando adapters no framework pai...');
+    runNode(parentSyncScript, { cwd: path.join(root, '..'), quiet: true });
+    ok('Adapters atualizados no framework pai.');
   }
 
   // 7. Validar IDEs
