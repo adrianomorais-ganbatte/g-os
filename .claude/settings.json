@@ -1,7 +1,4 @@
 {
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
   "permissions": {
     "allow": [
       "Read(//c/Users/**)",
@@ -50,6 +47,19 @@
       "e:\\Github\\.a8z-framework\\.claude\\hooks",
       "e:\\Github\\.a8z-framework\\templates\\proposals\\next-app\\app"
     ]
+  },
+  "outputStyle": "concise",
+  "language": "portuguese",
+  "sandbox": {
+    "enabled": false
+  },
+  "alwaysThinkingEnabled": true,
+  "enabledMcpjsonServers": [
+    "figma-mcp",
+    "clickup"
+  ],
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "hooks": {
     "UserPromptSubmit": [
@@ -110,15 +120,5 @@
         ]
       }
     ]
-  },
-  "outputStyle": "concise",
-  "language": "portuguese",
-  "sandbox": {
-    "enabled": false
-  },
-  "alwaysThinkingEnabled": true,
-  "enabledMcpjsonServers": [
-    "figma-mcp",
-    "clickup"
-  ]
+  }
 }
