@@ -336,3 +336,105 @@ export const RowVariations: StoryObj = {
     );
   },
 };
+
+export const HeadingVariations: StoryObj = {
+  render: () => {
+    const SortableHead = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+      <TableHead className={className}>
+        <div className="flex items-center gap-2 w-max cursor-pointer text-zinc-500 hover:text-zinc-800 transition-colors group">
+          {children} <ArrowUpDown className="h-3 w-3 text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+        </div>
+      </TableHead>
+    );
+
+    return (
+      <div className="w-full max-w-6xl mx-auto flex flex-col p-6 space-y-4 bg-white">
+        {/* V1 */}
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50 hover:bg-slate-50 font-medium border-b-0 shadow-sm rounded-md">
+                  <SortableHead className="rounded-l-md font-medium">Projeto</SortableHead>
+                  <SortableHead className="font-medium">Investidores</SortableHead>
+                  <SortableHead className="font-medium">Frente</SortableHead>
+                  <SortableHead className="font-medium">Execução</SortableHead>
+                  <SortableHead className="font-medium">Presença</SortableHead>
+                  <SortableHead className="font-medium">NPS</SortableHead>
+                  <TableHead className="rounded-r-md font-medium text-zinc-500 w-[100px]">Ativo</TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+
+            {/* V2 */}
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50 hover:bg-slate-50 font-medium border-b-0 shadow-sm rounded-md">
+                  <SortableHead className="rounded-l-md font-medium">Participante</SortableHead>
+                  <SortableHead className="font-medium">Negócio</SortableHead>
+                  <SortableHead className="font-medium">Status</SortableHead>
+                  <SortableHead className="font-medium">Satisfação</SortableHead>
+                  <SortableHead className="font-medium">Presença</SortableHead>
+                  <TableHead className="rounded-r-md font-medium text-zinc-500 w-[100px]">Ativo</TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+
+            {/* V3 */}
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50 hover:bg-slate-50 font-medium border-b-0 shadow-sm rounded-md">
+                  <SortableHead className="rounded-l-md font-medium">Nome</SortableHead>
+                  <SortableHead className="font-medium">Participantes</SortableHead>
+                  <SortableHead className="font-medium">Programas</SortableHead>
+                  <TableHead className="rounded-r-md font-medium text-zinc-500 w-[100px]">Ativo</TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+
+            {/* V4 */}
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50 hover:bg-slate-50 font-medium border-b-0 shadow-sm rounded-md">
+                  <SortableHead className="rounded-l-md font-medium">Data</SortableHead>
+                  <SortableHead className="font-medium">Módulo</SortableHead>
+                  <SortableHead className="font-medium">Presença</SortableHead>
+                  <SortableHead className="font-medium">Link</SortableHead>
+                  <SortableHead className="font-medium">NPS</SortableHead>
+                  <TableHead className="rounded-r-md font-medium text-zinc-500 w-[100px]">Ativo</TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+
+            {/* V5 */}
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50 hover:bg-slate-50 font-medium border-b-0 shadow-sm rounded-md">
+                  <SortableHead className="rounded-l-md font-medium">Data da Atribuição</SortableHead>
+                  <SortableHead className="font-medium">Identificador</SortableHead>
+                  <SortableHead className="font-medium">Tipo</SortableHead>
+                  <SortableHead className="font-medium">Template</SortableHead>
+                  <SortableHead className="font-medium">Respostas</SortableHead>
+                  <SortableHead className="font-medium">Performance</SortableHead>
+                  <TableHead className="rounded-r-md font-medium text-zinc-500 w-[100px]">Ativo</TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+
+            {/* V6 */}
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50 hover:bg-slate-50 font-medium border-b-0 shadow-sm rounded-md">
+                  <SortableHead className="rounded-l-md font-medium">Empresa</SortableHead>
+                  <SortableHead className="font-medium">Tipo</SortableHead>
+                  <SortableHead className="font-medium">Segmento</SortableHead>
+                  <SortableHead className="font-medium">Materialidade</SortableHead>
+                  <SortableHead className="font-medium">Valor de apoio</SortableHead>
+                  <SortableHead className="font-medium">Projetos</SortableHead>
+                  <TableHead className="rounded-r-md font-medium text-zinc-500 w-[100px]">Ativo</TableHead>
+                </TableRow>
+              </TableHeader>
+            </Table>
+            
+      </div>
+    );
+  },
+};

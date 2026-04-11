@@ -32,40 +32,93 @@ export const Default: Story = {
   ),
 };
 
-export const Statistics: Story = {
+export const Minimalist: Story = {
   render: () => (
-    <div className="flex gap-4">
-      
-      {/* Variante Rosa */}
-      <Card className="w-[200px] border border-slate-200 border-t-4 border-t-rose-400 rounded-xl shadow-sm overflow-hidden">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Título</CardTitle>
+    <div className="flex flex-col gap-6 p-8 w-max">
+      {/* Variante Com Ícone */}
+      <Card className="w-[250px] border border-slate-200 border-t-[6px] border-t-zinc-900 rounded-xl shadow-sm overflow-hidden flex flex-row items-center p-4 gap-4 hover:shadow-md transition-all">
+        <div className="flex items-center justify-center w-12 h-12 bg-slate-100 rounded-lg shrink-0">
+          <div className="w-5 h-5 border border-dashed border-slate-400 rounded-sm"></div>
+        </div>
+        <div className="flex flex-col text-left text-start">
+          <span className="text-xs font-medium text-slate-600">Título</span>
+          <span className="text-2xl font-semibold text-zinc-900 leading-none mt-1">n</span>
+        </div>
+      </Card>
+
+      {/* Variante Sem Ícone */}
+      <Card className="w-[250px] border border-slate-200 border-t-[6px] border-t-zinc-900 rounded-xl shadow-sm overflow-hidden flex flex-col p-4 justify-center hover:shadow-md transition-all text-left text-start">
+        <div className="flex flex-col">
+          <span className="text-xs font-medium text-slate-600">Título</span>
+          <span className="text-2xl font-semibold text-zinc-900 leading-none mt-1">n</span>
+        </div>
+      </Card>
+    </div>
+  ),
+};
+
+export const Colorful: Story = {
+  render: () => (
+    <div className="flex gap-4 p-8 w-max flex-wrap max-w-4xl">
+      {/* 1. Rosa */}
+      <Card className="w-[160px] border border-rose-200 border-t-4 border-t-rose-400 rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="pb-2 text-start">
+          <CardTitle className="text-sm font-medium text-slate-700">Título</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-foreground">n</div>
+        <CardContent className="text-start">
+          <div className="text-2xl font-semibold text-slate-900 leading-none">n</div>
         </CardContent>
       </Card>
 
-      {/* Variante Laranja Fractus */}
-      <Card className="w-[200px] border border-slate-200 border-t-4 border-t-[#F37D5E] rounded-xl shadow-sm overflow-hidden">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Título</CardTitle>
+      {/* 2. Laranja Fractus */}
+      <Card className="w-[160px] border border-orange-200 border-t-4 border-t-[#F37D5E] rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="pb-2 text-start">
+          <CardTitle className="text-sm font-medium text-slate-700">Título</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-foreground">n</div>
+        <CardContent className="text-start">
+          <div className="text-2xl font-semibold text-slate-900 leading-none">n</div>
         </CardContent>
       </Card>
 
-      {/* Variante Verde */}
-      <Card className="w-[200px] border border-slate-200 border-t-4 border-t-emerald-500 rounded-xl shadow-sm overflow-hidden">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Título</CardTitle>
+      {/* 3. Amarelo */}
+      <Card className="w-[160px] border border-amber-200 border-t-4 border-t-amber-400 rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="pb-2 text-start">
+          <CardTitle className="text-sm font-medium text-slate-700">Título</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-foreground">n</div>
+        <CardContent className="text-start">
+          <div className="text-2xl font-semibold text-slate-900 leading-none">n</div>
         </CardContent>
       </Card>
 
+      {/* 4. Verde */}
+      <Card className="w-[160px] border border-emerald-200 border-t-4 border-t-emerald-500 rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="pb-2 text-start">
+          <CardTitle className="text-sm font-medium text-slate-700">Título</CardTitle>
+        </CardHeader>
+        <CardContent className="text-start">
+          <div className="text-2xl font-semibold text-slate-900 leading-none">n</div>
+        </CardContent>
+      </Card>
+
+      {/* 5. Indigo/Azul Escuro */}
+      <Card className="w-[160px] border border-indigo-200 border-t-4 border-t-indigo-500 rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="pb-2 text-start">
+          <CardTitle className="text-sm font-medium text-slate-700">Título</CardTitle>
+        </CardHeader>
+        <CardContent className="text-start">
+          <div className="text-2xl font-semibold text-slate-900 leading-none">n</div>
+        </CardContent>
+      </Card>
+
+      {/* 6. Sky/Cyan */}
+      <Card className="w-[160px] border border-sky-200 border-t-4 border-t-sky-500 rounded-xl shadow-sm overflow-hidden">
+        <CardHeader className="pb-2 text-start">
+          <CardTitle className="text-sm font-medium text-slate-700">Título</CardTitle>
+        </CardHeader>
+        <CardContent className="text-start">
+          <div className="text-2xl font-semibold text-slate-900 leading-none">n</div>
+        </CardContent>
+      </Card>
     </div>
   ),
 };
