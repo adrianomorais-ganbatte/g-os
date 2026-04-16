@@ -42,18 +42,20 @@ function main() {
 
   for (const skill of skills) {
     const skillTargetPath = skill.skillFile || skill.path;
+    const canonicalPath = path.join(root, '.gos', skillTargetPath);
     const claudeSkill = path.join(root, '.claude', 'commands', 'gos', 'skills', `${skill.slug}.md`);
-    const codexSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}.md`);
+    const codexSkill = path.join(root, '.agents', 'skills', `gos-${skill.slug}`, 'SKILL.md');
+    const antigravitySkill = path.join(root, '.antigravity', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const geminiSkill = path.join(root, '.gemini', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const opencodeSkill = path.join(root, '.opencode', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const qwenSkill = path.join(root, '.qwen', 'skills', `gos-${skill.slug}`, 'SKILL.md');
 
-    writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, path.join(root, '.gos', skillTargetPath))));
-    writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, path.join(root, '.gos', skillTargetPath))));
-    writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, path.join(root, '.gos', skillTargetPath))));
-    writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, path.join(root, '.gos', skillTargetPath))));
-    ensureDir(path.dirname(qwenSkill));
-    writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, path.join(root, '.gos', skillTargetPath))));
+    writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, canonicalPath)));
+    writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, canonicalPath)));
+    writeFile(antigravitySkill, skillWrapper(skill.slug, relativeTarget(antigravitySkill, canonicalPath)));
+    writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, canonicalPath)));
+    writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, canonicalPath)));
+    writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, canonicalPath)));
   }
 
   const antigravityInstructions = [
@@ -68,7 +70,16 @@ function main() {
     ...agents.map((agent) => `- ${agent.id}`),
     '',
     'Skills curadas:',
-    ...skills.map((skill) => `- ${skill.slug}`)
+    ...skills.map((skill) => `- ${skill.slug}`),
+    '',
+    '## Como invocar Skills',
+    '',
+    'Para usar uma skill, leia o arquivo canonico e siga suas instrucoes.',
+    'Skills tambem disponiveis como adapters em `.antigravity/skills/`.',
+    '',
+    '| Skill | Arquivo canonico |',
+    '|-------|-----------------|',
+    ...skills.map((skill) => `| \`gos-${skill.slug}\` | \`.gos/${skill.skillFile || skill.path}\` |`)
   ].join('\n');
 
   writeFile(path.join(root, '.antigravity', 'instructions.md'), antigravityInstructions);
