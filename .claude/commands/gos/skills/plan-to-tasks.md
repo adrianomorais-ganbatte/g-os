@@ -1,6 +1,16 @@
-# gos-plan-to-tasks
+---
+description: "plan-to-tasks"
+argument-hint: "[argumentos opcionais]"
+---
 
-Fonte canonica: `../../../../.gos/skills/plan-to-tasks/SKILL.md`
+# gos-plan-to-tasks (Claude Adapter)
 
-Leia e siga a skill em `../../../../.gos/skills/plan-to-tasks/SKILL.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter fino para Claude. Fonte canonica: `../../../../.gos/skills/plan-to-tasks/SKILL.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/skills/plan-to-tasks/SKILL.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico indicado em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: $ARGUMENTS

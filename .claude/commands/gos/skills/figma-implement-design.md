@@ -1,6 +1,16 @@
-# gos-figma-implement-design
+---
+description: "figma-implement-design"
+argument-hint: "[argumentos opcionais]"
+---
 
-Fonte canonica: `../../../../.gos/skills/figma-implement-design/SKILL.md`
+# gos-figma-implement-design (Claude Adapter)
 
-Leia e siga a skill em `../../../../.gos/skills/figma-implement-design/SKILL.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter fino para Claude. Fonte canonica: `../../../../.gos/skills/figma-implement-design/SKILL.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/skills/figma-implement-design/SKILL.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico indicado em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: $ARGUMENTS

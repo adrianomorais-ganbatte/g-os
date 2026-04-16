@@ -35,6 +35,12 @@ function qwenCommandWrapper(name, description, target) {
   return `---\ndescription: "${desc}"\n---\n\n# ${name} (Qwen Command Adapter)\n\n> Adapter para Qwen Code. Fonte canonica: \`${target}\`.\n\nCANONICAL-SOURCE: ${target}\n\n## Adapter Contract\n\n1. Leia o arquivo canonico em **CANONICAL-SOURCE** por completo.\n2. Execute as instrucoes desse arquivo como fonte primaria.\n3. Argumentos do usuario: {{args}}`;
 }
 
+function claudeCommandWrapper(name, description, target, argumentHint) {
+  const desc = (description || name).replace(/"/g, '\\"').replace(/\n/g, ' ').slice(0, 200);
+  const hint = argumentHint ? `\nargument-hint: "${argumentHint.replace(/"/g, '\\"')}"` : '\nargument-hint: "[argumentos opcionais]"';
+  return `---\ndescription: "${desc}"${hint}\n---\n\n# ${name} (Claude Adapter)\n\n> Adapter fino para Claude. Fonte canonica: \`${target}\`.\n\nCANONICAL-SOURCE: ${target}\n\n## Adapter Contract\n\n1. Leia o arquivo canonico indicado em **CANONICAL-SOURCE** por completo.\n2. Execute as instrucoes desse arquivo como fonte primaria.\n3. Argumentos do usuario: $ARGUMENTS`;
+}
+
 function extractAgentDescription(filePath) {
   if (!fs.existsSync(filePath)) return '';
   const content = fs.readFileSync(filePath, 'utf8');
@@ -81,9 +87,9 @@ function main() {
     const agentProfilePath = path.join(root, '.gos', 'agents', 'profiles', agent.path);
     const agentDesc = extractAgentDescription(agentProfilePath) || `${agent.id} agent`;
 
-    // Claude commands
+    // Claude commands (requires YAML frontmatter with description)
     const claudeFile = path.join(root, '.claude', 'commands', 'gos', 'agents', `${agent.id}.md`);
-    writeFile(claudeFile, agentWrapper(agent.id, relativeTarget(claudeFile, agentProfilePath)));
+    writeFile(claudeFile, claudeCommandWrapper(`gos-${agent.id}`, agentDesc, relativeTarget(claudeFile, agentProfilePath)));
 
     // Qwen commands (requires YAML frontmatter with description)
     const qwenCmd = path.join(root, '.qwen', 'commands', 'gos', 'agents', `${agent.id}.md`);
@@ -116,7 +122,10 @@ function main() {
     writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, canonicalPath)));
     const skillFm = parseFrontmatter(canonicalPath);
     const skillDesc = skillFm.description || skill.description || skill.name || skill.slug;
+    const skillArgHint = skillFm['argument-hint'] || '';
     writeFile(qwenCmd, qwenCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(qwenCmd, canonicalPath)));
+    // Overwrite Claude skill with frontmatter version
+    writeFile(claudeSkill, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(claudeSkill, canonicalPath), skillArgHint));
   }
 
   const antigravityInstructions = [

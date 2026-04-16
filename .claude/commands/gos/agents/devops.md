@@ -1,6 +1,16 @@
-# devops
+---
+description: "Agent para configurar GitHub, branches e workflows"
+argument-hint: "[argumentos opcionais]"
+---
 
-Fonte canonica: `../../../../.gos/agents/profiles/devops.md`
+# gos-devops (Claude Adapter)
 
-Leia e siga o perfil em `../../../../.gos/agents/profiles/devops.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter fino para Claude. Fonte canonica: `../../../../.gos/agents/profiles/devops.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/agents/profiles/devops.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico indicado em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: $ARGUMENTS
