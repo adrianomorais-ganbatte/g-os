@@ -1,6 +1,6 @@
 ---
 name: "gos-gos-master"
-description: "gos-master agent"
+description: "ganbatte-os Master Orchestrator"
 model: inherit
 tools:
   - Read

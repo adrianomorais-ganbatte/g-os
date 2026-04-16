@@ -1,6 +1,6 @@
 ---
 name: "gos-po"
-description: "po agent"
+description: "Agent para priorizar backlog"
 model: inherit
 tools:
   - Read

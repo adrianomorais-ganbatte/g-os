@@ -1,6 +1,15 @@
-# dev
+---
+description: "Agent para implementar componentes, paginas e hooks"
+---
 
-Fonte canonica: `../../../../.gos/agents/profiles/dev.md`
+# gos-dev (Qwen Command Adapter)
 
-Leia e siga o perfil em `../../../../.gos/agents/profiles/dev.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter para Qwen Code. Fonte canonica: `../../../../.gos/agents/profiles/dev.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/agents/profiles/dev.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: {{args}}

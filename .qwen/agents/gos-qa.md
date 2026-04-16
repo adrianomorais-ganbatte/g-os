@@ -1,6 +1,6 @@
 ---
 name: "gos-qa"
-description: "qa agent"
+description: "Test Architect & Quality Advisor"
 model: inherit
 tools:
   - Read

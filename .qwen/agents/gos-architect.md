@@ -1,6 +1,6 @@
 ---
 name: "gos-architect"
-description: "architect agent"
+description: "Agent para decidir stack React ou Next.js"
 model: inherit
 tools:
   - Read

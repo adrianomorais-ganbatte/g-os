@@ -1,6 +1,6 @@
 ---
 name: "gos-squad-creator"
-description: "squad-creator agent"
+description: "Agent para montar squads focados em design delivery"
 model: inherit
 tools:
   - Read

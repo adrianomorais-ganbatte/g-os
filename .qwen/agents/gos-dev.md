@@ -1,6 +1,6 @@
 ---
 name: "gos-dev"
-description: "dev agent"
+description: "Agent para implementar componentes, paginas e hooks"
 model: inherit
 tools:
   - Read

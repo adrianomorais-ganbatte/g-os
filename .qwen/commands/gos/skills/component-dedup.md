@@ -1,6 +1,15 @@
-# gos-component-dedup
+---
+description: "component-dedup"
+---
 
-Fonte canonica: `../../../../.gos/skills/component-dedup/SKILL.md`
+# gos-component-dedup (Qwen Command Adapter)
 
-Leia e siga a skill em `../../../../.gos/skills/component-dedup/SKILL.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter para Qwen Code. Fonte canonica: `../../../../.gos/skills/component-dedup/SKILL.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/skills/component-dedup/SKILL.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: {{args}}

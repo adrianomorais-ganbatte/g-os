@@ -1,6 +1,15 @@
-# qa
+---
+description: "Test Architect & Quality Advisor"
+---
 
-Fonte canonica: `../../../../.gos/agents/profiles/qa.md`
+# gos-qa (Qwen Command Adapter)
 
-Leia e siga o perfil em `../../../../.gos/agents/profiles/qa.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter para Qwen Code. Fonte canonica: `../../../../.gos/agents/profiles/qa.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/agents/profiles/qa.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: {{args}}

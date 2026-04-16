@@ -1,6 +1,15 @@
-# gos-design-to-code
+---
+description: "design-to-code"
+---
 
-Fonte canonica: `../../../../.gos/skills/design-to-code/SKILL.md`
+# gos-design-to-code (Qwen Command Adapter)
 
-Leia e siga a skill em `../../../../.gos/skills/design-to-code/SKILL.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter para Qwen Code. Fonte canonica: `../../../../.gos/skills/design-to-code/SKILL.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/skills/design-to-code/SKILL.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: {{args}}

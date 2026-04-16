@@ -1,6 +1,6 @@
 ---
 name: "gos-devops"
-description: "devops agent"
+description: "Agent para configurar GitHub, branches e workflows"
 model: inherit
 tools:
   - Read

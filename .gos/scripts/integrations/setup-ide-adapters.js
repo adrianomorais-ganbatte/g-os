@@ -30,25 +30,70 @@ function skillWrapper(slug, target) {
   return `# gos-${slug}\n\nFonte canonica: \`${target}\`\n\nLeia e siga a skill em \`${target}\`.\nEste arquivo existe apenas como adapter fino para a IDE.`;
 }
 
+function qwenCommandWrapper(name, description, target) {
+  const desc = (description || name).replace(/"/g, '\\"').replace(/\n/g, ' ').slice(0, 200);
+  return `---\ndescription: "${desc}"\n---\n\n# ${name} (Qwen Command Adapter)\n\n> Adapter para Qwen Code. Fonte canonica: \`${target}\`.\n\nCANONICAL-SOURCE: ${target}\n\n## Adapter Contract\n\n1. Leia o arquivo canonico em **CANONICAL-SOURCE** por completo.\n2. Execute as instrucoes desse arquivo como fonte primaria.\n3. Argumentos do usuario: {{args}}`;
+}
+
+function extractAgentDescription(filePath) {
+  if (!fs.existsSync(filePath)) return '';
+  const content = fs.readFileSync(filePath, 'utf8');
+  const topBlock = content.split(/\n\s+persona:/)[0];
+  for (const field of ['role', 'title', 'description']) {
+    const re = new RegExp(`^\\s{2,4}${field}:\\s*(.+)`, 'm');
+    const match = topBlock.match(re);
+    if (match) return match[1].trim().replace(/^['"]|['"]$/g, '');
+  }
+  const useForMatch = content.match(/Use para:\s*\n+\s*-\s*(.+)/);
+  if (useForMatch) return `Agent para ${useForMatch[1].trim()}`;
+  return '';
+}
+
+function parseFrontmatter(filePath) {
+  if (!fs.existsSync(filePath)) return {};
+  const content = fs.readFileSync(filePath, 'utf8');
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return {};
+  const fm = {};
+  const lines = match[1].split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const kv = lines[i].match(/^(\w[\w-]*):\s*(.*)/);
+    if (!kv) continue;
+    let val = kv[2].trim();
+    if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
+    if (val === '>' || val === '|' || val === '>-' || val === '|-') {
+      const parts = [];
+      while (i + 1 < lines.length && /^\s+\S/.test(lines[i + 1])) {
+        parts.push(lines[++i].trim());
+      }
+      val = parts.join(' ');
+    }
+    fm[kv[1]] = val;
+  }
+  return fm;
+}
+
 function main() {
   const agents = readJson(path.join(root, '.gos', 'agents', 'profiles', 'index.json')).profiles;
   const skills = readJson(path.join(root, '.gos', 'skills', 'registry.json')).skills;
 
   for (const agent of agents) {
     const agentProfilePath = path.join(root, '.gos', 'agents', 'profiles', agent.path);
+    const agentDesc = extractAgentDescription(agentProfilePath) || `${agent.id} agent`;
 
     // Claude commands
     const claudeFile = path.join(root, '.claude', 'commands', 'gos', 'agents', `${agent.id}.md`);
     writeFile(claudeFile, agentWrapper(agent.id, relativeTarget(claudeFile, agentProfilePath)));
 
-    // Qwen commands (same mechanism as Claude)
+    // Qwen commands (requires YAML frontmatter with description)
     const qwenCmd = path.join(root, '.qwen', 'commands', 'gos', 'agents', `${agent.id}.md`);
-    writeFile(qwenCmd, agentWrapper(agent.id, relativeTarget(qwenCmd, agentProfilePath)));
+    writeFile(qwenCmd, qwenCommandWrapper(`gos-${agent.id}`, agentDesc, relativeTarget(qwenCmd, agentProfilePath)));
 
     // Qwen sub-agents
     const qwenAgent = path.join(root, '.qwen', 'agents', `gos-${agent.id}.md`);
     const agentTarget = relativeTarget(qwenAgent, agentProfilePath);
-    writeFile(qwenAgent, `---\nname: "gos-${agent.id}"\ndescription: "${agent.id} agent"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${agentTarget}\`\nLeia e siga o perfil em \`${agentTarget}\`.`);
+    const safeDesc = agentDesc.replace(/"/g, '\\"').replace(/\n/g, ' ').slice(0, 200);
+    writeFile(qwenAgent, `---\nname: "gos-${agent.id}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${agentTarget}\`\nLeia e siga o perfil em \`${agentTarget}\`.`);
   }
 
   for (const skill of skills) {
@@ -69,7 +114,9 @@ function main() {
     writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, canonicalPath)));
     writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, canonicalPath)));
     writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, canonicalPath)));
-    writeFile(qwenCmd, skillWrapper(skill.slug, relativeTarget(qwenCmd, canonicalPath)));
+    const skillFm = parseFrontmatter(canonicalPath);
+    const skillDesc = skillFm.description || skill.description || skill.name || skill.slug;
+    writeFile(qwenCmd, qwenCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(qwenCmd, canonicalPath)));
   }
 
   const antigravityInstructions = [

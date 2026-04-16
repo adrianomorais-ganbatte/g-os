@@ -1,6 +1,6 @@
 ---
 name: "gos-ux-design-expert"
-description: "ux-design-expert agent"
+description: "Agent para interpretar frames Figma e referencias visuais"
 model: inherit
 tools:
   - Read
