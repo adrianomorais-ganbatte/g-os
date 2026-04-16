@@ -27,7 +27,9 @@
       "clickup",
       "plan-to-tasks",
       "agent-teams",
-      "git-ssh-setup"
+      "git-ssh-setup",
+      "humanizer",
+      "weekly-update"
     ],
     "squads": [
       "design-delivery",

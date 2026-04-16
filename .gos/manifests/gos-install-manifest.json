@@ -19,6 +19,7 @@
     ".gos/manifests/",
     ".gos/docs/",
     ".gos/playbooks/",
+    ".gos/libraries/",
     ".gos/config.json",
     ".gos/opencode.json",
     "AGENTS.md",
