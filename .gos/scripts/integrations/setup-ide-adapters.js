@@ -35,9 +35,20 @@ function main() {
   const skills = readJson(path.join(root, '.gos', 'skills', 'registry.json')).skills;
 
   for (const agent of agents) {
+    const agentProfilePath = path.join(root, '.gos', 'agents', 'profiles', agent.path);
+
+    // Claude commands
     const claudeFile = path.join(root, '.claude', 'commands', 'gos', 'agents', `${agent.id}.md`);
-    const target = relativeTarget(claudeFile, path.join(root, '.gos', 'agents', 'profiles', agent.path));
-    writeFile(claudeFile, agentWrapper(agent.id, target));
+    writeFile(claudeFile, agentWrapper(agent.id, relativeTarget(claudeFile, agentProfilePath)));
+
+    // Qwen commands (same mechanism as Claude)
+    const qwenCmd = path.join(root, '.qwen', 'commands', 'gos', 'agents', `${agent.id}.md`);
+    writeFile(qwenCmd, agentWrapper(agent.id, relativeTarget(qwenCmd, agentProfilePath)));
+
+    // Qwen sub-agents
+    const qwenAgent = path.join(root, '.qwen', 'agents', `gos-${agent.id}.md`);
+    const agentTarget = relativeTarget(qwenAgent, agentProfilePath);
+    writeFile(qwenAgent, `---\nname: "gos-${agent.id}"\ndescription: "${agent.id} agent"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${agentTarget}\`\nLeia e siga o perfil em \`${agentTarget}\`.`);
   }
 
   for (const skill of skills) {
@@ -50,12 +61,15 @@ function main() {
     const opencodeSkill = path.join(root, '.opencode', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const qwenSkill = path.join(root, '.qwen', 'skills', `gos-${skill.slug}`, 'SKILL.md');
 
+    const qwenCmd = path.join(root, '.qwen', 'commands', 'gos', 'skills', `${skill.slug}.md`);
+
     writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, canonicalPath)));
     writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, canonicalPath)));
     writeFile(antigravitySkill, skillWrapper(skill.slug, relativeTarget(antigravitySkill, canonicalPath)));
     writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, canonicalPath)));
     writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, canonicalPath)));
     writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, canonicalPath)));
+    writeFile(qwenCmd, skillWrapper(skill.slug, relativeTarget(qwenCmd, canonicalPath)));
   }
 
   const antigravityInstructions = [
