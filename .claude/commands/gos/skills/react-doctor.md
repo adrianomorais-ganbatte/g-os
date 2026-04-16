@@ -1,6 +1,16 @@
-# gos-react-doctor
+---
+description: "react-doctor"
+argument-hint: "[argumentos opcionais]"
+---
 
-Fonte canonica: `../../../../.gos/skills/react-doctor/SKILL.md`
+# gos-react-doctor (Claude Adapter)
 
-Leia e siga a skill em `../../../../.gos/skills/react-doctor/SKILL.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter fino para Claude. Fonte canonica: `../../../../.gos/skills/react-doctor/SKILL.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/skills/react-doctor/SKILL.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico indicado em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: $ARGUMENTS

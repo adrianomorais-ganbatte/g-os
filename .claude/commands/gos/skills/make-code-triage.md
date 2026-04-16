@@ -1,6 +1,16 @@
-# gos-make-code-triage
+---
+description: "make-code-triage"
+argument-hint: "[argumentos opcionais]"
+---
 
-Fonte canonica: `../../../../.gos/skills/make-code-triage/SKILL.md`
+# gos-make-code-triage (Claude Adapter)
 
-Leia e siga a skill em `../../../../.gos/skills/make-code-triage/SKILL.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter fino para Claude. Fonte canonica: `../../../../.gos/skills/make-code-triage/SKILL.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/skills/make-code-triage/SKILL.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico indicado em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: $ARGUMENTS

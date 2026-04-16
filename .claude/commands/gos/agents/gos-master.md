@@ -1,6 +1,16 @@
-# gos-master
+---
+description: "ganbatte-os Master Orchestrator"
+argument-hint: "[argumentos opcionais]"
+---
 
-Fonte canonica: `../../../../.gos/agents/profiles/ganbatte-os-master.md`
+# gos-gos-master (Claude Adapter)
 
-Leia e siga o perfil em `../../../../.gos/agents/profiles/ganbatte-os-master.md`.
-Este arquivo existe apenas como adapter fino para a IDE.
+> Adapter fino para Claude. Fonte canonica: `../../../../.gos/agents/profiles/ganbatte-os-master.md`.
+
+CANONICAL-SOURCE: ../../../../.gos/agents/profiles/ganbatte-os-master.md
+
+## Adapter Contract
+
+1. Leia o arquivo canonico indicado em **CANONICAL-SOURCE** por completo.
+2. Execute as instrucoes desse arquivo como fonte primaria.
+3. Argumentos do usuario: $ARGUMENTS
