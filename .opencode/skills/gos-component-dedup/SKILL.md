@@ -1,3 +1,8 @@
+---
+name: "gos-component-dedup"
+description: "component-dedup"
+---
+
 # gos-component-dedup
 
 Fonte canonica: `../../../.gos/skills/component-dedup/SKILL.md`

@@ -1,3 +1,8 @@
+---
+name: "gos-sprint-planner"
+description: "sprint-planner"
+---
+
 # gos-sprint-planner
 
 Fonte canonica: `../../../.gos/skills/sprint-planner/SKILL.md`

@@ -1,3 +1,8 @@
+---
+name: "gos-humanizer"
+description: "humanizer"
+---
+
 # gos-humanizer
 
 Fonte canonica: `../../../.gos/skills/humanizer/SKILL.md`

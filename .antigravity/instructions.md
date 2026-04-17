@@ -34,6 +34,7 @@ Skills curadas:
 - git-ssh-setup
 - humanizer
 - weekly-update
+- slack-review
 
 ## Como invocar Skills
 
@@ -59,3 +60,4 @@ Skills tambem disponiveis como adapters em `.antigravity/skills/`.
 | `gos-git-ssh-setup` | `.gos/skills/git-ssh-setup/SKILL.md` |
 | `gos-humanizer` | `.gos/skills/humanizer/SKILL.md` |
 | `gos-weekly-update` | `.gos/skills/weekly-update/SKILL.md` |
+| `gos-slack-review` | `.gos/skills/slack-review/SKILL.md` |

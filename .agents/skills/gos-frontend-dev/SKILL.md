@@ -1,3 +1,8 @@
+---
+name: "gos-frontend-dev"
+description: "frontend-dev"
+---
+
 # gos-frontend-dev
 
 Fonte canonica: `../../../.gos/skills/frontend-dev/SKILL.md`

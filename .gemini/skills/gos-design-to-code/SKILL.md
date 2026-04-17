@@ -1,3 +1,8 @@
+---
+name: "gos-design-to-code"
+description: "design-to-code"
+---
+
 # gos-design-to-code
 
 Fonte canonica: `../../../.gos/skills/design-to-code/SKILL.md`
