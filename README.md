@@ -112,6 +112,8 @@ O `ganbatte-os` utiliza uma estrutura **encapsulada** para manter seu projeto li
 | **plan-to-tasks** | `/gos:skills:plan-to-tasks` | Converte plano em tasks acionaveis |
 | **agent-teams** | `/gos:skills:agent-teams` | Coordena multiplos agentes em time |
 | **git-ssh-setup** | `/gos:skills:git-ssh-setup` | Configura identidade SSH para o workspace |
+| **humanizer** | `/gos:skills:humanizer` | Remove padroes de IA do texto (two-pass audit + soul injection) |
+| **weekly-update** | `/gos:skills:weekly-update` | Resumo semanal de tasks ClickUp → humaniza → posta no Slack (requer aprovacao) |
 
 ## Documentacao
 

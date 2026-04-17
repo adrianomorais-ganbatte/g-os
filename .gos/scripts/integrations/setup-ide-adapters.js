@@ -26,8 +26,11 @@ function agentWrapper(agentId, target) {
   return `# ${agentId}\n\nFonte canonica: \`${target}\`\n\nLeia e siga o perfil em \`${target}\`.\nEste arquivo existe apenas como adapter fino para a IDE.`;
 }
 
-function skillWrapper(slug, target) {
-  return `# gos-${slug}\n\nFonte canonica: \`${target}\`\n\nLeia e siga a skill em \`${target}\`.\nEste arquivo existe apenas como adapter fino para a IDE.`;
+function skillWrapper(slug, target, description) {
+  const body = `# gos-${slug}\n\nFonte canonica: \`${target}\`\n\nLeia e siga a skill em \`${target}\`.\nEste arquivo existe apenas como adapter fino para a IDE.`;
+  if (!description) return body;
+  const desc = String(description).replace(/"/g, '\\"').replace(/\n/g, ' ').slice(0, 200);
+  return `---\nname: "gos-${slug}"\ndescription: "${desc}"\n---\n\n${body}`;
 }
 
 function qwenCommandWrapper(name, description, target) {
@@ -114,17 +117,18 @@ function main() {
 
     const qwenCmd = path.join(root, '.qwen', 'commands', 'gos', 'skills', `${skill.slug}.md`);
 
-    writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, canonicalPath)));
-    writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, canonicalPath)));
-    writeFile(antigravitySkill, skillWrapper(skill.slug, relativeTarget(antigravitySkill, canonicalPath)));
-    writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, canonicalPath)));
-    writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, canonicalPath)));
-    writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, canonicalPath)));
     const skillFm = parseFrontmatter(canonicalPath);
     const skillDesc = skillFm.description || skill.description || skill.name || skill.slug;
     const skillArgHint = skillFm['argument-hint'] || '';
+
+    writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, canonicalPath), skillDesc));
+    writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, canonicalPath), skillDesc));
+    writeFile(antigravitySkill, skillWrapper(skill.slug, relativeTarget(antigravitySkill, canonicalPath), skillDesc));
+    writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, canonicalPath), skillDesc));
+    writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, canonicalPath), skillDesc));
+    writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, canonicalPath), skillDesc));
+
     writeFile(qwenCmd, qwenCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(qwenCmd, canonicalPath)));
-    // Overwrite Claude skill with frontmatter version
     writeFile(claudeSkill, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(claudeSkill, canonicalPath), skillArgHint));
   }
 
