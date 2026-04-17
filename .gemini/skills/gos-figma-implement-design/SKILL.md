@@ -1,3 +1,8 @@
+---
+name: "gos-figma-implement-design"
+description: "figma-implement-design"
+---
+
 # gos-figma-implement-design
 
 Fonte canonica: `../../../.gos/skills/figma-implement-design/SKILL.md`

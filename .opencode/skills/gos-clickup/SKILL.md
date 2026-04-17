@@ -1,3 +1,8 @@
+---
+name: "gos-clickup"
+description: "clickup"
+---
+
 # gos-clickup
 
 Fonte canonica: `../../../.gos/skills/clickup/SKILL.md`

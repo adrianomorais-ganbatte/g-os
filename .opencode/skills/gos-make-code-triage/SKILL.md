@@ -1,3 +1,8 @@
+---
+name: "gos-make-code-triage"
+description: "make-code-triage"
+---
+
 # gos-make-code-triage
 
 Fonte canonica: `../../../.gos/skills/make-code-triage/SKILL.md`

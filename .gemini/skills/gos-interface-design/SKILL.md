@@ -1,3 +1,8 @@
+---
+name: "gos-interface-design"
+description: "interface-design"
+---
+
 # gos-interface-design
 
 Fonte canonica: `../../../.gos/skills/interface-design/SKILL.md`
