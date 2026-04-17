@@ -1,3 +1,8 @@
+---
+name: "gos-agent-teams"
+description: "agent-teams"
+---
+
 # gos-agent-teams
 
 Fonte canonica: `../../../.gos/skills/agent-teams/SKILL.md`

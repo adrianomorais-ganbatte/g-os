@@ -18,6 +18,7 @@
     { "slug": "agent-teams", "path": "skills/agent-teams/SKILL.md" },
     { "slug": "git-ssh-setup", "path": "skills/git-ssh-setup/SKILL.md" },
     { "slug": "humanizer", "path": "skills/humanizer/SKILL.md" },
-    { "slug": "weekly-update", "path": "skills/weekly-update/SKILL.md" }
+    { "slug": "weekly-update", "path": "skills/weekly-update/SKILL.md" },
+    { "slug": "slack-review", "path": "skills/slack-review/SKILL.md" }
   ]
 }
