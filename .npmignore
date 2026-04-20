@@ -1,0 +1,7 @@
+.github/
+.backups/
+.gos-local/
+node_modules/
+*.log
+.env*
+packages/
