@@ -22,8 +22,14 @@ jobs:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Upgrade npm to latest (fixes bin/files stripping in registry)
-        run: npm install -g npm@latest && npm --version
+      - name: Install npm v11 locally (avoids self-upgrade conflict)
+        run: |
+          mkdir -p "$HOME/npm11"
+          npm install --prefix "$HOME/npm11" npm@11
+          echo "$HOME/npm11/node_modules/.bin" >> $GITHUB_PATH
+
+      - name: Verify npm v11 is active
+        run: npm --version
 
       - name: Configure Git
         run: |
