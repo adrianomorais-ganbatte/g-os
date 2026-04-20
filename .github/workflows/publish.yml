@@ -31,6 +31,15 @@ jobs:
         run: |
           npm version patch -m "chore(release): bump version to %s [skip ci]"
 
+      - name: Validate tarball contents
+        run: |
+          npm pack --dry-run 2>&1 | tee pack-output.txt
+          grep -q ".gos/scripts/cli/gos-cli.js" pack-output.txt || (echo "FAIL: .gos/scripts/cli/gos-cli.js missing from tarball" && exit 1)
+          grep -q ".gos/scripts/integrations/setup-ide-adapters.js" pack-output.txt || (echo "FAIL: setup-ide-adapters.js missing from tarball" && exit 1)
+
+      - name: Verify bin targets exist
+        run: node -e "const p=require('./package.json'); for(const k in p.bin){require('fs').accessSync(p.bin[k]); console.log('OK bin['+k+']:',p.bin[k])}"
+
       - name: Push version bump
         run: git push --follow-tags
 
@@ -38,3 +47,11 @@ jobs:
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify registry metadata post-publish
+        run: |
+          sleep 10
+          VERSION=$(node -p "require('./package.json').version")
+          BIN=$(npm view ganbatte-os@$VERSION bin --json)
+          echo "Registry bin for $VERSION: $BIN"
+          echo "$BIN" | grep -q "gos-cli.js" || (echo "FAIL: bin field missing from registry metadata for $VERSION" && exit 1)
