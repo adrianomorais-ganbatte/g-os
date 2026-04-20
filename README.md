@@ -12,19 +12,26 @@ O **ganbatte-os** organiza agentes de IA, skills e squads num workspace pronto p
 
 ## Quick Start
 
-### 1. Instalação (Recomendado)
-Para transformar qualquer diretório em um workspace ganbatte-os:
+### 1. Instalação (Recomendado — via GitHub)
 
 ```bash
 mkdir meu-projeto && cd meu-projeto
 git init
-npm install -g ganbatte-os
-gos install
+npm install github:adrianomorais-ganbatte/g-os
+./node_modules/.bin/gos install
 ```
 
-> [!TIP]
-> Durante o desenvolvimento ou para usar a versão mais recente, você pode instalar diretamente do GitHub:
-> `npx adrianomorais-ganbatte/g-os#main install`
+> [!IMPORTANT]
+> **Use install via GitHub enquanto ajustamos o publish no npm registry.** A metadata `bin` esta sendo filtrada pelo registry, quebrando `npx ganbatte-os` e `npm install -g`. Track em [docs/ganbatte-os-test-report-2026-04-20.md](./docs/ganbatte-os-test-report-2026-04-20.md).
+
+### 1b. Instalação via npm (workaround)
+
+```bash
+mkdir meu-projeto && cd meu-projeto
+git init
+npm install ganbatte-os
+node ./node_modules/ganbatte-os/.gos/scripts/cli/gos-cli.js install
+```
 
 ### 2. Pós-Instalação
 Após rodar o install, o framework criará uma estrutura limpa na sua raiz:
