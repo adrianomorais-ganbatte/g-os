@@ -10,7 +10,7 @@ description_pt-BR: >
   com aprovacao antes de postar na Conversa semanal do Slack. Modo simple ou detailed.
 argument-hint: "[--mode simple|detailed] [link da mensagem 'Conversa semanal' no Slack]"
 type: prompt
-version: "1.2.0"
+version: "1.2.1"
 env:
   - WEEKLY_UPDATE
   - WEEKLY_UPDATE_MODE
@@ -190,41 +190,46 @@ Audiência: PO/PM sem background técnico, clientes, time de negócio.
 Regras **obrigatórias** (violar qualquer uma implica reescrever):
 
 1. **Zero IDs de task.** Nunca mencionar "T-084", "T-110", "task X". Só o que foi entregue, em linguagem de valor.
-2. **Zero jargão técnico.** Banidos: API, endpoint, FK, foreign key, hook, webhook, migration, deploy, pipeline, CI/CD, TypeScript, Zod, Storybook (a menos que seja nome conhecido do produto), backend, frontend, regex, SPA routing, commit, branch, merge, PR, rebase, drift, build. Traduzir cada um:
+2. **Zero jargão técnico de baixo nível.** Banidos sempre: API, endpoint, FK, foreign key, hook, webhook, migration, pipeline, CI/CD, TypeScript, Zod, regex, SPA routing, commit, branch, merge, PR, rebase, drift, build, deploy. Traduzir cada um:
    - "API de diagnóstico" → "formulário de diagnóstico" ou "ferramenta pra coletar dados do diagnóstico"
-   - "Deploy no Vercel" → "publicar a página online"
+   - "Deploy no Vercel" → "publicar a página online" ou "colocar online"
    - "Corrigi o SPA routing" → "arrumei a navegação entre telas que estava quebrada"
-   - "Hook de pre-commit" → "trava automática que impede erros de passar"
-   - "Migration" → "ajuste no banco de dados" (se precisar) ou omitir
+   - "Hook de pre-commit" → "trava automática que impede erros de passar adiante"
+   - "Migration" → "ajuste no banco de dados" (quando inevitável) ou omitir
    - "Regras de negócio em doc próprio" → "organizei as regras do produto num documento pra validar com o time"
-3. **Bullets curtos**, não parágrafos densos. Cada bullet com 1 linha, no máximo 2. Inspirado no tom do PM do time:
-   > • Sigo trabalhando nas telas do figma.
-   > • Nessa semana liberei PRD Novo e novo padrão no Figma.
-   > • Agora to trabalhando nuns ajustes que o Adri pediu.
-4. **Foco no valor entregue**, não em como foi feito. Em vez de "configurei X e corrigi Y", usar "agora Z funciona / está disponível / está mais rápido".
-5. **Tom de reunião casual.** Primeira pessoa (eu/a gente), contrações permitidas ("pra", "to", "tá"), sem formalismo corporativo.
-6. Tamanho alvo: 150-250 palavras.
+3. **Termos contextualmente aceitos** (use com moderação — só quando a audiência já conhece do produto):
+   - `PRD` — PO/PM usam o termo.
+   - `front`/`backend` — aceitáveis quando já é linguagem corrente do time (ver exemplo do envio 2026-04-20).
+   - `Storybook` — aceitável se é nome de produto/catálogo conhecido; caso contrário, traduzir pra "catálogo de componentes".
+   - Se na dúvida, traduzir. Regra: PO/PM deve entender sem parar pra perguntar.
+4. **Linhas curtas, sem bullet markers obrigatórios.** Cada linha com 1 frase, no máximo 2. Slack renderiza quebras de linha limpas sem `•` — preferível ao marcador visual. O PM do time usa `•` em algumas mensagens e não em outras; siga o padrão do autor do envio (default: sem marcador, só quebra de linha).
+5. **Voz ativa primeira pessoa.** Preferir "Criei e enviei pra X" sobre "Foi entregue pra X". Preferir "Arrumei" sobre "Foram feitos ajustes".
+6. **Foco no valor entregue**, não em como foi feito. Em vez de "configurei X e corrigi Y", usar "agora Z funciona / está disponível / está mais rápido".
+7. **Tom reunião casual, mas não forçado.** Primeira pessoa (eu/a gente). Contrações permitidas (`pra`, `tá`, `tô`) mas não obrigatórias — mistura com forma neutra (`para`, `está`, `estou`) é natural e foi validado no envio 2026-04-20. Evitar formalismo corporativo ("foi realizada a entrega de...").
+8. Tamanho alvo: 200-350 palavras. Preferência por completude (cobrir todas as entregas e pendências) sobre concisão extrema.
 
 Teste de validação (aplicar mentalmente antes de aprovar):
 - Se minha mãe lesse esse texto, ela entenderia o que eu fiz essa semana? Se não, reescrever.
 - Se o PO leu e vai perguntar "o que é X?" — termo X é jargão, trocar.
+- Dupla checagem: se PO/PM usam o termo em mensagens próprias na thread, pode manter (ex: PRD).
 
-Exemplo de tom (re-escrita do envio 2026-04-17 em modo simple):
+Exemplo canônico — envio validado 2026-04-20 (ver `.gos/weekly-updates/2026-04-20.md` para versão completa):
+
 > *O que foi feito*
 >
-> • Coloquei o catálogo de componentes do Fractus online, com a cara nova (logo e cores).
-> • Organizei as regras do produto num documento próprio pra gente revisar junto na reunião de terça.
-> • Arrumei umas travas automáticas que impedem erros de passar adiante — ficou mais seguro pra todo mundo mexer no código.
-> • Entreguei pro Adriano Morais a ferramenta que extrai contatos de grupo do WhatsApp.
->
-> *Pendências*
->
-> Cinco coisas dependem de decisão da PO/PM pra destravar:
-> 1. Templates/Formulários — aguardando validação do Adriano Morais.
-> 2. Impacto — precisa definir quais métricas entram no MVP.
-> 3. Faturamento — regra de consolidação ainda em aberto.
-> 4. Acesso do Financiador — permissões não definidas.
-> 5. Toggle Ativo — comportamento ao desativar ainda não documentado.
+> Coloquei online o catálogo de componentes do Fractus com a cara nova — logo, cores e a home personalizada. Já plugado nos medidores de desempenho pra gente acompanhar se a página tá rápida.
+> A branch desse catálogo tava bagunçada, arrumei e montei uma trava automática pra não deixar entrar mistura errada de novo.
+> Liguei travas antes de subir código pra evitar que erro passe adiante — quem tentar subir coisa quebrada é avisado na hora.
+> Organizei as regras do produto num documento, usando para validarmos as regras no desenvolvimento do front/backend.
+> Criei e enviei para Adriano Morais uma ferramenta que extrai contatos de grupo do WhatsApp.
+> No nosso framework interno, parei de mandar notificação duplicada no Slack e arrumei a conexão com o ClickUp na IDE nova que eu estou testando.
+
+Padrões a notar nesse envio:
+- Sem marcadores `•`, só quebra de linha entre itens.
+- Mistura `pra/tá` com `para/está` naturalmente.
+- `front/backend` aceito porque é linguagem já corrente do time.
+- Voz ativa primeira pessoa em todos os itens (`Coloquei`, `Arrumei`, `Liguei`, `Criei e enviei`).
+- Comprimento total ~310 palavras (acima do mínimo ajustado de 200-350).
 
 ## Phase 3 — Humanizar
 

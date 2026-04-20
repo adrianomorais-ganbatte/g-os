@@ -1,5 +1,33 @@
 # weekly-update — Changelog
 
+## 2026-04-20 — v1.2.1 (refinamento do modo simple após envio validado)
+
+Após o primeiro envio real em modo `simple` (mesma data), Douglas ajustou manualmente a versão gerada antes de enviar. Ajustes virando regras permanentes:
+
+### Mudanças nas regras do modo simple
+
+1. **Bullet markers opcionais**: removida obrigatoriedade de `•`. Quebra de linha entre itens é suficiente e preferível — Slack renderiza limpo.
+2. **Tom casual/neutro misturado**: `pra/tá/tô` não são mais mandatórios. Mistura natural com `para/está/estou` é validada e soa melhor.
+3. **Termos contextualmente aceitos** (nova categoria, entre banidos e permitidos):
+   - `PRD` — PO/PM usam, mantém.
+   - `front`/`backend` — aceitáveis quando linguagem corrente do time.
+   - `Storybook` — aceitável se nome de produto; senão trocar por "catálogo de componentes".
+4. **Voz ativa primeira pessoa obrigatória**: "Criei e enviei" > "Entreguei" > "Foi entregue". Evitar passiva.
+5. **Tamanho alvo ajustado**: 200-350 palavras (antes 150-250). Completude vale mais que concisão extrema — cobrir todas as entregas e pendências.
+
+### Exemplo canônico arquivado
+
+`.gos/weekly-updates/2026-04-20.md` — versão final enviada por Douglas com ajustes. Frontmatter documenta os ajustes aplicados. SKILL.md passa a referenciar esse arquivo como exemplo autoritativo (substitui o rascunho anterior curto).
+
+### Diff vs v1.2.0
+
+- Regras 3/4/5 do modo simple reescritas.
+- Nova regra 3 (termos contextualmente aceitos) intercalada.
+- Alvo subiu de 150-250 para 200-350 palavras.
+- Exemplo canônico agora é o envio real, não um rascunho.
+
+---
+
 ## 2026-04-20 — v1.2.0 (modos `simple` e `detailed`, controlados por env)
 
 Motivação: na thread "Conversa semanal" de 2026-04-17, PO (U07M07M6R42) e PM (U0ADE3FT9HB) pediram explicitamente resumo em linguagem não-técnica. Citações literais:
