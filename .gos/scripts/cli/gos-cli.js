@@ -19,7 +19,16 @@ const { execFileSync, execSync } = require('node:child_process');
 // Constantes
 // ---------------------------------------------------------------------------
 
-const VERSION = '0.2.2';
+function readPackageVersion() {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'package.json'), 'utf8'));
+    return pkg.version || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+
+const VERSION = readPackageVersion();
 const UPSTREAM_REMOTE = 'upstream';
 const UPSTREAM_BRANCH = 'main';
 const LOCAL_DIR = '.gos-local';
@@ -213,7 +222,7 @@ function cmdInit(root, args) {
   }
 
   // 6. Sync IDE adapters
-  const ideSetupScript = path.join(root, 'scripts', 'integrations', 'setup-ide-adapters.js');
+  const ideSetupScript = path.join(root, '.gos', 'scripts', 'integrations', 'setup-ide-adapters.js');
   if (pathExists(ideSetupScript)) {
     log('Sincronizando IDE adapters...');
     runNode(ideSetupScript, { cwd: root });
@@ -231,7 +240,7 @@ function cmdInit(root, args) {
   }
 
   // 7. Validar IDEs
-  const ideCheckScript = path.join(root, 'scripts', 'integrations', 'check-ide-compat.js');
+  const ideCheckScript = path.join(root, '.gos', 'scripts', 'integrations', 'check-ide-compat.js');
   if (pathExists(ideCheckScript)) {
     runNode(ideCheckScript, { cwd: root, ignoreError: true });
   }
@@ -316,10 +325,15 @@ function cmdInstall(args) {
   cmdInit(targetRoot, args);
   
   // 4. Garantir que o remote upstream existe caso tenha sido instalado via npx
+  if (!pathExists(path.join(targetRoot, '.git'))) {
+    info('Diretorio nao e um repositorio git. Pulando configuracao de remote.');
+    info('Inicialize com: git init && git remote add upstream https://github.com/adrianomorais-ganbatte/g-os.git');
+    return;
+  }
   const remotes = gitCapture(['remote'], { cwd: targetRoot });
   if (!remotes.includes(UPSTREAM_REMOTE)) {
     try {
-      git(['remote', 'add', UPSTREAM_REMOTE, 'https://github.com/adrianomorais-ganbatte/ganbatte-os.git'], { cwd: targetRoot });
+      git(['remote', 'add', UPSTREAM_REMOTE, 'https://github.com/adrianomorais-ganbatte/g-os.git'], { cwd: targetRoot, quiet: true });
       ok(`Remote "${UPSTREAM_REMOTE}" adicionado.`);
     } catch {
       warn(`Nao foi possivel adicionar o remote "${UPSTREAM_REMOTE}". Configure manualmente.`);
@@ -428,7 +442,7 @@ function cmdUpdate(root, args) {
   const commitAfter = gitCapture(['rev-parse', '--short', 'HEAD'], { cwd: root });
 
   // 6. Re-sync IDEs
-  const ideSetupScript = path.join(root, 'scripts', 'integrations', 'setup-ide-adapters.js');
+  const ideSetupScript = path.join(root, '.gos', 'scripts', 'integrations', 'setup-ide-adapters.js');
   if (pathExists(ideSetupScript)) {
     log('Re-sincronizando IDE adapters...');
     runNode(ideSetupScript, { cwd: root, quiet: true });
@@ -444,7 +458,7 @@ function cmdUpdate(root, args) {
   }
 
   // 7. Validar IDEs
-  const ideCheckScript = path.join(root, 'scripts', 'integrations', 'check-ide-compat.js');
+  const ideCheckScript = path.join(root, '.gos', 'scripts', 'integrations', 'check-ide-compat.js');
   if (pathExists(ideCheckScript)) {
     runNode(ideCheckScript, { cwd: root, ignoreError: true, quiet: true });
   }
@@ -547,7 +561,7 @@ function cmdDoctor(root) {
   }
 
   // 6. IDE adapters
-  const ideCheckScript = path.join(root, 'scripts', 'integrations', 'check-ide-compat.js');
+  const ideCheckScript = path.join(root, '.gos', 'scripts', 'integrations', 'check-ide-compat.js');
   if (pathExists(ideCheckScript)) {
     try {
       execFileSync(process.execPath, [ideCheckScript], { encoding: 'utf8', stdio: 'pipe', cwd: root });
@@ -694,8 +708,8 @@ Flags:
   --no-stash    Nao fazer stash automatico (update)
 
 Exemplos:
-  npx ganbatte-os install
-  node scripts/cli/gos-cli.js init
+  npx -p ganbatte-os gos install
+  node .gos/scripts/cli/gos-cli.js init
   npm run gos:update
   npm run gos:doctor
 `);

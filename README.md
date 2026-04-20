@@ -17,7 +17,9 @@ Para transformar qualquer diretório em um workspace ganbatte-os:
 
 ```bash
 mkdir meu-projeto && cd meu-projeto
-npx ganbatte-os install
+git init
+npm install -g ganbatte-os
+gos install
 ```
 
 > [!TIP]
@@ -34,26 +36,31 @@ Após rodar o install, o framework criará uma estrutura limpa na sua raiz:
 
 A partir da raiz do seu projeto, você pode gerenciar o framework:
 
-| Comando | Alias | O que faz |
-|---------|-------|-----------|
-| `npm run gos:init` | `npm run ganbatte-os:init` | Setup pos-clone (remote, dirs, IDEs, sync framework pai) |
-| `npm run gos:update` | `npm run ganbatte-os:update` | Fetch upstream + merge + re-sync IDEs + sync framework pai |
-| `npm run gos:doctor` | `npm run ganbatte-os:doctor` | Valida integridade do workspace e IDEs |
-| `npm run gos:version` | `npm run ganbatte-os:version` | Mostra versao e checa atualizacoes |
-| `npm run sync:ides` | — | Regenera adapters para Claude, Gemini, Cursor e outras |
-| `npm run check:ides` | — | Valida compatibilidade dos IDE adapters |
-| `npm run clickup` | — | CLI ClickUp (tarefas, sprints, status) |
-| `npm run doctor` | — | Alias direto para gos:doctor |
+| Comando | O que faz |
+|---------|-----------|
+| `npm run gos:init` | Setup pos-clone (remote, dirs, IDEs, sync framework pai) |
+| `npm run gos:update` | Fetch upstream + merge + re-sync IDEs + sync framework pai |
+| `npm run gos:doctor` | Valida integridade do workspace e IDEs |
+| `npm run gos:version` | Mostra versao e checa atualizacoes |
+| `npm run sync:ides` | Regenera adapters para Claude, Gemini, Cursor e outras |
+| `npm run check:ides` | Valida compatibilidade dos IDE adapters |
+| `npm run clickup` | CLI ClickUp (tarefas, sprints, status) |
+| `npm run doctor` | Alias direto para gos:doctor |
 
-### Via npx (instalacao/atualizacao)
+### Via CLI global (`gos`)
+
+Apos `npm install -g ganbatte-os`:
 
 | Comando | O que faz |
 |---------|-----------|
-| `npx ganbatte-os install` | Instala framework em diretorio novo |
-| `npx ganbatte-os init` | Inicializa workspace existente |
-| `npx ganbatte-os update` | Atualiza framework |
-| `npx ganbatte-os doctor` | Health-check |
-| `npx ganbatte-os version` | Versao instalada |
+| `gos install` | Instala framework em diretorio novo |
+| `gos init` | Inicializa workspace existente |
+| `gos update` | Atualiza framework |
+| `gos doctor` | Health-check |
+| `gos version` | Versao instalada |
+
+> [!NOTE]
+> A pasta `.agent/` que pode aparecer na raiz do workspace e criada pela IDE Google Antigravity / Gemini Code Assist — nao faz parte do setup padrao do ganbatte-os.
 
 ## Estrutura do Workspace
 
