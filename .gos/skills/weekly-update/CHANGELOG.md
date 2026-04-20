@@ -1,5 +1,58 @@
 # weekly-update — Changelog
 
+## 2026-04-20 — v1.2.0 (modos `simple` e `detailed`, controlados por env)
+
+Motivação: na thread "Conversa semanal" de 2026-04-17, PO (U07M07M6R42) e PM (U0ADE3FT9HB) pediram explicitamente resumo em linguagem não-técnica. Citações literais:
+
+- PM: "consegue trazer um resumo em linguem nao técnica pra mim ahaha, por favor?"
+- PO: "Pensa que está em uma reunião com a gente, o que você compartilharia?"
+
+### Novo argumento e env var
+
+- `$ARGUMENTS --mode simple|detailed` sobrescreve via linha de comando.
+- `WEEKLY_UPDATE_MODE=simple|detailed` no `.env` define o padrão do projeto.
+- Se ambos ausentes, fallback para `detailed` (comportamento anterior).
+- Skill não pergunta mais — resolve via env/arg e informa o modo no início da Phase 2.
+
+### Modo `simple` (novo)
+
+Audiência não-técnica (PO/PM/clientes). Regras obrigatórias:
+
+1. Zero IDs de task (nada de T-084, T-110).
+2. Zero jargão técnico. Lista banida: API, endpoint, FK, hook, webhook, migration, deploy, pipeline, CI/CD, TypeScript, Zod, backend, frontend, SPA routing, commit, branch, merge, PR, rebase, drift, build, pre-commit.
+3. Bullets curtos em vez de parágrafos densos.
+4. Foco no valor entregue, não em como foi feito.
+5. Tom de reunião casual (primeira pessoa, contrações como "pra", "to", "tá").
+6. Alvo: 150-250 palavras.
+
+Calibração humanizer: conversacional (intensidade alta), contra os 30 pontos de padrões AI.
+
+### Modo `detailed` (comportamento anterior, preservado)
+
+Audiência técnica (tech lead, outros devs). Permite IDs de task, jargão apropriado, narrativa em parágrafos, dependências explícitas. Alvo: 300-500 palavras.
+
+### Checklist de aprovação expandido
+
+Novos itens na Phase 4:
+- Modo confirmado antes do envio.
+- Em `simple`: nenhum termo banido aparece no texto final.
+- Em `simple`: nenhum ID de task (T-XXX) aparece no texto final.
+
+### Arquivos afetados
+
+- `.gos/skills/weekly-update/SKILL.md` — Gate 3 novo, Phase 2 refatorada com templates por modo, Phase 3 com calibração por modo, Phase 4 checklist expandido.
+- `.env-example` — nova var `WEEKLY_UPDATE_MODE=simple`.
+- `.env` local Ganbatte — adicionado `WEEKLY_UPDATE_MODE=simple`.
+
+### Companion: `slack-notify.js` ganhou `fetch-thread` e `find-thread`
+
+Comandos Web API via `SLACK_BOT_TOKEN` (scope `groups:history` para canais privados). Usado pela skill e disponível para auditoria de threads passadas. Allow-rules adicionadas em `~/.claude/settings.json`:
+
+- `Bash(node .gos/scripts/tools/slack-notify.js fetch-thread:*)`
+- `Bash(node .gos/scripts/tools/slack-notify.js find-thread:*)`
+
+---
+
 ## 2026-04-17 — v2.0 (Web API, thread obrigatória, auto-descoberta)
 
 Mudanças estruturais motivadas por incidente em produção: o envio via incoming webhook caiu fora da thread "Conversa semanal" e gerou mensagem isolada no canal #cnpq-tech.

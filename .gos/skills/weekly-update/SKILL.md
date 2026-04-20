@@ -3,15 +3,17 @@ name: weekly-update
 description: >
   Gera resumo das tasks concluidas nos ultimos 10 dias no ClickUp, humaniza o texto
   em pt-BR e posta como resposta na thread "Conversa semanal" do Slack (#cspo-tech).
+  Suporta dois modos: simple (curto, ~150 palavras) e detailed (completo, ~400 palavras).
   Requer aprovacao do usuario antes do envio.
 description_pt-BR: >
   Resumo semanal das tasks concluidas, humanizado com anti-AI patterns,
-  com aprovacao antes de postar na Conversa semanal do Slack.
-argument-hint: "[link da mensagem 'Conversa semanal' no Slack (opcional)]"
+  com aprovacao antes de postar na Conversa semanal do Slack. Modo simple ou detailed.
+argument-hint: "[--mode simple|detailed] [link da mensagem 'Conversa semanal' no Slack]"
 type: prompt
-version: "1.1.0"
+version: "1.2.0"
 env:
   - WEEKLY_UPDATE
+  - WEEKLY_UPDATE_MODE
   - SLACK_WEBHOOK_CSPO_TECH
 categories: [reporting, slack, clickup, weekly]
 allowedTools:
@@ -87,6 +89,28 @@ Se o valor retornado for `__MISSING__` ou vazio:
 
 Se ambos os gates passarem, prosseguir normalmente.
 
+### Gate 3 — Resolver modo de escrita
+
+Determinar `MODE` nesta ordem de precedência:
+
+1. **`$ARGUMENTS`** (maior prioridade):
+   - Contém `--mode simple` → `MODE=simple`
+   - Contém `--mode detailed` → `MODE=detailed`
+2. **Variável de ambiente `WEEKLY_UPDATE_MODE`** (default do projeto):
+   ```bash
+   echo "${WEEKLY_UPDATE_MODE:-}"
+   ```
+   - Valor `simple` → `MODE=simple`
+   - Valor `detailed` → `MODE=detailed`
+   - Vazio ou qualquer outro valor → cair para passo 3
+3. **Fallback final**: `MODE=detailed`.
+
+**Não perguntar ao usuário.** O padrão fica no `.env` (recomendado: `WEEKLY_UPDATE_MODE=simple` alinhado ao pedido da PO/PM na thread "Conversa semanal"). Só sobrescrever via argumento quando precisar de um envio técnico pontual.
+
+Informar ao usuário o modo resolvido no início da Phase 2 (ex: "Modo resolvido: `simple` (via env)").
+
+**Contexto histórico (por que existem dois modos):** a PO (não-técnica) e o PM (não-técnico) na thread "Conversa semanal" pediram explicitamente "resumo em linguagem não técnica" e "pensa que está em uma reunião com a gente, o que você compartilharia?". O modo `simple` foi desenhado para atender esse pedido. O `detailed` segue para audiência técnica (tech lead, outros devs).
+
 ---
 
 ## Phase 1 — Buscar tasks concluidas no ClickUp (ultimos 10 dias)
@@ -112,13 +136,13 @@ Se nenhuma task encontrada: informar ao usuario e encerrar.
 
 ## Phase 2 — Gerar resumo pt-BR
 
-### Template padrao
+O template e as regras variam por `MODE`. Secoes marcadas com (?) sao opcionais — incluir somente se houver conteudo relevante.
 
-O resumo DEVE seguir este template. Secoes marcadas com (?) sao opcionais — incluir somente se houver conteudo relevante.
+### Template (comum aos dois modos)
 
 ```
 *O que foi feito*
-[Narrativa agrupada por tema, tom conversacional]
+[Conteudo conforme regras do modo]
 
 *Desafios encontrados* (?)
 [Dependencias, bloqueios, decisoes dificeis]
@@ -133,17 +157,74 @@ O resumo DEVE seguir este template. Secoes marcadas com (?) sao opcionais — in
 [Pedidos de alinhamento, decisao, recurso]
 ```
 
-### Regras de redacao
+Regras comuns aos dois modos:
+- Sem emojis.
+- Titulos de secao em negrito Slack: `*titulo*`.
+- Uma linha em branco entre titulo e corpo (Slack renderiza colado sem isso).
 
-- Agrupar entregas por **tema** (nao listar tasks uma a uma)
-- Tom: conversacional, direto, como se estivesse contando para um colega nao tecnico
-- Foco em **o que foi entregue e por que importa**, nao em nomes de tasks ou IDs
-- Sem jargao tecnico (trocar "API endpoint" por "integracao", "migration" por "ajuste no banco", etc.)
-- Sem emojis
-- Os titulos das secoes usam negrito Slack: `*titulo*`
+---
 
-Exemplo de tom desejado:
-> Nessa semana finalizei a integração do formulário de coleta com validação dos campos obrigatórios, ajustei o layout da tela de dashboard pra funcionar melhor em tablets, e corrigi um problema no fluxo de login que impedia usuários com email corporativo de acessar o sistema.
+### Modo `detailed` — Relatório executivo (audiência técnica)
+
+Audiência: tech lead, outros devs, stakeholders técnicos.
+
+Regras:
+- Permite referenciar **IDs de task** (T-082, T-110, etc.) quando importa para rastreio.
+- Permite **termos técnicos** quando a audiência é técnica (API, FK, hook, TypeScript, deploy, Storybook, webhook).
+- Narrativa em **parágrafos** agrupados por tema; bullets só para listas de tasks ou bloqueios.
+- Explica **decisões** e **trade-offs** quando houver (por que X e não Y).
+- Inclui dependências explícitas ("T-084 depende da T-082 nova").
+- Tamanho alvo: 300-500 palavras.
+
+Exemplo de tom (extraído do envio real 2026-04-17):
+> *O que foi feito*
+>
+> A semana concentrou na frente de Storybook e infra de deploy. Criei a conta Vercel pra hospedar o Storybook separado, customizei a home com branding Fractus, corrigi o SPA routing e atualizei o README. Pluguei Vercel Analytics e Speed Insights nos dois apps.
+
+---
+
+### Modo `simple` — Linguagem acessível (audiência não-técnica)
+
+Audiência: PO/PM sem background técnico, clientes, time de negócio.
+
+Regras **obrigatórias** (violar qualquer uma implica reescrever):
+
+1. **Zero IDs de task.** Nunca mencionar "T-084", "T-110", "task X". Só o que foi entregue, em linguagem de valor.
+2. **Zero jargão técnico.** Banidos: API, endpoint, FK, foreign key, hook, webhook, migration, deploy, pipeline, CI/CD, TypeScript, Zod, Storybook (a menos que seja nome conhecido do produto), backend, frontend, regex, SPA routing, commit, branch, merge, PR, rebase, drift, build. Traduzir cada um:
+   - "API de diagnóstico" → "formulário de diagnóstico" ou "ferramenta pra coletar dados do diagnóstico"
+   - "Deploy no Vercel" → "publicar a página online"
+   - "Corrigi o SPA routing" → "arrumei a navegação entre telas que estava quebrada"
+   - "Hook de pre-commit" → "trava automática que impede erros de passar"
+   - "Migration" → "ajuste no banco de dados" (se precisar) ou omitir
+   - "Regras de negócio em doc próprio" → "organizei as regras do produto num documento pra validar com o time"
+3. **Bullets curtos**, não parágrafos densos. Cada bullet com 1 linha, no máximo 2. Inspirado no tom do PM do time:
+   > • Sigo trabalhando nas telas do figma.
+   > • Nessa semana liberei PRD Novo e novo padrão no Figma.
+   > • Agora to trabalhando nuns ajustes que o Adri pediu.
+4. **Foco no valor entregue**, não em como foi feito. Em vez de "configurei X e corrigi Y", usar "agora Z funciona / está disponível / está mais rápido".
+5. **Tom de reunião casual.** Primeira pessoa (eu/a gente), contrações permitidas ("pra", "to", "tá"), sem formalismo corporativo.
+6. Tamanho alvo: 150-250 palavras.
+
+Teste de validação (aplicar mentalmente antes de aprovar):
+- Se minha mãe lesse esse texto, ela entenderia o que eu fiz essa semana? Se não, reescrever.
+- Se o PO leu e vai perguntar "o que é X?" — termo X é jargão, trocar.
+
+Exemplo de tom (re-escrita do envio 2026-04-17 em modo simple):
+> *O que foi feito*
+>
+> • Coloquei o catálogo de componentes do Fractus online, com a cara nova (logo e cores).
+> • Organizei as regras do produto num documento próprio pra gente revisar junto na reunião de terça.
+> • Arrumei umas travas automáticas que impedem erros de passar adiante — ficou mais seguro pra todo mundo mexer no código.
+> • Entreguei pro Adriano Morais a ferramenta que extrai contatos de grupo do WhatsApp.
+>
+> *Pendências*
+>
+> Cinco coisas dependem de decisão da PO/PM pra destravar:
+> 1. Templates/Formulários — aguardando validação do Adriano Morais.
+> 2. Impacto — precisa definir quais métricas entram no MVP.
+> 3. Faturamento — regra de consolidação ainda em aberto.
+> 4. Acesso do Financiador — permissões não definidas.
+> 5. Toggle Ativo — comportamento ao desativar ainda não documentado.
 
 ## Phase 3 — Humanizar
 
@@ -166,10 +247,18 @@ Carregar e aplicar:
 1. `.gos/libraries/content/ai-writing-patterns.md` — catálogo de 26 padrões
 2. `.gos/skills/humanizer/SKILL.md` — processo de 5 passos
 
-Calibração: **Relatório executivo** (intensidade média)
-- Cortar enchimento e inflação
-- Manter formalidade leve
-- Não forçar primeira pessoa se não couber
+Calibração varia por `MODE`:
+
+- **`detailed`** — **Relatório executivo** (intensidade média)
+  - Cortar enchimento e inflação
+  - Manter formalidade leve
+  - Não forçar primeira pessoa se não couber
+
+- **`simple`** — **Conversacional casual** (intensidade alta)
+  - Primeira pessoa obrigatória (eu/a gente)
+  - Contrações permitidas e encorajadas (pra, to, tá, né)
+  - Cortar qualquer palavra que soe de relatório corporativo
+  - Após a passagem de humanização, validar também a regra de zero jargão técnico (Phase 2, regra 2) — se qualquer termo banido reaparecer, reescrever
 
 Processo:
 1. Identificar padrões presentes no resumo (especialmente P01, P03, P04, P07, P10, P15, P17, P19, P22)
@@ -190,10 +279,13 @@ Apresentar ao usuário:
 ### Checklist antes de aprovar
 
 Verificar e apresentar junto com o texto:
+- [ ] Modo de escrita confirmado (`simple` ou `detailed`)
 - [ ] Acentuação correta em todo o texto (não, é, há, também, além, etc.)
 - [ ] Sem uso de hífen (-) onde deveria ser travessão (—)
 - [ ] Assinatura do autor presente no final
 - [ ] Catálogo ai-writing-patterns.md foi carregado e aplicado
+- [ ] Se `MODE=simple`: nenhum termo banido apareceu (API, endpoint, FK, hook, deploy, migration, TypeScript, SPA, commit, branch, PR, merge, build, etc.)
+- [ ] Se `MODE=simple`: nenhum ID de task (T-XXX) no texto
 
 Perguntar com AskUserQuestion:
 - **"Aprovar e enviar"** — prosseguir para Phase 5
@@ -255,8 +347,10 @@ Verificar resposta:
 | Período | Últimos 10 dias |
 | Slack canal | `#cspo-tech` |
 | Webhook env var | `SLACK_WEBHOOK_CSPO_TECH` |
-| Calibração humanizer | Relatório executivo (média) |
+| Calibração humanizer | `detailed`: Relatório executivo (média) · `simple`: Conversacional (alta) |
 | Score máximo AI | 30 |
 | Template | *O que foi feito* / *Desafios* / *Em andamento* / *Pendências* / *Ajuda?* |
+| Modos | `--mode simple` (leigos, sem jargão) · `--mode detailed` (técnicos) |
+| Default (env) | `WEEKLY_UPDATE_MODE=simple` no `.env`; fallback se ausente: `detailed` |
 | Ortografia | OBRIGATÓRIA — acentos pt-BR, crase, travessão |
 | Assinatura | `— {git config user.name}` no final |

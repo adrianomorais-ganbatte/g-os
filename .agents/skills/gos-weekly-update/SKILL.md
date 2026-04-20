@@ -1,6 +1,6 @@
 ---
 name: "gos-weekly-update"
-description: "Gera resumo das tasks concluidas nos ultimos 10 dias no ClickUp, humaniza o texto em pt-BR e posta como resposta na thread \"Conversa semanal\" do Slack (#cspo-tech). Requer aprovacao do usuario antes"
+description: "weekly-update"
 ---
 
 # gos-weekly-update

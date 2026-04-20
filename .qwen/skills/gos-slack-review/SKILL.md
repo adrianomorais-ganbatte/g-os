@@ -1,6 +1,6 @@
 ---
 name: "gos-slack-review"
-description: "Revisar, editar e aprovar drafts de notificações Slack pendentes em .gos/slack-queue/. Use quando o usuário pedir para \"revisar notificações\", \"aprovar Slack\", \"enviar notificações pendentes\" ou"
+description: "slack-review"
 ---
 
 # gos-slack-review

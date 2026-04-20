@@ -1,16 +1,13 @@
 #!/usr/bin/env node
 
-// slack-notify.js — Slack notification tool via Incoming Webhooks (zero-dep)
+// slack-notify.js — Slack notification tool (zero-dep)
 // Usage: node slack-notify.js <command> [--options]
-// Auth: SLACK_WEBHOOK_URL env var (Incoming Webhook URL)
+// Auth:
+//   - Webhook commands (send, task-done, sprint-summary): SLACK_WEBHOOK_URL
+//   - Web API commands (fetch-thread, find-thread): SLACK_BOT_TOKEN
 
 const WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL
-
-if (!WEBHOOK_URL) {
-  // Graceful skip — no webhook configured is not an error
-  console.log(JSON.stringify({ skipped: true, reason: 'SLACK_WEBHOOK_URL not set' }))
-  process.exit(0)
-}
+const BOT_TOKEN = process.env.SLACK_BOT_TOKEN
 
 function parseArgs(argv) {
   const result = { _: [] }
@@ -35,6 +32,19 @@ function parseArgs(argv) {
 const args = parseArgs(process.argv.slice(2))
 const [cmd, sub, ...rest] = args._
 
+const WEBHOOK_COMMANDS = new Set(['send', 'task-done', 'sprint-summary'])
+const API_COMMANDS = new Set(['fetch-thread', 'find-thread'])
+
+if (WEBHOOK_COMMANDS.has(cmd) && !WEBHOOK_URL) {
+  console.log(JSON.stringify({ skipped: true, reason: 'SLACK_WEBHOOK_URL not set' }))
+  process.exit(0)
+}
+
+if (API_COMMANDS.has(cmd) && !BOT_TOKEN) {
+  console.log(JSON.stringify({ error: 'SLACK_BOT_TOKEN not set (required for Web API commands)' }))
+  process.exit(0)
+}
+
 async function sendWebhook(payload) {
   if (args['dry-run']) {
     return { _dry_run: true, url: WEBHOOK_URL.replace(/\/[^/]{6,}$/, '/***'), payload }
@@ -51,6 +61,22 @@ async function sendWebhook(payload) {
     return { sent: true, status: res.status }
   }
   return { sent: false, status: res.status, body: text }
+}
+
+async function slackApi(method, params) {
+  if (args['dry-run']) {
+    return { _dry_run: true, method, params: { ...params, token: '***' } }
+  }
+  const body = new URLSearchParams(params).toString()
+  const res = await fetch(`https://slack.com/api/${method}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Bearer ${BOT_TOKEN}`,
+    },
+    body,
+  })
+  return res.json()
 }
 
 function escapeSlack(text) {
@@ -155,6 +181,55 @@ async function main() {
       break
     }
 
+    case 'fetch-thread': {
+      const channel = args['channel-id'] || process.env.SLACK_CHANNEL_ID_WEEKLY
+      const ts = args['thread-ts'] || args.ts
+      if (!channel || !ts) {
+        result = { error: '--channel-id (or SLACK_CHANNEL_ID_WEEKLY) and --thread-ts required' }
+        break
+      }
+      const limit = args.limit || '100'
+      const api = await slackApi('conversations.replies', { channel, ts, limit })
+      if (!api.ok) {
+        result = { ok: false, error: api.error, needed: api.needed }
+        break
+      }
+      const messages = (api.messages || []).map(m => ({
+        user: m.user,
+        ts: m.ts,
+        text: m.text || '',
+        reply_count: m.reply_count,
+      }))
+      result = { ok: true, count: messages.length, messages }
+      break
+    }
+
+    case 'find-thread': {
+      const channel = args['channel-id'] || process.env.SLACK_CHANNEL_ID_WEEKLY
+      const pattern = args.pattern
+      if (!channel || !pattern) {
+        result = { error: '--channel-id (or SLACK_CHANNEL_ID_WEEKLY) and --pattern required' }
+        break
+      }
+      const api = await slackApi('conversations.history', { channel, limit: args.limit || '50' })
+      if (!api.ok) {
+        result = { ok: false, error: api.error, needed: api.needed }
+        break
+      }
+      const re = new RegExp(pattern, 'i')
+      const match = (api.messages || []).find(m => re.test(m.text || ''))
+      if (!match) {
+        result = { found: false }
+        break
+      }
+      result = {
+        found: true,
+        ts: match.ts,
+        text_preview: (match.text || '').slice(0, 200),
+      }
+      break
+    }
+
     default:
       result = {
         error: cmd ? `Unknown command: ${cmd}` : 'No command provided',
@@ -162,6 +237,12 @@ async function main() {
           send: 'send --text "Hello *bold* _italic_" | send --blocks-file payload.json',
           'task-done': 'task-done --task T-001 --commit abc1234 --author "Name" [--sprint "S01"] [--track backend] [--message "feat: ..."]',
           'sprint-summary': 'sprint-summary --file sprint-status.json',
+          'fetch-thread': 'fetch-thread --channel-id C... --thread-ts 1234567890.123456 [--limit 100]',
+          'find-thread': 'find-thread --channel-id C... --pattern "regex" [--limit 50]',
+        },
+        auth: {
+          webhook_commands: 'send, task-done, sprint-summary — require SLACK_WEBHOOK_URL',
+          api_commands: 'fetch-thread, find-thread — require SLACK_BOT_TOKEN (scopes: groups:history for private channels)',
         },
         formatting: {
           bold: '*text*',
