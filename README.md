@@ -43,50 +43,149 @@ Após rodar o install, o framework criará uma estrutura limpa na sua raiz:
 
 ### 3. Comandos do Workspace
 
-A partir da raiz do seu projeto:
-
 | Comando | Equivalente CLI | O que faz |
 |---------|-----------------|-----------|
-| `npm run gos:init` | `gos init` | Setup pos-clone: configura `upstream`, cria dirs (`.gos-local/`), gera IDE adapters, sincroniza com framework pai |
-| `npm run gos:update` | `gos update` | `git fetch upstream` + merge `upstream/main` + `npm install` + re-sync IDE adapters |
-| `npm run gos:doctor` | `gos doctor` | Valida integridade do workspace, registry de skills, IDE adapters, presenca de Git remote |
-| `npm run gos:version` | `gos version` | Mostra versao instalada e checa se ha atualizacoes pendentes em `upstream/main` |
+| `npm run gos:init` | `gos init` | Setup pos-clone: configura `upstream`, cria `.gos-local/`, gera IDE adapters |
+| `npm run gos:update` | `gos update` | Fetch + merge do upstream (**apenas em fork/clone do g-os**) |
+| `npm run gos:doctor` | `gos doctor` | Health-check (42+ checks: skills, agents, IDE adapters, upstream alcançável, stashes acumulados, modo workspace) |
+| `npm run gos:version` | `gos version` | Versão instalada, modo do workspace e atualizações pendentes |
+| `npm run gos:rescue` | `gos rescue` | Lista/recupera stashes acumulados de updates falhos |
 | `npm run sync:ides` | — | Regenera apenas os IDE adapters (`.claude/`, `.qwen/`, `.gemini/`, `.cursor/`, `.agents/`) |
-| `npm run check:ides` | — | Valida que todos os adapters estao consistentes com `.gos/skills/registry.json` |
-| `npm run clickup` | — | CLI ClickUp (tarefas, sprints, status) |
+| `npm run check:ides` | — | Valida que adapters estão consistentes com `.gos/skills/registry.json` |
+| `npm run clickup` | — | CLI ClickUp |
 
-**Atualizar o G-OS no seu workspace:**
+## Atualizar o ganbatte-os
+
+Existem **três níveis distintos** de versão. Saiba qual atualizar antes de rodar qualquer comando.
+
+### Descobrir em que cenário você está
 
 ```bash
+npm run gos:version
+# imprime: versão local + modo (framework workspace | projeto consumidor)
+```
+
+| Modo detectado | Significa | Como atualizar |
+|----------------|-----------|----------------|
+| `framework workspace` | Você clonou/forkou o repo `g-os` para contribuir | `npm run gos:update` |
+| `projeto consumidor` | Seu projeto usa o G-OS (rodou `gos install` aqui) | `gos install --force` |
+| (CLI global) | O comando `gos` instalado via `npm install -g` | `npm install -g ganbatte-os@latest` |
+
+### Nível 1 — CLI global (`gos`)
+
+```bash
+# Versão atual instalada vs publicada no registry:
+npm list -g ganbatte-os
+npm view ganbatte-os version
+
+# Atualizar:
+npm install -g ganbatte-os@latest
+```
+
+### Nível 2 — Projeto consumidor
+
+Seu projeto NÃO é fork do G-OS, mas usa o framework via `gos install`. O `.gos/` mora dentro do seu repo.
+
+```bash
+# Pré-checagem (uma vez):
+git remote -v
+# Se houver "upstream" apontando para g-os.git, REMOVA: 
+#   git remote remove upstream
+# (essa configuração só faz sentido em fork do framework)
+
+# Atualizar o framework dentro do seu projeto:
+gos install --force
+# Sobrescreve .gos/ com a última versão do pacote ganbatte-os global,
+# preservando seus arquivos (packages/, docs/, .gos-local/).
+```
+
+> [!WARNING]
+> NÃO use `npm run gos:update` em projeto consumidor. O CLI agora detecta esse cenário e aborta com instruções, mas em versões antigas ele tentava `git fetch upstream main` e quebrava de forma confusa.
+
+### Nível 3 — Framework workspace (fork/clone do g-os)
+
+Você está contribuindo com o próprio framework.
+
+```bash
+# Pré-checagem (sempre antes de update):
+npm run gos:doctor
+# Valida 42+ pontos. Aborta se upstream estiver com URL quebrada
+# ou se houver stashes acumulados de updates anteriores falhos.
+
+# Ver quantos commits faltam:
+npm run gos:version
+
+# Aplicar (lê dev branch do .gos/config.json#defaultBranches.development):
 npm run gos:update
-# equivalente a: git fetch upstream && git merge upstream/main && npm install && npm run sync:ides
 ```
 
-Em caso de divergencia local nao resolvivel automaticamente, o comando aborta e instrui resolucao manual. Se quiser inspecionar antes:
+`gos:update` agora é **fail-safe**:
+
+1. Bloqueia se modo for `consumer`
+2. Valida `upstream` reachable (`git ls-remote`) ANTES de stashar
+3. Lê branch de desenvolvimento do `.gos/config.json` (não hardcoded)
+4. Faz fetch primeiro; se nada mudou, sai sem stash
+5. Stash recebe label timestamped único
+6. Auto-resolve conflitos em arquivos do framework (`frameworkManaged` no manifest); aborta em conflitos do usuário
+
+Override de branch (debug):
 
 ```bash
-npm run gos:version   # mostra versao atual + commits pendentes em upstream
-git fetch upstream    # ver mudancas sem aplicar
-git log HEAD..upstream/main --oneline
+GOS_UPSTREAM_BRANCH=beta npm run gos:update
 ```
 
-**Health-check apos qualquer mudanca:**
+#### Caso especial: "histórias não relacionadas"
+
+Workspaces criados via `gos install` no passado podem ter `.git` próprio sem ancestor comum com o repo do framework. Nesse caso o merge falha com `fatal: refusing to merge unrelated histories`. O CLI detecta e instrui:
 
 ```bash
-npm run gos:doctor    # 40+ checks (skills, agents, IDE adapters, git remote)
+npm run gos:update -- --allow-unrelated
 ```
 
-### Via CLI global (`gos`)
+Isso une as duas histórias num commit de merge único. Faça uma vez; depois disso updates normais funcionam.
 
-Apos `npm install -g ganbatte-os`:
+#### Caso especial: untracked files que conflitam com o merge
 
-| Comando | O que faz |
-|---------|-----------|
-| `gos install` | Instala framework em diretorio novo |
-| `gos init` | Inicializa workspace existente |
-| `gos update` | Atualiza framework (mesma logica de `npm run gos:update`) |
-| `gos doctor` | Health-check |
-| `gos version` | Versao instalada |
+Se você tem arquivos não-versionados em paths que o framework gera (`.claude/`, `.qwen/`, `.gemini/`, `.cursor/`, `.agents/`, etc), o git recusa o merge para evitar perda. O CLI detecta e oferece:
+
+```bash
+npm run gos:update -- --clobber-untracked
+```
+
+Isso renomeia os arquivos conflitantes para `.bak.<timestamp>` antes do merge. Como esses paths são **sempre regenerados** por `npm run sync:ides`, o backup é só por garantia — você pode deletar depois.
+
+Combinar com `--allow-unrelated` quando ambos os casos ocorrerem (típico de workspaces antigos):
+
+```bash
+npm run gos:update -- --allow-unrelated --clobber-untracked
+```
+
+Alternativa segura (não toca seu git, apenas atualiza `.gos/`):
+
+```bash
+gos install --force
+```
+
+### Resgate de stashes presos
+
+Se você teve falhas anteriores que deixaram stashes:
+
+```bash
+npm run gos:rescue                          # lista todos com stat
+npm run gos:rescue -- --pop-latest          # aplica o mais recente
+npm run gos:rescue -- --drop-all            # remove todos (após revisão)
+```
+
+### Resumo (qual comando para qual cenário)
+
+| Cenário | Comando |
+|---------|---------|
+| Atualizar CLI `gos` global | `npm install -g ganbatte-os@latest` |
+| Atualizar G-OS num projeto consumidor | `gos install --force` |
+| Atualizar G-OS num fork/clone do repo | `npm run gos:update` |
+| Stashes presos de updates falhos | `npm run gos:rescue` |
+| Saber em qual cenário você está | `npm run gos:version` |
+| Validar tudo de uma vez | `npm run gos:doctor` |
 
 > [!NOTE]
 > A pasta `.agent/` que pode aparecer na raiz do workspace e criada pela IDE Google Antigravity / Gemini Code Assist — nao faz parte do setup padrao do ganbatte-os.
