@@ -462,14 +462,49 @@ function cmdUpdate(root, args) {
   }
 
   // 3. AGORA é seguro stashar (upstream validado + commits novos confirmados).
+  // Importante: stash deve EXCLUIR paths do framework — eles serão sobrescritos
+  // pelo merge de qualquer forma, e stashar a si próprio (gos-cli.js) cria um
+  // loop em que o stash reverte a versão atualizada do CLI no working tree.
   const status = gitCapture(['status', '--porcelain'], { cwd: root });
+  // Detectar se há mudanças além dos paths framework
+  const userModifiedLines = status
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .filter(line => {
+      const file = line.slice(3); // 2-char status flag + space
+      // Exclui paths gerados/managed pelo framework
+      const FRAMEWORK_PREFIXES = [
+        '.gos/', '.claude/', '.qwen/', '.gemini/', '.cursor/', '.agents/',
+        '.kilocode/', '.antigravity/', '.opencode/', '.codex/',
+      ];
+      return !FRAMEWORK_PREFIXES.some(p => file.startsWith(p));
+    });
   let didStash = false;
-  if (status && !skipStash) {
-    log('Mudancas locais detectadas. Fazendo stash...');
+  if (userModifiedLines.length > 0 && !skipStash) {
+    log(`Mudancas locais do usuario detectadas (${userModifiedLines.length}). Fazendo stash...`);
     const stashLabel = `${STASH_LABEL} ${new Date().toISOString()}`;
-    git(['stash', 'push', '-m', stashLabel], { cwd: root });
+    // Stash com pathspec excluindo paths do framework — assim o stash captura
+    // apenas mudanças do usuário, e o working tree mantém a versão atualizada
+    // dos arquivos do framework (incluindo este próprio CLI).
+    const stashArgs = [
+      'stash', 'push', '-m', stashLabel, '--',
+      ':(exclude,top).gos',
+      ':(exclude,top).claude',
+      ':(exclude,top).qwen',
+      ':(exclude,top).gemini',
+      ':(exclude,top).cursor',
+      ':(exclude,top).agents',
+      ':(exclude,top).kilocode',
+      ':(exclude,top).antigravity',
+      ':(exclude,top).opencode',
+      ':(exclude,top).codex',
+      '.',
+    ];
+    git(stashArgs, { cwd: root });
     didStash = true;
-    ok(`Stash criado: ${stashLabel}`);
+    ok(`Stash criado (apenas mudancas do usuario): ${stashLabel}`);
+  } else if (status) {
+    info(`Mudancas locais detectadas apenas em paths do framework — serao sobrescritas pelo merge.`);
   }
 
   const commitBefore = gitCapture(['rev-parse', '--short', 'HEAD'], { cwd: root });
