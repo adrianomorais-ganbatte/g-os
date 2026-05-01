@@ -518,7 +518,10 @@ function cmdUpdate(root, args) {
       const conflictingPaths = untrackedMatch[1]
         .split(/\r?\n/)
         .map(s => s.trim())
-        .filter(Boolean);
+        .filter(Boolean)
+        // git termina com "Aborting", "Merge with strategy ort failed.", "Please move or remove..."
+        // Caminhos reais sempre contêm "." (extensão ou dotfile) OU "/" (subdir).
+        .filter(s => (s.includes('.') || s.includes('/')) && !/^(Aborting|Merge with|Please move)/i.test(s));
       const generated = conflictingPaths.filter(isGenerated);
       const userOwned = conflictingPaths.filter(p => !isGenerated(p));
 
