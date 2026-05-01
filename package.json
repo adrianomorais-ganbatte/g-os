@@ -10,6 +10,7 @@
     "gos:update": "node .gos/scripts/cli/gos-cli.js update",
     "gos:doctor": "node .gos/scripts/cli/gos-cli.js doctor",
     "gos:version": "node .gos/scripts/cli/gos-cli.js version",
+    "gos:rescue": "node .gos/scripts/cli/gos-cli.js rescue",
     "clickup": "node .gos/scripts/tools/clickup.js",
     "sync:ides": "node .gos/scripts/integrations/setup-ide-adapters.js",
     "check:ides": "node .gos/scripts/integrations/check-ide-compat.js",

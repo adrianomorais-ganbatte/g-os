@@ -30,9 +30,74 @@ function readPackageVersion() {
 
 const VERSION = readPackageVersion();
 const UPSTREAM_REMOTE = 'upstream';
-const UPSTREAM_BRANCH = 'main';
+const DEFAULT_UPSTREAM_BRANCH = 'main';
 const LOCAL_DIR = '.gos-local';
 const MANIFEST_PATH = '.gos/manifests/gos-install-manifest.json';
+const CONFIG_PATH = '.gos/config.json';
+const CORRECT_UPSTREAM_URL = 'git@github-adriano:adrianomorais-ganbatte/g-os.git';
+const CORRECT_UPSTREAM_URL_HTTPS = 'https://github.com/adrianomorais-ganbatte/g-os.git';
+const STASH_LABEL = 'gos-update-auto-stash';
+
+/**
+ * Resolve a development branch a partir de .gos/config.json.
+ * Fallback: 'main'. Permite override via env GOS_UPSTREAM_BRANCH.
+ */
+function resolveUpstreamBranch(root) {
+  if (process.env.GOS_UPSTREAM_BRANCH) return process.env.GOS_UPSTREAM_BRANCH;
+  const cfg = readJson(path.join(root, CONFIG_PATH));
+  return cfg?.defaultBranches?.development || cfg?.defaultBranches?.production || DEFAULT_UPSTREAM_BRANCH;
+}
+
+/**
+ * Detecta se este workspace é o framework G-OS em si (fork/clone) ou um projeto
+ * consumidor que apenas instalou o framework via `gos install`.
+ *  - 'framework': package.json#name === 'ganbatte-os' AND .git no root
+ *  - 'consumer':  qualquer outro caso
+ */
+function detectMode(root) {
+  const pkg = readJson(path.join(root, 'package.json'), {});
+  const isGosPackage = pkg.name === 'ganbatte-os';
+  const hasGit = pathExists(path.join(root, '.git'));
+  return isGosPackage && hasGit ? 'framework' : 'consumer';
+}
+
+/**
+ * Valida que o remote upstream existe E responde. Não modifica nada.
+ * Retorna { ok, remoteUrl, error }.
+ */
+function validateUpstream(root) {
+  const remotes = gitCapture(['remote'], { cwd: root });
+  if (!remotes.split(/\r?\n/).includes(UPSTREAM_REMOTE)) {
+    return { ok: false, error: `remote "${UPSTREAM_REMOTE}" não configurado` };
+  }
+  const url = gitCapture(['remote', 'get-url', UPSTREAM_REMOTE], { cwd: root });
+  // Detecta URL antiga incorreta (ganbatte-os.git em vez de g-os.git)
+  if (/ganbatte-os\.git/.test(url) && !/g-os\.git/.test(url)) {
+    return { ok: false, remoteUrl: url, error: 'URL do upstream parece estar com nome antigo (ganbatte-os.git)' };
+  }
+  // Ping no remoto sem stashar nada
+  try {
+    execFileSync('git', ['ls-remote', '--quiet', '--exit-code', UPSTREAM_REMOTE, 'HEAD'], {
+      cwd: root, stdio: 'pipe', encoding: 'utf8',
+    });
+    return { ok: true, remoteUrl: url };
+  } catch (e) {
+    return { ok: false, remoteUrl: url, error: `não foi possível alcançar ${url}` };
+  }
+}
+
+/**
+ * Lista todos stashes auto-criados pelo gos-update.
+ * Retorna [{ ref, branch, label, dateIso }].
+ */
+function listGosStashes(root) {
+  const out = gitCapture(['stash', 'list', '--format=%gd|%gs|%ci'], { cwd: root });
+  if (!out) return [];
+  return out.split(/\r?\n/).filter(Boolean).map(line => {
+    const [ref, subject, dateIso] = line.split('|');
+    return { ref, subject, dateIso };
+  }).filter(s => s.subject && s.subject.includes(STASH_LABEL));
+}
 
 // ---------------------------------------------------------------------------
 // Utilitarios
@@ -347,40 +412,99 @@ function cmdInstall(args) {
 
 function cmdUpdate(root, args) {
   const skipStash = args.includes('--no-stash');
+  const branch = resolveUpstreamBranch(root);
+  const mode = detectMode(root);
 
   log('Atualizando workspace ganbatte-os...');
 
-  // 1. Verificar remote upstream
-  const remotes = gitCapture(['remote'], { cwd: root });
-  if (!remotes.includes(UPSTREAM_REMOTE)) {
-    fail(`Remote "${UPSTREAM_REMOTE}" nao encontrado.`);
-    info(`Adicione com: git remote add ${UPSTREAM_REMOTE} https://github.com/adrianomorais-ganbatte/ganbatte-os.git`);
+  // 0. Modo: bloquear se for projeto consumidor (não fork do framework).
+  if (mode === 'consumer') {
+    fail('Este workspace é um projeto consumidor, não o repositório do framework G-OS.');
+    info('Para atualizar o framework dentro do seu projeto, use:');
+    info('  gos install --force');
+    info('Ou (se você instalou via npm install):');
+    info('  npm install ganbatte-os@latest');
+    info('');
+    info('`gos update` é apenas para forks/clones do repositório g-os.');
     process.exit(1);
   }
 
-  // 2. Checar se ha mudancas locais e fazer stash
-  const status = gitCapture(['status', '--porcelain'], { cwd: root });
-  let didStash = false;
-  if (status && !skipStash) {
-    log('Mudancas locais detectadas. Fazendo stash...');
-    git(['stash', 'push', '-m', 'gos-update-auto-stash'], { cwd: root });
-    didStash = true;
-    ok('Stash criado.');
+  // 1. Validar upstream ANTES de qualquer modificação local (stash, etc).
+  const upstream = validateUpstream(root);
+  if (!upstream.ok) {
+    fail(`Upstream inválido: ${upstream.error}`);
+    if (upstream.remoteUrl) info(`URL atual: ${upstream.remoteUrl}`);
+    info('Corrija com:');
+    info(`  git remote set-url ${UPSTREAM_REMOTE} ${CORRECT_UPSTREAM_URL}`);
+    info(`  (ou via HTTPS: ${CORRECT_UPSTREAM_URL_HTTPS})`);
+    info('');
+    info(`Depois rode: npm run gos:update`);
+    process.exit(1);
   }
 
-  // 3. Fetch upstream
-  log(`Buscando atualizacoes de ${UPSTREAM_REMOTE}/${UPSTREAM_BRANCH}...`);
-  git(['fetch', UPSTREAM_REMOTE, UPSTREAM_BRANCH], { cwd: root });
+  // 2. Dry-run fetch (sem stashar): se nada mudou, sai cedo.
+  log(`Verificando ${UPSTREAM_REMOTE}/${branch}...`);
+  try {
+    git(['fetch', UPSTREAM_REMOTE, branch], { cwd: root, quiet: true });
+  } catch (e) {
+    fail(`Fetch de ${UPSTREAM_REMOTE}/${branch} falhou.`);
+    info('Verifique sua conexão e credenciais SSH/HTTPS. Nada foi modificado localmente.');
+    process.exit(1);
+  }
 
-  // 4. Checar se ha commits novos
   const behind = gitCapture(
-    ['rev-list', '--count', `HEAD..${UPSTREAM_REMOTE}/${UPSTREAM_BRANCH}`],
+    ['rev-list', '--count', `HEAD..${UPSTREAM_REMOTE}/${branch}`],
     { cwd: root }
   );
-  if (behind === '0') {
-    ok('Workspace ja esta atualizado.');
-    if (didStash) git(['stash', 'pop'], { cwd: root });
+  if (behind === '0' || behind === '') {
+    ok(`Workspace ja esta atualizado com ${UPSTREAM_REMOTE}/${branch}.`);
     return;
+  }
+
+  // 3. AGORA é seguro stashar (upstream validado + commits novos confirmados).
+  // Importante: stash deve EXCLUIR paths do framework — eles serão sobrescritos
+  // pelo merge de qualquer forma, e stashar a si próprio (gos-cli.js) cria um
+  // loop em que o stash reverte a versão atualizada do CLI no working tree.
+  const status = gitCapture(['status', '--porcelain'], { cwd: root });
+  // Detectar se há mudanças além dos paths framework
+  const userModifiedLines = status
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .filter(line => {
+      const file = line.slice(3); // 2-char status flag + space
+      // Exclui paths gerados/managed pelo framework
+      const FRAMEWORK_PREFIXES = [
+        '.gos/', '.claude/', '.qwen/', '.gemini/', '.cursor/', '.agents/',
+        '.kilocode/', '.antigravity/', '.opencode/', '.codex/',
+      ];
+      return !FRAMEWORK_PREFIXES.some(p => file.startsWith(p));
+    });
+  let didStash = false;
+  if (userModifiedLines.length > 0 && !skipStash) {
+    log(`Mudancas locais do usuario detectadas (${userModifiedLines.length}). Fazendo stash...`);
+    const stashLabel = `${STASH_LABEL} ${new Date().toISOString()}`;
+    // Stash com pathspec excluindo paths do framework — assim o stash captura
+    // apenas mudanças do usuário, e o working tree mantém a versão atualizada
+    // dos arquivos do framework (incluindo este próprio CLI).
+    const stashArgs = [
+      'stash', 'push', '-m', stashLabel, '--',
+      ':(exclude,top).gos',
+      ':(exclude,top).claude',
+      ':(exclude,top).qwen',
+      ':(exclude,top).gemini',
+      ':(exclude,top).cursor',
+      ':(exclude,top).agents',
+      ':(exclude,top).kilocode',
+      ':(exclude,top).antigravity',
+      ':(exclude,top).opencode',
+      ':(exclude,top).codex',
+      '.',
+    ];
+    git(stashArgs, { cwd: root });
+    didStash = true;
+    ok(`Stash criado (apenas mudancas do usuario): ${stashLabel}`);
+  } else if (status) {
+    info(`Mudancas locais detectadas apenas em paths do framework — serao sobrescritas pelo merge.`);
   }
 
   const commitBefore = gitCapture(['rev-parse', '--short', 'HEAD'], { cwd: root });
@@ -389,15 +513,118 @@ function cmdUpdate(root, args) {
   log(`${behind} commit(s) novo(s). Fazendo merge...`);
   const manifest = getManifest(root);
   const frameworkPaths = manifest.frameworkManaged || [];
+  const allowUnrelated = args.includes('--allow-unrelated');
+  const clobberUntracked = args.includes('--clobber-untracked');
 
-  try {
-    git(['merge', `${UPSTREAM_REMOTE}/${UPSTREAM_BRANCH}`, '--no-edit'], { cwd: root, quiet: true });
+  // Paths que podemos clobberar com segurança:
+  //  - IDE adapters: regenerados por sync:ides
+  //  - .gos/: framework directory, sempre vem do upstream
+  const FRAMEWORK_GENERATED_PREFIXES = [
+    '.claude/', '.qwen/', '.gemini/', '.cursor/', '.agents/',
+    '.kilocode/', '.antigravity/', '.opencode/', '.codex/',
+    '.gos/',
+  ];
+  const isGenerated = (p) => FRAMEWORK_GENERATED_PREFIXES.some(prefix => p.startsWith(prefix));
+
+  const mergeArgs = ['merge', `${UPSTREAM_REMOTE}/${branch}`, '--no-edit'];
+  if (allowUnrelated) mergeArgs.push('--allow-unrelated-histories');
+
+  // Função tentando o merge, capturando stderr — chamada mais de uma vez se houver retry
+  function tryMerge() {
+    try {
+      execFileSync('git', mergeArgs, { cwd: root, stdio: 'pipe', encoding: 'utf8' });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, err: ((e.stderr || '') + (e.stdout || '')).toString() };
+    }
+  }
+
+  let mergeErr = '';
+  let attempt = tryMerge();
+  if (attempt.ok) {
     ok('Merge concluido sem conflitos.');
-  } catch {
-    // Checar conflitos
+  } else {
+    mergeErr = attempt.err;
+
+    // Auto-resolução: untracked files que upstream quer escrever, mas só se
+    // todos forem paths gerados pelo framework (sync:ides regenera).
+    const untrackedMatch = mergeErr.match(/untracked working tree files would be overwritten by merge:\s*([\s\S]+?)(?:Please move or remove|$)/i);
+    if (untrackedMatch) {
+      const conflictingPaths = untrackedMatch[1]
+        .split(/\r?\n/)
+        .map(s => s.trim())
+        .filter(Boolean)
+        // git termina com "Aborting", "Merge with strategy ort failed.", "Please move or remove..."
+        // Caminhos reais sempre contêm "." (extensão ou dotfile) OU "/" (subdir).
+        .filter(s => (s.includes('.') || s.includes('/')) && !/^(Aborting|Merge with|Please move)/i.test(s));
+      const generated = conflictingPaths.filter(isGenerated);
+      const userOwned = conflictingPaths.filter(p => !isGenerated(p));
+
+      if (clobberUntracked && userOwned.length === 0) {
+        const ts = new Date().toISOString().replace(/[:.]/g, '-');
+        log(`${generated.length} arquivo(s) untracked em paths regenerados — movendo para .bak.${ts}/`);
+        for (const file of generated) {
+          const src = path.join(root, file);
+          const dst = path.join(root, `${file}.bak.${ts}`);
+          if (pathExists(src)) {
+            ensureDir(path.dirname(dst));
+            fs.renameSync(src, dst);
+          }
+        }
+        ok(`Movidos ${generated.length} arquivo(s). Retentando merge...`);
+        attempt = tryMerge();
+        if (attempt.ok) {
+          ok('Merge concluido apos clobber.');
+          mergeErr = '';
+        } else {
+          mergeErr = attempt.err;
+        }
+      } else if (userOwned.length === 0 && !clobberUntracked) {
+        fail(`Merge abortou: ${conflictingPaths.length} arquivo(s) untracked seriam sobrescritos.`);
+        info('Todos os arquivos afetados estão em paths gerados pelo framework (regenerados por sync:ides):');
+        for (const p of generated.slice(0, 10)) info(`  - ${p}`);
+        if (generated.length > 10) info(`  ... mais ${generated.length - 10}`);
+        info('');
+        info('Para auto-mover esses arquivos para .bak.<timestamp> antes do merge:');
+        info(`  npm run gos:update -- --clobber-untracked${allowUnrelated ? ' --allow-unrelated' : ''}`);
+        if (didStash) info('Stash preservado. Rode: git stash pop quando terminar.');
+        process.exit(1);
+      } else {
+        // Misto — tem arquivos do usuário também → não clobberamos nada
+        fail(`Merge abortou: arquivos untracked seriam sobrescritos.`);
+        info(`${userOwned.length} arquivo(s) NÃO gerados pelo framework (revisar antes):`);
+        for (const p of userOwned.slice(0, 10)) info(`  - ${p}`);
+        info('Mova ou versione esses arquivos manualmente; depois retente.');
+        if (didStash) info('Stash preservado.');
+        process.exit(1);
+      }
+    }
+  }
+
+  if (!attempt.ok) {
+
+    // Detecta histórias não relacionadas (comum em workspaces criados via `gos install`)
+    if (/unrelated histories/i.test(mergeErr) && !allowUnrelated) {
+      fail('Merge abortou: histórias não relacionadas entre HEAD e upstream.');
+      info('Isto é comum quando o workspace foi bootstrappado via `gos install`');
+      info('e nunca compartilhou commits com o repositório do framework.');
+      info('');
+      info('Para forçar o merge unindo as histórias (recomendado neste caso):');
+      info(`  npm run gos:update -- --allow-unrelated`);
+      info('');
+      info('Alternativa segura (sobrescreve apenas .gos/ preservando seus arquivos):');
+      info('  gos install --force');
+      if (didStash) info('Stash preservado. Rode: git stash pop quando resolver.');
+      process.exit(1);
+    }
+
+    // Checar conflitos de arquivo
     const conflictFiles = gitCapture(['diff', '--name-only', '--diff-filter=U'], { cwd: root });
     if (!conflictFiles) {
-      fail('Merge falhou por motivo desconhecido.');
+      fail('Merge falhou. Erro do git:');
+      for (const line of mergeErr.split(/\r?\n/).filter(Boolean).slice(0, 6)) {
+        console.log(`    ${line}`);
+      }
       if (didStash) info('Stash preservado. Rode: git stash pop');
       process.exit(1);
     }
@@ -600,12 +827,46 @@ function cmdDoctor(root) {
     check(`Diretorio ${LOCAL_DIR}/ existe`, hasLocalDir);
   }
 
-  // 10. Report
+  // 10. Mode + upstream sanity (warnings, não falhas)
+  const mode = detectMode(root);
+  const branch = resolveUpstreamBranch(root);
+  const isCi = Boolean(process.env.CI || process.env.GITHUB_ACTIONS);
+  if (mode === 'framework') {
+    if (isCi) {
+      info('Upstream check ignorado em CI (sem credenciais para git ls-remote)');
+    } else {
+      const upstream = validateUpstream(root);
+      if (upstream.ok) {
+        ok(`Upstream alcançável (branch: ${branch})`);
+      } else {
+        warn(`Upstream inválido: ${upstream.error}`);
+        if (upstream.remoteUrl) info(`URL atual: ${upstream.remoteUrl}`);
+        info(`Corrija com: git remote set-url ${UPSTREAM_REMOTE} ${CORRECT_UPSTREAM_URL}`);
+        issues++;
+      }
+    }
+    checks++;
+  }
+
+  // 11. Stashes acumulados de updates falhos
+  const goshStashes = listGosStashes(root);
+  if (goshStashes.length > 1) {
+    warn(`${goshStashes.length} stashes do gos-update acumulados (sintoma de updates falhos).`);
+    info('Resgate com: npm run gos:rescue');
+    issues++;
+  } else if (goshStashes.length === 1) {
+    info(`1 stash do gos-update presente: ${goshStashes[0].ref}`);
+  }
+  checks++;
+
+  // 12. Report
   const updateLog = readJson(path.join(root, LOCAL_DIR, 'update-log.json'));
   const installLogData = readJson(path.join(root, LOCAL_DIR, 'install-log.json'));
 
   console.log('');
   console.log(`  Versao:         ${pkg ? pkg.version || VERSION : VERSION}`);
+  console.log(`  Modo:           ${mode === 'framework' ? 'framework workspace' : 'projeto consumidor'}`);
+  console.log(`  Branch dev:     ${branch}`);
   console.log(`  Inicializado:   ${installLogData ? installLogData.initializedAt : 'N/A'}`);
   console.log(`  Ultimo update:  ${updateLog ? updateLog.lastUpdate : 'N/A'}`);
   console.log(`  Node.js:        ${process.version}`);
@@ -621,36 +882,103 @@ function cmdDoctor(root) {
 }
 
 // ---------------------------------------------------------------------------
+// gos rescue — recuperar stashes acumulados de updates falhos
+// ---------------------------------------------------------------------------
+
+function cmdRescue(root, args) {
+  log('Buscando stashes do gos-update...');
+  const stashes = listGosStashes(root);
+  if (stashes.length === 0) {
+    ok('Nenhum stash do gos-update encontrado.');
+    return;
+  }
+
+  console.log('');
+  console.log(`  ${stashes.length} stash(es) auto-criado(s) pelo gos-update:`);
+  console.log('');
+  for (const s of stashes) {
+    console.log(`    ${s.ref}  (${s.dateIso})`);
+    const stat = gitCapture(['stash', 'show', '--stat', s.ref], { cwd: root });
+    if (stat) {
+      for (const line of stat.split(/\r?\n/).slice(0, 5)) {
+        if (line.trim()) console.log(`      ${line}`);
+      }
+    }
+    console.log('');
+  }
+
+  if (args.includes('--drop-all')) {
+    warn(`Removendo todos os ${stashes.length} stashes...`);
+    // Remove em ordem reversa porque os índices mudam
+    for (let i = stashes.length - 1; i >= 0; i--) {
+      git(['stash', 'drop', stashes[i].ref], { cwd: root, quiet: true });
+    }
+    ok('Todos os stashes do gos-update foram removidos.');
+    return;
+  }
+
+  if (args.includes('--pop-latest')) {
+    log(`Aplicando ${stashes[0].ref}...`);
+    try {
+      git(['stash', 'pop', stashes[0].ref], { cwd: root });
+      ok('Stash aplicado.');
+    } catch {
+      warn('Conflito ao aplicar. Resolva manualmente e rode `git stash drop` quando terminar.');
+    }
+    return;
+  }
+
+  info('Comandos disponíveis:');
+  info('  npm run gos:rescue -- --pop-latest    # aplica o stash mais recente');
+  info('  npm run gos:rescue -- --drop-all      # remove todos (após revisão)');
+  info('  git stash pop <ref>                   # aplica stash específico');
+  info('  git stash drop <ref>                  # remove stash específico');
+}
+
+// ---------------------------------------------------------------------------
 // gos version
 // ---------------------------------------------------------------------------
 
 function cmdVersion(root) {
   const pkg = readJson(path.join(root, 'package.json'), {});
   const localVersion = pkg.version || VERSION;
+  const mode = detectMode(root);
+  const branch = resolveUpstreamBranch(root);
 
   console.log(`ganbatte-os v${localVersion}`);
+  console.log(`  modo: ${mode === 'framework' ? 'framework workspace (fork/clone do g-os)' : 'projeto consumidor'}`);
 
-  // Checar se ha commits novos no upstream
-  const remotes = gitCapture(['remote'], { cwd: root });
-  if (!remotes.includes(UPSTREAM_REMOTE)) {
-    info(`Remote "${UPSTREAM_REMOTE}" nao configurado. Nao foi possivel checar atualizacoes.`);
+  if (mode === 'consumer') {
+    info('Para checar a última versão publicada do framework:');
+    info('  npm view ganbatte-os version');
+    info('Para atualizar o framework dentro do seu projeto:');
+    info('  gos install --force');
+    return;
+  }
+
+  // Modo framework: checar commits novos no upstream
+  const upstream = validateUpstream(root);
+  if (!upstream.ok) {
+    warn(`Upstream inválido: ${upstream.error}`);
+    if (upstream.remoteUrl) info(`URL atual: ${upstream.remoteUrl}`);
+    info(`Corrija com: git remote set-url ${UPSTREAM_REMOTE} ${CORRECT_UPSTREAM_URL}`);
     return;
   }
 
   try {
-    execFileSync('git', ['fetch', UPSTREAM_REMOTE, UPSTREAM_BRANCH], {
+    execFileSync('git', ['fetch', UPSTREAM_REMOTE, branch], {
       encoding: 'utf8', stdio: 'pipe', cwd: root
     });
     const behind = gitCapture(
-      ['rev-list', '--count', `HEAD..${UPSTREAM_REMOTE}/${UPSTREAM_BRANCH}`],
+      ['rev-list', '--count', `HEAD..${UPSTREAM_REMOTE}/${branch}`],
       { cwd: root }
     );
 
     if (behind && behind !== '0') {
-      console.log(`\n  ${behind} commit(s) novo(s) disponivel(is).`);
+      console.log(`\n  ${behind} commit(s) novo(s) em ${UPSTREAM_REMOTE}/${branch}.`);
       console.log('  Atualize com: npm run gos:update\n');
     } else {
-      ok('Voce esta na versao mais recente.');
+      ok(`Voce esta na versao mais recente de ${UPSTREAM_REMOTE}/${branch}.`);
     }
   } catch {
     warn('Nao foi possivel checar atualizacoes (sem conexao?).');
@@ -683,6 +1011,10 @@ function main() {
       cmdDoctor(root);
       break;
 
+    case 'rescue':
+      cmdRescue(root, args.slice(1));
+      break;
+
     case 'version':
     case '-v':
     case '--version':
@@ -698,14 +1030,24 @@ ganbatte-os CLI v${VERSION}
 Comandos:
   gos install   Instalar G-OS no diretorio atual (via npx ou global)
   gos init      Setup pos-clone (remote, dirs, IDEs)
-  gos update    Atualizar do upstream/main
+  gos update    Atualizar do upstream (apenas em fork/clone do g-os)
+  gos rescue    Listar/recuperar stashes acumulados de updates falhos
   gos doctor    Validar integridade do workspace
-  gos version   Mostrar versao e checar atualizacoes
+  gos version   Mostrar versao, modo (framework/consumer) e atualizacoes
   gos help      Exibir esta ajuda
 
 Flags:
-  --force       Sobrescrever arquivos existentes (install/init)
-  --no-stash    Nao fazer stash automatico (update)
+  --force               Sobrescrever arquivos existentes (install/init)
+  --no-stash            Nao fazer stash automatico (update)
+  --allow-unrelated     Permitir merge de histórias não relacionadas (update)
+  --clobber-untracked   Mover untracked files (em paths regenerados) para
+                        .bak.<timestamp> antes do merge (update)
+  --pop-latest          Aplicar stash mais recente (rescue)
+  --drop-all            Remover todos os stashes do gos-update (rescue)
+
+Env:
+  GOS_UPSTREAM_BRANCH   Override da branch a ser pulled (default lê de
+                        .gos/config.json#defaultBranches.development)
 
 Exemplos:
   npx -p ganbatte-os gos install
