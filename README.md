@@ -134,6 +134,22 @@ Override de branch (debug):
 GOS_UPSTREAM_BRANCH=beta npm run gos:update
 ```
 
+#### Caso especial: "histórias não relacionadas"
+
+Workspaces criados via `gos install` no passado podem ter `.git` próprio sem ancestor comum com o repo do framework. Nesse caso o merge falha com `fatal: refusing to merge unrelated histories`. O CLI detecta e instrui:
+
+```bash
+npm run gos:update -- --allow-unrelated
+```
+
+Isso une as duas histórias num commit de merge único. Faça uma vez; depois disso updates normais funcionam.
+
+Alternativa segura (não toca seu git, apenas atualiza `.gos/`):
+
+```bash
+gos install --force
+```
+
 ### Resgate de stashes presos
 
 Se você teve falhas anteriores que deixaram stashes:

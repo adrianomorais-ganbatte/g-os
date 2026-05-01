@@ -478,15 +478,41 @@ function cmdUpdate(root, args) {
   log(`${behind} commit(s) novo(s). Fazendo merge...`);
   const manifest = getManifest(root);
   const frameworkPaths = manifest.frameworkManaged || [];
+  const allowUnrelated = args.includes('--allow-unrelated');
 
+  const mergeArgs = ['merge', `${UPSTREAM_REMOTE}/${branch}`, '--no-edit'];
+  if (allowUnrelated) mergeArgs.push('--allow-unrelated-histories');
+
+  // Captura stderr para exibir erros reais (não "motivo desconhecido")
+  let mergeErr = '';
   try {
-    git(['merge', `${UPSTREAM_REMOTE}/${branch}`, '--no-edit'], { cwd: root, quiet: true });
+    execFileSync('git', mergeArgs, { cwd: root, stdio: 'pipe', encoding: 'utf8' });
     ok('Merge concluido sem conflitos.');
-  } catch {
-    // Checar conflitos
+  } catch (e) {
+    mergeErr = ((e.stderr || '') + (e.stdout || '')).toString();
+
+    // Detecta histórias não relacionadas (comum em workspaces criados via `gos install`)
+    if (/unrelated histories/i.test(mergeErr) && !allowUnrelated) {
+      fail('Merge abortou: histórias não relacionadas entre HEAD e upstream.');
+      info('Isto é comum quando o workspace foi bootstrappado via `gos install`');
+      info('e nunca compartilhou commits com o repositório do framework.');
+      info('');
+      info('Para forçar o merge unindo as histórias (recomendado neste caso):');
+      info(`  npm run gos:update -- --allow-unrelated`);
+      info('');
+      info('Alternativa segura (sobrescreve apenas .gos/ preservando seus arquivos):');
+      info('  gos install --force');
+      if (didStash) info('Stash preservado. Rode: git stash pop quando resolver.');
+      process.exit(1);
+    }
+
+    // Checar conflitos de arquivo
     const conflictFiles = gitCapture(['diff', '--name-only', '--diff-filter=U'], { cwd: root });
     if (!conflictFiles) {
-      fail('Merge falhou por motivo desconhecido.');
+      fail('Merge falhou. Erro do git:');
+      for (const line of mergeErr.split(/\r?\n/).filter(Boolean).slice(0, 6)) {
+        console.log(`    ${line}`);
+      }
       if (didStash) info('Stash preservado. Rode: git stash pop');
       process.exit(1);
     }
@@ -894,10 +920,11 @@ Comandos:
   gos help      Exibir esta ajuda
 
 Flags:
-  --force       Sobrescrever arquivos existentes (install/init)
-  --no-stash    Nao fazer stash automatico (update)
-  --pop-latest  Aplicar stash mais recente (rescue)
-  --drop-all    Remover todos os stashes do gos-update (rescue)
+  --force             Sobrescrever arquivos existentes (install/init)
+  --no-stash          Nao fazer stash automatico (update)
+  --allow-unrelated   Permitir merge de histórias não relacionadas (update)
+  --pop-latest        Aplicar stash mais recente (rescue)
+  --drop-all          Remover todos os stashes do gos-update (rescue)
 
 Env:
   GOS_UPSTREAM_BRANCH   Override da branch a ser pulled (default lê de
