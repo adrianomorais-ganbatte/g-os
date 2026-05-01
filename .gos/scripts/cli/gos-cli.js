@@ -481,10 +481,13 @@ function cmdUpdate(root, args) {
   const allowUnrelated = args.includes('--allow-unrelated');
   const clobberUntracked = args.includes('--clobber-untracked');
 
-  // Paths que podemos clobberar com segurança (sempre regenerados por sync:ides)
+  // Paths que podemos clobberar com segurança:
+  //  - IDE adapters: regenerados por sync:ides
+  //  - .gos/: framework directory, sempre vem do upstream
   const FRAMEWORK_GENERATED_PREFIXES = [
     '.claude/', '.qwen/', '.gemini/', '.cursor/', '.agents/',
     '.kilocode/', '.antigravity/', '.opencode/', '.codex/',
+    '.gos/',
   ];
   const isGenerated = (p) => FRAMEWORK_GENERATED_PREFIXES.some(prefix => p.startsWith(prefix));
 
@@ -789,15 +792,20 @@ function cmdDoctor(root) {
   // 10. Mode + upstream sanity (warnings, não falhas)
   const mode = detectMode(root);
   const branch = resolveUpstreamBranch(root);
+  const isCi = Boolean(process.env.CI || process.env.GITHUB_ACTIONS);
   if (mode === 'framework') {
-    const upstream = validateUpstream(root);
-    if (upstream.ok) {
-      ok(`Upstream alcançável (branch: ${branch})`);
+    if (isCi) {
+      info('Upstream check ignorado em CI (sem credenciais para git ls-remote)');
     } else {
-      warn(`Upstream inválido: ${upstream.error}`);
-      if (upstream.remoteUrl) info(`URL atual: ${upstream.remoteUrl}`);
-      info(`Corrija com: git remote set-url ${UPSTREAM_REMOTE} ${CORRECT_UPSTREAM_URL}`);
-      issues++;
+      const upstream = validateUpstream(root);
+      if (upstream.ok) {
+        ok(`Upstream alcançável (branch: ${branch})`);
+      } else {
+        warn(`Upstream inválido: ${upstream.error}`);
+        if (upstream.remoteUrl) info(`URL atual: ${upstream.remoteUrl}`);
+        info(`Corrija com: git remote set-url ${UPSTREAM_REMOTE} ${CORRECT_UPSTREAM_URL}`);
+        issues++;
+      }
     }
     checks++;
   }
