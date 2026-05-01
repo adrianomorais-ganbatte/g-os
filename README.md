@@ -43,18 +43,38 @@ Após rodar o install, o framework criará uma estrutura limpa na sua raiz:
 
 ### 3. Comandos do Workspace
 
-A partir da raiz do seu projeto, você pode gerenciar o framework:
+A partir da raiz do seu projeto:
 
-| Comando | O que faz |
-|---------|-----------|
-| `npm run gos:init` | Setup pos-clone (remote, dirs, IDEs, sync framework pai) |
-| `npm run gos:update` | Fetch upstream + merge + re-sync IDEs + sync framework pai |
-| `npm run gos:doctor` | Valida integridade do workspace e IDEs |
-| `npm run gos:version` | Mostra versao e checa atualizacoes |
-| `npm run sync:ides` | Regenera adapters para Claude, Gemini, Cursor e outras |
-| `npm run check:ides` | Valida compatibilidade dos IDE adapters |
-| `npm run clickup` | CLI ClickUp (tarefas, sprints, status) |
-| `npm run doctor` | Alias direto para gos:doctor |
+| Comando | Equivalente CLI | O que faz |
+|---------|-----------------|-----------|
+| `npm run gos:init` | `gos init` | Setup pos-clone: configura `upstream`, cria dirs (`.gos-local/`), gera IDE adapters, sincroniza com framework pai |
+| `npm run gos:update` | `gos update` | `git fetch upstream` + merge `upstream/main` + `npm install` + re-sync IDE adapters |
+| `npm run gos:doctor` | `gos doctor` | Valida integridade do workspace, registry de skills, IDE adapters, presenca de Git remote |
+| `npm run gos:version` | `gos version` | Mostra versao instalada e checa se ha atualizacoes pendentes em `upstream/main` |
+| `npm run sync:ides` | — | Regenera apenas os IDE adapters (`.claude/`, `.qwen/`, `.gemini/`, `.cursor/`, `.agents/`) |
+| `npm run check:ides` | — | Valida que todos os adapters estao consistentes com `.gos/skills/registry.json` |
+| `npm run clickup` | — | CLI ClickUp (tarefas, sprints, status) |
+
+**Atualizar o G-OS no seu workspace:**
+
+```bash
+npm run gos:update
+# equivalente a: git fetch upstream && git merge upstream/main && npm install && npm run sync:ides
+```
+
+Em caso de divergencia local nao resolvivel automaticamente, o comando aborta e instrui resolucao manual. Se quiser inspecionar antes:
+
+```bash
+npm run gos:version   # mostra versao atual + commits pendentes em upstream
+git fetch upstream    # ver mudancas sem aplicar
+git log HEAD..upstream/main --oneline
+```
+
+**Health-check apos qualquer mudanca:**
+
+```bash
+npm run gos:doctor    # 40+ checks (skills, agents, IDE adapters, git remote)
+```
 
 ### Via CLI global (`gos`)
 
@@ -64,7 +84,7 @@ Apos `npm install -g ganbatte-os`:
 |---------|-----------|
 | `gos install` | Instala framework em diretorio novo |
 | `gos init` | Inicializa workspace existente |
-| `gos update` | Atualiza framework |
+| `gos update` | Atualiza framework (mesma logica de `npm run gos:update`) |
 | `gos doctor` | Health-check |
 | `gos version` | Versao instalada |
 
@@ -136,7 +156,7 @@ O `ganbatte-os` utiliza uma estrutura **encapsulada** para manter seu projeto li
 
 ## Plan Pipeline (stack-aware)
 
-Pipeline padronizado para criacao de planos por tela. Toda tela vira um plano + tasks + contexto, com status auditavel e contrato de stack.
+Pipeline padronizado para criacao de planos por tela. **Toda tela = 1 plano**. Toda execucao gera plano + tasks + contexto, com status auditavel e contrato de stack.
 
 ### Fluxo
 
@@ -161,31 +181,206 @@ Pipeline padronizado para criacao de planos por tela. Toda tela vira um plano + 
 
 ### Configuracao por workspace
 
-`.gos-local/plan-paths.json` define onde cada projeto guarda seus artefatos. Cada projeto/dev pode organizar diferente:
+`.gos-local/plan-paths.json` define onde cada projeto guarda seus artefatos. Cada projeto/dev pode organizar diferente.
+
+**Inicializar com defaults** (helper):
+
+```bash
+node .gos/scripts/tools/plan-paths.js init     # cria .gos-local/plan-paths.json se nao existir
+node .gos/scripts/tools/plan-paths.js show     # imprime config atual
+node .gos/scripts/tools/plan-paths.js get planos   # imprime path resolvido para "planos"
+```
+
+**Exemplo de config** (caso real do `packages/fractus`):
 
 ```json
 {
   "schema": "gos.plan-paths.v1",
   "dirs": {
-    "planos": "docs/plans/",
-    "tasks": "docs/plans/{plan}/tasks/",
-    "contexto": "docs/plans/{plan}/context.md",
-    "progress": "progress.txt",
-    "stack": "docs/stack.md",
-    "postman": "docs/postman/",
-    "regras_negocio": "docs/regras-de-negocio/"
+    "projeto":            "src/",
+    "storybook":          ".referencia-storybook/",
+    "design_system_doc":  ".referencia-storybook/docs/DESIGN_SYSTEM_REFERENCE.md",
+    "components":         ".referencia-storybook/components/",
+    "stories":            ".referencia-storybook/stories/",
+    "planos":             "docs/plans/",
+    "tasks":              "docs/plans/{plan}/tasks/",
+    "contexto":           "docs/plans/{plan}/context.md",
+    "progress":           "progress.txt",
+    "stack":              "docs/stack.md",
+    "adr":                "docs/adr/",
+    "postman":            "docs/postman/",
+    "regras_negocio":     "docs/regras-de-negocio/"
   },
   "knowledge_sources": [
     { "kind": "postman",        "path": "docs/postman/",            "required": false },
     { "kind": "business-rules", "path": "docs/regras-de-negocio/",  "required": false },
+    { "kind": "adr",            "path": "docs/adr/",                "required": false },
     { "kind": "design-system",  "path": ".referencia-storybook/docs/DESIGN_SYSTEM_REFERENCE.md", "required": true }
-  ]
+  ],
+  "naming": { "plan_prefix": "PLAN", "task_prefix": "T", "seq_padding": 3 },
+  "figma":  { "mcp_enabled": true, "default_file_url": null }
 }
 ```
 
-Helpers: `scripts/tools/plan-paths.js`, `scripts/tools/plan-status.js`, `scripts/tools/stack-scan.js`.
+Helpers em `.gos/scripts/tools/`:
+- `plan-paths.js` — resolve caminhos do projeto-cliente
+- `plan-status.js` — valida transicoes de status (state machine)
+- `stack-scan.js` — infere stack lendo `package.json`, configs e `knowledge_sources`
 
-Playbook completo: [`.gos/playbooks/plan-creation-playbook.md`](./.gos/playbooks/plan-creation-playbook.md).
+### Exemplos de uso (end-to-end)
+
+Todos os comandos abaixo sao invocados via slash command no `gos-master` (Claude Code, Gemini, Cursor, etc).
+
+#### 1. Bootstrap do workspace (uma vez por projeto)
+
+```bash
+/gos:agents:gos-master
+```
+
+Em seguida, no chat:
+
+```
+*stack refresh
+```
+
+Saida esperada:
+
+```
+## Stack profilada — packages/fractus
+
+- Framework: Next.js 15 (App Router)
+- DB: Supabase (read-only)
+- Design System: .referencia-storybook
+- Knowledge sources: 4 (postman, business-rules, adr, design-system)
+
+stack.md: docs/stack.md
+lock:     .gos-local/stack.lock.json
+hashes:   12 arquivos
+```
+
+Verifique sempre que algo na stack mudar (lib, framework, ORM):
+
+```
+*stack drift
+```
+
+#### 2. Criar plano para uma tela
+
+A partir de URL Figma (autodetecta e usa Figma MCP):
+
+```
+*plan https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25387
+```
+
+A partir de descricao livre:
+
+```
+*plan tela de checkout com formulario de pagamento e resumo do pedido
+```
+
+Saida:
+
+```
+## Plano criado: PLAN-042-checkout
+
+- plan.md:    docs/plans/PLAN-042-checkout/plan.md
+- context.md: docs/plans/PLAN-042-checkout/context.md
+- tasks/:     docs/plans/PLAN-042-checkout/tasks/ (5 tasks: T-042-001 ... T-042-005)
+- progress:   atualizado (status=pendente)
+- stack_ref:  docs/stack.md@a1b2c3d
+
+Proximos passos:
+1. Revisar plan.md e checklist de aceite
+2. *progress status T-042-001 em-andamento
+3. Executar
+```
+
+Telas complexas (modal + drawer + sub-rotas) sao **subdivididas automaticamente** em planos filhos:
+
+```
+PLAN-042-checkout            (pai, checklist consolidado)
+├── PLAN-042.1-payment-modal (filho)
+├── PLAN-042.2-summary-drawer
+└── PLAN-042.3-confirm-page
+```
+
+#### 3. Executar tasks
+
+```
+*progress show                              # mostra progress.txt atual
+*progress status T-042-001 em-andamento     # iniciar task
+# ... dev implementa ...
+*progress status T-042-001 validacao        # task pronta para revisao (commit preparado, nao pushado)
+```
+
+Tentar pular validacao falha:
+
+```
+*progress status T-042-001 concluido
+> erro: transicao invalida: em-andamento → concluido
+> use --rollback para voltar para pendente
+```
+
+#### 4. Fechar o plano
+
+Quando todas as tasks estao em `validacao` e o checklist do plano esta completo:
+
+```
+*progress status PLAN-042-checkout validacao    # validacao humana + QA
+*progress status PLAN-042-checkout concluido    # SOMENTE apos aprovacao
+```
+
+`progress-tracker compact` periodicamente reescreve `progress.txt` removendo tasks `concluido` antigas para manter o arquivo < 4kB (otimizado para LLM).
+
+#### 5. Mudanca de arquitetura (excecao)
+
+Se a tela exigir alteracao da stack (nova lib, novo padrao de fetching, schema novo):
+
+```
+*plan tela-relatorios --allow-arch-change
+```
+
+Isso forca a Fase 2 propositiva e gera um ADR em `docs/adr/ADR-NNNN-<slug>.md` antes de prosseguir. O plano resultante referencia o ADR no frontmatter (`arch_change: true`).
+
+### Estrutura de saida
+
+Apos `*plan tela-checkout`:
+
+```
+docs/plans/PLAN-042-checkout/
+├── plan.md          # frontmatter (id, tela, figma_url, status, stack_ref) + secoes fixas
+├── context.md       # denso, indice de arquivos, decisoes, riscos
+└── tasks/
+    ├── T-042-001-criar-rota-checkout.md
+    ├── T-042-002-fetching-supabase.md
+    ├── T-042-003-form-pagamento.md
+    ├── T-042-004-resumo-pedido.md
+    └── T-042-005-estados-erro-loading.md
+```
+
+`progress.txt` na raiz do projeto fica:
+
+```
+# progress.l1
+ts=2026-05-01T18:22:00-03:00
+project=fractus
+plan_active=docs/plans/PLAN-042-checkout/plan.md
+tasks_dir=docs/plans/PLAN-042-checkout/tasks/
+context=docs/plans/PLAN-042-checkout/context.md
+stack_ref=docs/stack.md@a1b2c3d
+status=em-andamento
+
+last_done=T-042-002 fetching-supabase
+current=T-042-003 form-pagamento
+next=T-042-004 resumo-pedido
+
+blockers=
+notes=fetch usa server component em app/checkout/page.tsx
+```
+
+### Playbook completo
+
+[`.gos/playbooks/plan-creation-playbook.md`](./.gos/playbooks/plan-creation-playbook.md) — documenta o fluxo end-to-end com troubleshooting.
 
 ## Documentacao
 
