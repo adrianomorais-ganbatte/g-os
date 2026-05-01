@@ -479,17 +479,88 @@ function cmdUpdate(root, args) {
   const manifest = getManifest(root);
   const frameworkPaths = manifest.frameworkManaged || [];
   const allowUnrelated = args.includes('--allow-unrelated');
+  const clobberUntracked = args.includes('--clobber-untracked');
+
+  // Paths que podemos clobberar com segurança (sempre regenerados por sync:ides)
+  const FRAMEWORK_GENERATED_PREFIXES = [
+    '.claude/', '.qwen/', '.gemini/', '.cursor/', '.agents/',
+    '.kilocode/', '.antigravity/', '.opencode/', '.codex/',
+  ];
+  const isGenerated = (p) => FRAMEWORK_GENERATED_PREFIXES.some(prefix => p.startsWith(prefix));
 
   const mergeArgs = ['merge', `${UPSTREAM_REMOTE}/${branch}`, '--no-edit'];
   if (allowUnrelated) mergeArgs.push('--allow-unrelated-histories');
 
-  // Captura stderr para exibir erros reais (não "motivo desconhecido")
+  // Função tentando o merge, capturando stderr — chamada mais de uma vez se houver retry
+  function tryMerge() {
+    try {
+      execFileSync('git', mergeArgs, { cwd: root, stdio: 'pipe', encoding: 'utf8' });
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, err: ((e.stderr || '') + (e.stdout || '')).toString() };
+    }
+  }
+
   let mergeErr = '';
-  try {
-    execFileSync('git', mergeArgs, { cwd: root, stdio: 'pipe', encoding: 'utf8' });
+  let attempt = tryMerge();
+  if (attempt.ok) {
     ok('Merge concluido sem conflitos.');
-  } catch (e) {
-    mergeErr = ((e.stderr || '') + (e.stdout || '')).toString();
+  } else {
+    mergeErr = attempt.err;
+
+    // Auto-resolução: untracked files que upstream quer escrever, mas só se
+    // todos forem paths gerados pelo framework (sync:ides regenera).
+    const untrackedMatch = mergeErr.match(/untracked working tree files would be overwritten by merge:\s*([\s\S]+?)(?:Please move or remove|$)/i);
+    if (untrackedMatch) {
+      const conflictingPaths = untrackedMatch[1]
+        .split(/\r?\n/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      const generated = conflictingPaths.filter(isGenerated);
+      const userOwned = conflictingPaths.filter(p => !isGenerated(p));
+
+      if (clobberUntracked && userOwned.length === 0) {
+        const ts = new Date().toISOString().replace(/[:.]/g, '-');
+        log(`${generated.length} arquivo(s) untracked em paths regenerados — movendo para .bak.${ts}/`);
+        for (const file of generated) {
+          const src = path.join(root, file);
+          const dst = path.join(root, `${file}.bak.${ts}`);
+          if (pathExists(src)) {
+            ensureDir(path.dirname(dst));
+            fs.renameSync(src, dst);
+          }
+        }
+        ok(`Movidos ${generated.length} arquivo(s). Retentando merge...`);
+        attempt = tryMerge();
+        if (attempt.ok) {
+          ok('Merge concluido apos clobber.');
+          mergeErr = '';
+        } else {
+          mergeErr = attempt.err;
+        }
+      } else if (userOwned.length === 0 && !clobberUntracked) {
+        fail(`Merge abortou: ${conflictingPaths.length} arquivo(s) untracked seriam sobrescritos.`);
+        info('Todos os arquivos afetados estão em paths gerados pelo framework (regenerados por sync:ides):');
+        for (const p of generated.slice(0, 10)) info(`  - ${p}`);
+        if (generated.length > 10) info(`  ... mais ${generated.length - 10}`);
+        info('');
+        info('Para auto-mover esses arquivos para .bak.<timestamp> antes do merge:');
+        info(`  npm run gos:update -- --clobber-untracked${allowUnrelated ? ' --allow-unrelated' : ''}`);
+        if (didStash) info('Stash preservado. Rode: git stash pop quando terminar.');
+        process.exit(1);
+      } else {
+        // Misto — tem arquivos do usuário também → não clobberamos nada
+        fail(`Merge abortou: arquivos untracked seriam sobrescritos.`);
+        info(`${userOwned.length} arquivo(s) NÃO gerados pelo framework (revisar antes):`);
+        for (const p of userOwned.slice(0, 10)) info(`  - ${p}`);
+        info('Mova ou versione esses arquivos manualmente; depois retente.');
+        if (didStash) info('Stash preservado.');
+        process.exit(1);
+      }
+    }
+  }
+
+  if (!attempt.ok) {
 
     // Detecta histórias não relacionadas (comum em workspaces criados via `gos install`)
     if (/unrelated histories/i.test(mergeErr) && !allowUnrelated) {
@@ -920,11 +991,13 @@ Comandos:
   gos help      Exibir esta ajuda
 
 Flags:
-  --force             Sobrescrever arquivos existentes (install/init)
-  --no-stash          Nao fazer stash automatico (update)
-  --allow-unrelated   Permitir merge de histórias não relacionadas (update)
-  --pop-latest        Aplicar stash mais recente (rescue)
-  --drop-all          Remover todos os stashes do gos-update (rescue)
+  --force               Sobrescrever arquivos existentes (install/init)
+  --no-stash            Nao fazer stash automatico (update)
+  --allow-unrelated     Permitir merge de histórias não relacionadas (update)
+  --clobber-untracked   Mover untracked files (em paths regenerados) para
+                        .bak.<timestamp> antes do merge (update)
+  --pop-latest          Aplicar stash mais recente (rescue)
+  --drop-all            Remover todos os stashes do gos-update (rescue)
 
 Env:
   GOS_UPSTREAM_BRANCH   Override da branch a ser pulled (default lê de

@@ -144,6 +144,22 @@ npm run gos:update -- --allow-unrelated
 
 Isso une as duas histórias num commit de merge único. Faça uma vez; depois disso updates normais funcionam.
 
+#### Caso especial: untracked files que conflitam com o merge
+
+Se você tem arquivos não-versionados em paths que o framework gera (`.claude/`, `.qwen/`, `.gemini/`, `.cursor/`, `.agents/`, etc), o git recusa o merge para evitar perda. O CLI detecta e oferece:
+
+```bash
+npm run gos:update -- --clobber-untracked
+```
+
+Isso renomeia os arquivos conflitantes para `.bak.<timestamp>` antes do merge. Como esses paths são **sempre regenerados** por `npm run sync:ides`, o backup é só por garantia — você pode deletar depois.
+
+Combinar com `--allow-unrelated` quando ambos os casos ocorrerem (típico de workspaces antigos):
+
+```bash
+npm run gos:update -- --allow-unrelated --clobber-untracked
+```
+
 Alternativa segura (não toca seu git, apenas atualiza `.gos/`):
 
 ```bash
