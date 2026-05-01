@@ -130,6 +130,62 @@ O `ganbatte-os` utiliza uma estrutura **encapsulada** para manter seu projeto li
 | **git-ssh-setup** | `/gos:skills:git-ssh-setup` | Configura identidade SSH para o workspace |
 | **humanizer** | `/gos:skills:humanizer` | Remove padroes de IA do texto (two-pass audit + soul injection) |
 | **weekly-update** | `/gos:skills:weekly-update` | Resumo semanal de tasks ClickUp → humaniza → posta no Slack (requer aprovacao) |
+| **stack-profiler** | `/gos:skills:stack-profiler` | Mantem `docs/stack.md` como stack-of-record canonica do projeto |
+| **plan-blueprint** | `/gos:skills:plan-blueprint` | Cria plano por tela (1 tela = 1 plano) seguindo a stack |
+| **progress-tracker** | `/gos:skills:progress-tracker` | Memoria L1 (`progress.txt`) + state machine de status |
+
+## Plan Pipeline (stack-aware)
+
+Pipeline padronizado para criacao de planos por tela. Toda tela vira um plano + tasks + contexto, com status auditavel e contrato de stack.
+
+### Fluxo
+
+```
+*stack refresh   →   docs/stack.md (uma vez por workspace, ou quando stack mudar)
+*plan <tela>     →   docs/plans/PLAN-NNN-<slug>/{plan.md, tasks/, context.md} + progress.txt
+*progress ...    →   transicoes pendente → em-andamento → validacao → concluido
+```
+
+| Comando | Skill | Funcao |
+|---------|-------|--------|
+| `*stack [refresh\|show\|drift]` | `stack-profiler` | Mantem `docs/stack.md` (canonico) e `.gos-local/stack.lock.json` |
+| `*plan <tela\|figma-url>` | `plan-blueprint` | Cria plano + dispara `plan-to-tasks` + atualiza `progress.txt` |
+| `*progress [show\|set\|status]` | `progress-tracker` | Memoria L1 e state machine |
+
+### Regras invioiaveis
+
+- **Stack como contrato** — toda decisao tecnica respeita `docs/stack.md`. Mudanca de stack exige ADR e flag `--allow-arch-change`.
+- **Paths via config** — nada hardcoded. Tudo resolvido via `.gos-local/plan-paths.json` (incluindo `knowledge_sources` como Postman, regras-de-negocio, ADRs).
+- **State machine dura** — `concluido` somente apos validacao humana.
+- **`progress.txt` e L1** — denso, otimizado para LLM, atualizado em todo passo.
+
+### Configuracao por workspace
+
+`.gos-local/plan-paths.json` define onde cada projeto guarda seus artefatos. Cada projeto/dev pode organizar diferente:
+
+```json
+{
+  "schema": "gos.plan-paths.v1",
+  "dirs": {
+    "planos": "docs/plans/",
+    "tasks": "docs/plans/{plan}/tasks/",
+    "contexto": "docs/plans/{plan}/context.md",
+    "progress": "progress.txt",
+    "stack": "docs/stack.md",
+    "postman": "docs/postman/",
+    "regras_negocio": "docs/regras-de-negocio/"
+  },
+  "knowledge_sources": [
+    { "kind": "postman",        "path": "docs/postman/",            "required": false },
+    { "kind": "business-rules", "path": "docs/regras-de-negocio/",  "required": false },
+    { "kind": "design-system",  "path": ".referencia-storybook/docs/DESIGN_SYSTEM_REFERENCE.md", "required": true }
+  ]
+}
+```
+
+Helpers: `scripts/tools/plan-paths.js`, `scripts/tools/plan-status.js`, `scripts/tools/stack-scan.js`.
+
+Playbook completo: [`.gos/playbooks/plan-creation-playbook.md`](./.gos/playbooks/plan-creation-playbook.md).
 
 ## Documentacao
 
