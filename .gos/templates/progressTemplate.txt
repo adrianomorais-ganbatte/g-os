@@ -1,0 +1,15 @@
+# progress.l1
+ts=<iso>
+project=<nome>
+plan_active=<path/plan.md>
+tasks_dir=<path/tasks/>
+context=<path/context.md>
+stack_ref=docs/stack.md@<sha>
+status=pendente
+
+last_done=
+current=
+next=
+
+blockers=
+notes=
