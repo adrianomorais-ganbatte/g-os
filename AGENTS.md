@@ -37,21 +37,6 @@ Este repo existe para acelerar design-to-code e entrega de sprint.
 | **plan-to-tasks** | `/gos:skills:plan-to-tasks` | Converte plano em tasks acionaveis |
 | **agent-teams** | `/gos:skills:agent-teams` | Coordena multiplos agentes em time |
 | **git-ssh-setup** | `/gos:skills:git-ssh-setup` | Configura identidade SSH para o workspace |
-| **stack-profiler** | `/gos:skills:stack-profiler` | Mantem `docs/stack.md` (stack-of-record canonica) |
-| **plan-blueprint** | `/gos:skills:plan-blueprint` | Cria plano por tela (1 tela = 1 plano) |
-| **progress-tracker** | `/gos:skills:progress-tracker` | Memoria L1 (`progress.txt`) + state machine |
-
-## Plan Pipeline
-
-Pipeline padronizado para criacao de planos por tela. Stack-of-record (`docs/stack.md`) e contrato — alteracoes exigem ADR.
-
-| Comando | Skill | Funcao |
-|---------|-------|--------|
-| `*stack [refresh\|show\|drift]` | `stack-profiler` | Mantem `docs/stack.md` |
-| `*plan <tela>` | `plan-blueprint` | Cria plano + tasks + context + atualiza `progress.txt` |
-| `*progress [show\|set\|status]` | `progress-tracker` | State machine `pendente -> em-andamento -> validacao -> concluido` |
-
-Paths do projeto-cliente sao resolvidos via `.gos-local/plan-paths.json` (incluindo `knowledge_sources` como Postman, regras-de-negocio, ADRs). Playbook: `.gos/playbooks/plan-creation-playbook.md`.
 
 ## Plan Mode Protocol
 

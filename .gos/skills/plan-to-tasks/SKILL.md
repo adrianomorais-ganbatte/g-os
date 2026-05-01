@@ -23,9 +23,9 @@ $ARGUMENTS
 
 ### Phase 1 — Read & understand the input
 1. If `$ARGUMENTS` is a file path, read that file. If it's a description, work from the description.
-2. Resolver paths via `.gos-local/plan-paths.json` (helper: `scripts/tools/plan-paths.js`). Se ausente, criar com defaults.
-3. Read `templates/taskTemplate.md` (canonical do framework) para o formato exato — superseda qualquer template legado em `.G-OS/templates/`.
-4. Se o input for um plano gerado por `plan-blueprint`, herdar `plan_id` do frontmatter para encadear `T-NNN-NN` corretamente.
+2. Read `./.G-OS/agents/tasks-writer.system.md` to internalize the DoD for tasks.
+3. Read `./.G-OS/templates/taskTemplate.md` to get the exact format.
+4. Read `./.G-OS/tasks/README.md` (if it exists) to understand the current task naming convention.
 
 ### Phase 2 — Decompose into tasks
 Analyze the plan and extract:
@@ -41,15 +41,15 @@ Rules:
 
 ### Phase 3 — Generate task files
 
-For each task, create a file following o caminho resolvido em `plan-paths.json`:
+For each task, create a file following the project docs convention:
 
-**Primary location:** `<dirs.tasks>` com `{plan}` substituído pelo `plan_id` do plano (ex.: `docs/plans/PLAN-042-checkout/tasks/T-042-01-<slug>.md`).
+**Primary location (per-project):** `docs/tasks/NN-name/TASK-NN-desc.md`
+Where `NN` matches the plan prefix and tasks use zero-padded sequence (01, 02, ...).
 
-**Fallback** (apenas se rodando sem `plan-paths.json` ou para tasks internas do framework): `./.gos/data/tasks/T-<YYYYMM>-<seq>.md`.
+**Fallback (framework tasks):** `./.G-OS/tasks/TASK-<YYYYMM>-<seq>.md`
+Use only if `docs/tasks/` does not exist or for framework-internal tasks.
 
-Naming: usar `naming.task_prefix` e `naming.seq_padding` do `plan-paths.json` (defaults: `T`, padding 3 → `T-042-001`).
-
-Use this template (from `templates/taskTemplate.md`):
+Use this template (from `./.G-OS/templates/taskTemplate.md`):
 
 ```markdown
 ---

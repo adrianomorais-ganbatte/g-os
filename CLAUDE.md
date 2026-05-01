@@ -48,20 +48,4 @@ Todo texto gerado deve passar por correcao ortografica e remocao de padroes de I
 gos-master | architect | dev | devops | po | qa | sm | squad-creator | ux-design-expert
 
 ### Skills (invoke via /gos:skills:{slug})
-design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup | stack-profiler | plan-blueprint | progress-tracker
-
-## Plan Pipeline (stack-aware)
-
-Pipeline padronizado para criacao de planos por tela. Toda tela = 1 plano. Stack-of-record (`docs/stack.md`) e contrato — alteracoes de stack exigem ADR.
-
-| Comando | Skill | Funcao |
-|---------|-------|--------|
-| `*stack [refresh|show|drift]` | `stack-profiler` | Mantem `docs/stack.md` (canonico do projeto) |
-| `*plan <tela>` | `plan-blueprint` | Cria plano + tasks + context + atualiza `progress.txt` |
-| `*progress [show|set|status]` | `progress-tracker` | Memoria L1 + state machine de status |
-
-State machine: `pendente -> em-andamento -> validacao -> concluido` (concluido somente apos validacao humana).
-
-Paths do projeto-cliente sao resolvidos via `.gos-local/plan-paths.json` — nada hardcoded. Nesse arquivo declara-se onde estao `docs/plans/`, `docs/postman/`, `docs/regras-de-negocio/`, design system, etc. Cada projeto/dev pode organizar diferente.
-
-Playbook completo: `.gos/playbooks/plan-creation-playbook.md`
+design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup

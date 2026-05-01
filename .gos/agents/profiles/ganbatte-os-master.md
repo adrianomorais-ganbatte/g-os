@@ -81,8 +81,6 @@ persona:
     - Follow Conventional Commits for all git operations
     - Treat Figma Make output as triage material, not production code
     - "Comprehension Gate: Before delegating to any agent, skill, or workflow, first understand what needs to be done — read relevant code, docs, and state; document findings; only then route"
-    - "Stack como contrato: toda decisão técnica respeita docs/stack.md; alterações de stack exigem ADR explícita e flag --allow-arch-change"
-    - "Paths via config: nada hardcoded — todos os caminhos do projeto-cliente vêm de .gos-local/plan-paths.json"
 
 # ─── COMPREHENSION GATE ──────────────────────────────────────
 # Applies before any delegation to agent, skill, or workflow.
@@ -92,8 +90,6 @@ comprehension_gate:
   trigger: "Before any delegation to agent, skill, or workflow"
   protocol:
     step_0_scan: "Read relevant files, docs, recent commits related to the request"
-    step_0_5_stack: "If routing to planning/implementation: load docs/stack.md (path from .gos-local/plan-paths.json). If absent, abort and dispatch stack-profiler refresh."
-    step_0_6_progress: "If progress.txt exists at the configured path: read it for active plan/task context (memória L1)."
     step_1_document: "State what exists (current state, patterns, constraints) in factual terms"
     step_2_assess: "Determine which agent/skill/workflow is appropriate based on evidence, not assumption"
     step_3_delegate: "Route with context summary so the target has full picture"
@@ -190,22 +186,6 @@ routing_matrix:
     triggers: [architecture, system design, technical design, ADR]
     target: agent:architect
 
-  stack_profile:
-    triggers: [stack, stack profile, refresh stack, stack drift, stack-of-record]
-    target: skill:stack-profiler
-    notes: Run on first setup or whenever stack changes (libs, framework, ORM, auth, hosting)
-
-  plan_creation:
-    triggers: [plan, plano, screen plan, tela, criar plano, blueprint, plano de tela]
-    target: skill:plan-blueprint
-    pre_action: Validate docs/stack.md exists; if not, dispatch stack-profiler first
-    notes: 1 tela = 1 plano. Subdivide automaticamente quando há múltiplas seções autônomas
-
-  progress_tracking:
-    triggers: [progress, status, progress.txt, memoria curta, l1]
-    target: skill:progress-tracker
-    notes: State machine pendente → em-andamento → validacao → concluido
-
   product_decisions:
     triggers: [PRD, requirements, product decision, scope, feature priority]
     target: agent:po
@@ -282,17 +262,6 @@ commands:
     args: "[plan|status|sync]"
     description: Sprint operations via ClickUp integration
 
-  # Plan pipeline (stack-aware)
-  - name: stack
-    args: "[refresh|show|drift]"
-    description: Mantém docs/stack.md (stack-of-record do projeto)
-  - name: plan
-    args: "<tela|figma-url|descricao> [--from-figma-mcp] [--allow-arch-change]"
-    description: Cria plano por tela (plan + tasks + context + progress.txt)
-  - name: progress
-    args: "[init|show|set <plan>|status <task> <novo-status>|compact|read]"
-    description: Gerencia progress.txt (memória L1) e state machine de status
-
   # Quality
   - name: check
     args: "[tsc|tests|all]"
@@ -328,7 +297,7 @@ available_squads:
   - name: git-operations
     purpose: SSH setup, quality gate, safe commit+push
 
-# ─── AVAILABLE SKILLS (18) ────────────────────────────────────
+# ─── AVAILABLE SKILLS (15) ────────────────────────────────────
 available_skills:
   - design-to-code
   - figma-implement-design
@@ -345,9 +314,6 @@ available_skills:
   - plan-to-tasks
   - agent-teams
   - git-ssh-setup
-  - stack-profiler
-  - plan-blueprint
-  - progress-tracker
 
 # ─── PLAYBOOKS ────────────────────────────────────────────────
 available_playbooks:
@@ -355,7 +321,6 @@ available_playbooks:
   - sprint-planner-playbook.md
   - squad-pipeline-runner.md
   - ssh-multi-account-setup.md
-  - plan-creation-playbook.md
 
 # ─── SCRIPTS & TOOLS ─────────────────────────────────────────
 scripts:
@@ -371,15 +336,6 @@ scripts:
     - name: clickup.js
       path: scripts/tools/clickup.js
       purpose: ClickUp API v2 CLI for sprint/task management
-    - name: plan-paths.js
-      path: scripts/tools/plan-paths.js
-      purpose: Resolve paths do projeto-cliente (.gos-local/plan-paths.json)
-    - name: plan-status.js
-      path: scripts/tools/plan-status.js
-      purpose: State machine de status (pendente → em-andamento → validacao → concluido)
-    - name: stack-scan.js
-      path: scripts/tools/stack-scan.js
-      purpose: Inferir stack do projeto-cliente (auxilia stack-profiler)
 
 # ─── SECURITY ─────────────────────────────────────────────────
 security:
@@ -445,12 +401,6 @@ security:
 - `*sprint plan` - Start sprint planning
 - `*sprint status` - Check sprint progress
 - `*sprint sync` - Sync with ClickUp
-
-**Plan pipeline (stack-aware):**
-
-- `*stack [refresh|show|drift]` - Mantém docs/stack.md
-- `*plan <tela|figma-url|descrição>` - Cria plano por tela
-- `*progress [show|set|status|compact]` - Gerencia progress.txt (L1)
 
 **Framework:**
 
