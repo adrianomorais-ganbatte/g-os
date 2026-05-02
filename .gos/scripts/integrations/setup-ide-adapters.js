@@ -27,15 +27,10 @@ function agentSlug(id) {
 }
 
 function cleanupStaleAdapters() {
-  // Codex: skills sao expostas como slash commands em .codex/commands/gos/skills/.
-  // O diretorio .codex/skills/ duplicava cada skill no picker da IDE — eliminar inteiramente.
-  const codexSkillsDir = path.join(root, '.codex', 'skills');
-  if (fs.existsSync(codexSkillsDir)) {
-    fs.rmSync(codexSkillsDir, { recursive: true, force: true });
-  }
-
-  const ideRootsWithLegacyMd = ['.qwen', '.gemini', '.opencode', '.antigravity'];
-  for (const ide of ideRootsWithLegacyMd) {
+  // Remove arquivos .md soltos no root de skills/ (formato legado) em todas as IDEs.
+  // Codex/Qwen/Gemini/Opencode/Antigravity esperam <slug>/SKILL.md (diretorio), nao .md solto.
+  const allIdes = ['.codex', '.qwen', '.gemini', '.opencode', '.antigravity'];
+  for (const ide of allIdes) {
     const skillsDir = path.join(root, ide, 'skills');
     if (fs.existsSync(skillsDir)) {
       for (const entry of fs.readdirSync(skillsDir)) {
@@ -45,10 +40,6 @@ function cleanupStaleAdapters() {
         }
       }
     }
-  }
-
-  const allIdes = ['.codex', '.qwen', '.gemini', '.opencode', '.antigravity'];
-  for (const ide of allIdes) {
     const agentsDir = path.join(root, ide, 'agents');
     if (fs.existsSync(agentsDir)) {
       for (const entry of fs.readdirSync(agentsDir)) {
@@ -155,9 +146,9 @@ function main() {
     const codexAgentTarget = relativeTarget(codexAgent, agentProfilePath);
     writeFile(codexAgent, `---\nname: "${aSlug}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${codexAgentTarget}\`\nLeia e siga o perfil em \`${codexAgentTarget}\`.`);
 
-    // Antigravity / Gemini / Opencode usam um namespace plano (gos-<slug>) pra skills.
-    // Pra agents aparecerem no mesmo picker, emitir como wrapper SKILL.md tambem.
-    for (const ide of ['.antigravity', '.gemini', '.opencode']) {
+    // Codex / Antigravity / Gemini / Opencode usam namespace plano gos-<slug> em skills/.
+    // Agents aparecem no mesmo picker se emitidos como wrapper SKILL.md em skills/.
+    for (const ide of ['.codex', '.antigravity', '.gemini', '.opencode']) {
       const ideAgentSkill = path.join(root, ide, 'skills', aSlug, 'SKILL.md');
       writeFile(ideAgentSkill, skillWrapper(agent.id, relativeTarget(ideAgentSkill, agentProfilePath), agentDesc));
     }
@@ -167,7 +158,7 @@ function main() {
     const skillTargetPath = skill.skillFile || skill.path;
     const canonicalPath = path.join(root, '.gos', skillTargetPath);
     const claudeSkill = path.join(root, '.claude', 'commands', 'gos', 'skills', `${skill.slug}.md`);
-    const codexSkillCmd = path.join(root, '.codex', 'commands', 'gos', 'skills', `${skill.slug}.md`);
+    const codexSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const antigravitySkill = path.join(root, '.antigravity', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const geminiSkill = path.join(root, '.gemini', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const opencodeSkill = path.join(root, '.opencode', 'skills', `gos-${skill.slug}`, 'SKILL.md');
@@ -179,15 +170,13 @@ function main() {
     const skillDesc = skillFm.description || skill.description || skill.name || skill.slug;
     const skillArgHint = skillFm['argument-hint'] || '';
 
-    // Codex: somente slash command em .codex/commands/gos/skills/. Nao gerar .codex/skills/<dir>/SKILL.md
-    // pra evitar duplicacao no picker (ambos eram indexados como entradas "Equipe").
+    writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, canonicalPath), skillDesc));
     writeFile(antigravitySkill, skillWrapper(skill.slug, relativeTarget(antigravitySkill, canonicalPath), skillDesc));
     writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, canonicalPath), skillDesc));
     writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, canonicalPath), skillDesc));
     writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, canonicalPath), skillDesc));
 
     writeFile(qwenCmd, qwenCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(qwenCmd, canonicalPath)));
-    writeFile(codexSkillCmd, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(codexSkillCmd, canonicalPath), skillArgHint, 'Codex'));
     writeFile(claudeSkill, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(claudeSkill, canonicalPath), skillArgHint, 'Claude'));
   }
 
@@ -305,8 +294,8 @@ function main() {
     if (!fs.existsSync(expectedCmd)) codexFailures.push(expectedCmd);
   }
   for (const skill of skills) {
-    const expectedCmd = path.join(root, '.codex', 'commands', 'gos', 'skills', `${skill.slug}.md`);
-    if (!fs.existsSync(expectedCmd)) codexFailures.push(expectedCmd);
+    const expectedSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}`, 'SKILL.md');
+    if (!fs.existsSync(expectedSkill)) codexFailures.push(expectedSkill);
   }
   if (!fs.existsSync(path.join(root, '.codex', 'AGENTS.md'))) codexFailures.push('.codex/AGENTS.md');
   if (!fs.existsSync(path.join(root, '.codex', 'config.toml'))) codexFailures.push('.codex/config.toml');
