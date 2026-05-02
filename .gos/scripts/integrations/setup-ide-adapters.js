@@ -27,8 +27,15 @@ function agentSlug(id) {
 }
 
 function cleanupStaleAdapters() {
-  const ideRoots = ['.codex', '.qwen', '.gemini', '.opencode', '.antigravity'];
-  for (const ide of ideRoots) {
+  // Codex: skills sao expostas como slash commands em .codex/commands/gos/skills/.
+  // O diretorio .codex/skills/ duplicava cada skill no picker da IDE — eliminar inteiramente.
+  const codexSkillsDir = path.join(root, '.codex', 'skills');
+  if (fs.existsSync(codexSkillsDir)) {
+    fs.rmSync(codexSkillsDir, { recursive: true, force: true });
+  }
+
+  const ideRootsWithLegacyMd = ['.qwen', '.gemini', '.opencode', '.antigravity'];
+  for (const ide of ideRootsWithLegacyMd) {
     const skillsDir = path.join(root, ide, 'skills');
     if (fs.existsSync(skillsDir)) {
       for (const entry of fs.readdirSync(skillsDir)) {
@@ -38,6 +45,10 @@ function cleanupStaleAdapters() {
         }
       }
     }
+  }
+
+  const allIdes = ['.codex', '.qwen', '.gemini', '.opencode', '.antigravity'];
+  for (const ide of allIdes) {
     const agentsDir = path.join(root, ide, 'agents');
     if (fs.existsSync(agentsDir)) {
       for (const entry of fs.readdirSync(agentsDir)) {
@@ -149,7 +160,6 @@ function main() {
     const skillTargetPath = skill.skillFile || skill.path;
     const canonicalPath = path.join(root, '.gos', skillTargetPath);
     const claudeSkill = path.join(root, '.claude', 'commands', 'gos', 'skills', `${skill.slug}.md`);
-    const codexSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const codexSkillCmd = path.join(root, '.codex', 'commands', 'gos', 'skills', `${skill.slug}.md`);
     const antigravitySkill = path.join(root, '.antigravity', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const geminiSkill = path.join(root, '.gemini', 'skills', `gos-${skill.slug}`, 'SKILL.md');
@@ -162,8 +172,8 @@ function main() {
     const skillDesc = skillFm.description || skill.description || skill.name || skill.slug;
     const skillArgHint = skillFm['argument-hint'] || '';
 
-    writeFile(claudeSkill, skillWrapper(skill.slug, relativeTarget(claudeSkill, canonicalPath), skillDesc));
-    writeFile(codexSkill, skillWrapper(skill.slug, relativeTarget(codexSkill, canonicalPath), skillDesc));
+    // Codex: somente slash command em .codex/commands/gos/skills/. Nao gerar .codex/skills/<dir>/SKILL.md
+    // pra evitar duplicacao no picker (ambos eram indexados como entradas "Equipe").
     writeFile(antigravitySkill, skillWrapper(skill.slug, relativeTarget(antigravitySkill, canonicalPath), skillDesc));
     writeFile(geminiSkill, skillWrapper(skill.slug, relativeTarget(geminiSkill, canonicalPath), skillDesc));
     writeFile(opencodeSkill, skillWrapper(skill.slug, relativeTarget(opencodeSkill, canonicalPath), skillDesc));
@@ -248,9 +258,9 @@ function main() {
     '',
     '## Como o Codex consome',
     '',
-    '- Slash commands em `.codex/commands/gos/{agents,skills}/<id>.md` -> Codex carrega o canonico apontado em CANONICAL-SOURCE e executa.',
-    '- Subagents em `.codex/agents/gos-<id>.md` -> referencia o profile em `.gos/agents/profiles/`.',
-    '- Skills em `.codex/skills/gos-<slug>/SKILL.md` -> wrapper fino que aponta para `.gos/skills/<slug>/SKILL.md`.',
+    '- Slash commands em `.codex/commands/gos/{agents,skills}/<id>.md` -> unica superficie de skills/agents. Codex carrega o canonico apontado em CANONICAL-SOURCE e executa.',
+    '- Subagents em `.codex/agents/gos-<id>.md` -> declaracao de subagent (acessivel via Task tool e delegacao interna).',
+    '- Para invocar o orquestrador master, digite `/gos:agents:gos-master` no picker.',
     ''
   ].join('\n');
   writeFile(path.join(root, '.codex', 'AGENTS.md'), codexAgentsMd);
@@ -288,9 +298,7 @@ function main() {
     if (!fs.existsSync(expectedCmd)) codexFailures.push(expectedCmd);
   }
   for (const skill of skills) {
-    const expectedSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const expectedCmd = path.join(root, '.codex', 'commands', 'gos', 'skills', `${skill.slug}.md`);
-    if (!fs.existsSync(expectedSkill)) codexFailures.push(expectedSkill);
     if (!fs.existsSync(expectedCmd)) codexFailures.push(expectedCmd);
   }
   if (!fs.existsSync(path.join(root, '.codex', 'AGENTS.md'))) codexFailures.push('.codex/AGENTS.md');
