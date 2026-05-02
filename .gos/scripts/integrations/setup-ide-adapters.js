@@ -56,10 +56,11 @@ function agentWrapper(agentId, target) {
 }
 
 function skillWrapper(slug, target, description) {
-  const body = `# gos-${slug}\n\nFonte canonica: \`${target}\`\n\nLeia e siga a skill em \`${target}\`.\nEste arquivo existe apenas como adapter fino para a IDE.`;
+  const fullSlug = slug.startsWith('gos-') ? slug : `gos-${slug}`;
+  const body = `# ${fullSlug}\n\nFonte canonica: \`${target}\`\n\nLeia e siga a skill em \`${target}\`.\nEste arquivo existe apenas como adapter fino para a IDE.`;
   if (!description) return body;
   const desc = String(description).replace(/"/g, '\\"').replace(/\n/g, ' ').slice(0, 200);
-  return `---\nname: "gos-${slug}"\ndescription: "${desc}"\n---\n\n${body}`;
+  return `---\nname: "${fullSlug}"\ndescription: "${desc}"\n---\n\n${body}`;
 }
 
 function qwenCommandWrapper(name, description, target) {
@@ -266,14 +267,7 @@ function main() {
     '# Edite os arquivos canonicos em .gos/ ao inves deste.',
     '',
     'project = "g-os"',
-    '',
-    '[instructions]',
-    'files = [',
-    '  "AGENTS.md",',
-    '  "../AGENTS.md",',
-    '  "../CLAUDE.md",',
-    '  "../.gos/docs/toolchain-map.md",',
-    ']',
+    'instructions = "AGENTS.md"',
     '',
     '[execution]',
     'primary_command = "*execute-plan"',
