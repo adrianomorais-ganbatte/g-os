@@ -39,6 +39,7 @@ Skills curadas:
 - plan-blueprint
 - progress-tracker
 - execute-plan
+- validate-plan
 
 ## Como invocar Skills
 
@@ -69,3 +70,4 @@ Skills tambem disponiveis como adapters em `.antigravity/skills/`.
 | `gos-plan-blueprint` | `.gos/skills/plan-blueprint/SKILL.md` |
 | `gos-progress-tracker` | `.gos/skills/progress-tracker/SKILL.md` |
 | `gos-execute-plan` | `.gos/skills/execute-plan/SKILL.md` |
+| `gos-validate-plan` | `.gos/skills/validate-plan/SKILL.md` |

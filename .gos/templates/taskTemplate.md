@@ -9,6 +9,7 @@ priority: <P0|P1|P2>
 estimate: "<2h|4h|1d>"
 status: pendente
 valida_em: <referência ao critério no checklist do plano>
+depends_on_backend: []   # opcional — gap-keys da tabela ## Backend pendings do plano pai
 assignees: []
 links: []
 ---

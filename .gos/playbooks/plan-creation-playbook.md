@@ -98,21 +98,30 @@ A skill `execute-plan` resolve `dirs.storybook`, indexa `.stories.tsx` disponív
 
 Para rodar uma task específica fora do loop: `*execute-plan PLAN-NNN-<slug> --task T-NNN-NN`.
 
-### 5. Validação
+### 4.5. Validação pós-execute
 
-Quando todas as tasks do plano estiverem `validacao` e o checklist do plano estiver completo:
-
-```
-*progress status PLAN-NNN-<slug> validacao
-```
-
-Validação humana + QA. Se aprovado:
+Após `*execute-plan` retornar (com tasks em `validacao` e/ou `bloqueada-backend`), rodar:
 
 ```
-*progress status PLAN-NNN-<slug> concluido
+*validate-plan PLAN-NNN-<slug>
+
+NOTAS = """<opcional — desvios conhecidos, contexto de QA>"""
 ```
 
-(Status `concluido` SOMENTE após validação. Antes disso, qualquer task/plano fica em `validacao`.)
+Skill `validate-plan` (Opus, revisor):
+- Para cada task em `validacao`: re-roda visual gate curto (anatomia + tokens), confronta `git diff --staged` vs Componentes mapeados, confere checklist da task. Tudo bate → auto-marca `concluido`. Falha → mantém `validacao` com nota.
+- Para o plano: se todas tasks `concluido` E backend pendings ClickUp `concluido` → marca `validated_at:` no plan.md + `*progress status PLAN-NNN-<slug> concluido`. Senão → mantém em `validacao`.
+- Tasks `bloqueada-backend` ficam intocadas — backend tem que fechar primeiro.
+
+### 5. Push manual e fechamento
+
+`validate-plan` NÃO dá push. Quando o plano fecha 100%:
+
+```
+git push
+```
+
+Push é ato consciente do humano. Tasks `bloqueada-backend` aguardam ClickUp fechar — quando isso acontece, rodar `*progress status T-NNN-NN em-andamento` (state machine valida ClickUp via MCP) e voltar pra etapa 4.
 
 ### 6. Commit & resumo
 
@@ -140,6 +149,7 @@ Validação humana + QA. Se aprovado:
 - `stack-profiler` — produz/mantém `stack.md`
 - `plan-blueprint` — cria plano por tela (Opus, planejamento)
 - `plan-to-tasks` — decompõe plano em tasks (chamada automaticamente)
-- `execute-plan` — executa plano com visual gate (Codex IDE, execução)
-- `progress-tracker` — gerencia `progress.txt`
+- `execute-plan` — executa plano com visual gate, non-blocking em backend gaps (Codex IDE, execução)
+- `validate-plan` — valida plano pós-execute, auto-marca concluido (Opus, revisor)
+- `progress-tracker` — gerencia `progress.txt` + state machine (incluindo `bloqueada-backend`)
 - `clickup` — sync opcional para tracking externo (não obrigatório)

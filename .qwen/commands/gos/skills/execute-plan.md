@@ -1,5 +1,5 @@
 ---
-description: "Executa um plano (PLAN-NNN-<slug>) task-a-task aplicando state machine + visual gate contra Storybook canonico antes de marcar validacao. Comando primario do ambiente Codex IDE."
+description: "Executa um plano (PLAN-NNN-<slug>) task-a-task aplicando state machine + visual gate contra Storybook canonico antes de marcar validacao. Non-blocking em backend gaps (abre tasks ClickUp + segue). Com"
 ---
 
 # gos-execute-plan (Qwen Command Adapter)

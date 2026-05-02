@@ -70,7 +70,33 @@ Override opcional no prompt: `ASSIGNEE = {{user-id}}` se quiser atribuir a outro
 /gos:agents:gos-master *execute-plan PLAN-NNN-{{TELA}}
 ```
 
-> Ambiente: **Codex IDE Extension** (executor). Visual gate roda por task.
+> Ambiente: **Codex IDE Extension** (executor). Visual gate roda por task. **Non-blocking em backend gaps**: tasks com `depends_on_backend:` apontando pra gap aberto no ClickUp ficam `bloqueada-backend` (não trava as outras); demais tasks frontend seguem.
+
+---
+
+## Validar implementação (turn pós-execute)
+
+Quando `*execute-plan` finalizar (tasks em `validacao` + commit preparado), rode:
+
+```
+/gos:agents:gos-master *validate-plan PLAN-NNN-{{TELA}}
+
+NOTAS = """<opcional — desvios conhecidos, contexto de QA>"""
+```
+
+> Ambiente: **Opus 4.7** (revisor). Compara checklist + diff staged + Storybook canônico, marca `concluido` automaticamente o que passa, mantém em `validacao` o que falha, lista backend pendings com ClickUp IDs. **Não dá push** — push é ato consciente humano (`git push`).
+
+Variante curta (alias livre, sem registro de skill — gera o mesmo turn):
+
+```
+plano implementado, revise e garanta que foi 100% aplicado e sem gaps
+
+{{plano}} = PLAN-NNN-{{TELA}}
+
+se tiver sido concluida, marque como concluida com anotações se fizer sentido adicionais da execução
+
+/gos:agents:gos-master
+```
 
 ---
 
@@ -141,5 +167,7 @@ Output: `tasks/T-NNN-NN.notes.md`. Divergência crítica → falha o gate, task 
 *progress show                                # estado atual
 *progress status T-NN-NN em-andamento         # iniciar task
 *progress status T-NN-NN validacao            # commit preparado, sem push
-*progress status T-NN-NN concluido            # apenas após QA humano + smoke E2E
+*progress status T-NN-NN bloqueada-backend    # set automatico pelo *execute-plan quando depends_on_backend aberto
+*progress status T-NN-NN concluido            # marcado automaticamente pelo *validate-plan; manual aceito tambem
+*progress status T-NN-NN pendente --rollback  # rollback humano
 ```
