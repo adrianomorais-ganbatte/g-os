@@ -22,6 +22,33 @@ function relativeTarget(fromFile, targetFile) {
   return path.relative(path.dirname(fromFile), targetFile).replace(/\\/g, '/');
 }
 
+function agentSlug(id) {
+  return id.startsWith('gos-') ? id : `gos-${id}`;
+}
+
+function cleanupStaleAdapters() {
+  const ideRoots = ['.codex', '.qwen', '.gemini', '.opencode', '.antigravity'];
+  for (const ide of ideRoots) {
+    const skillsDir = path.join(root, ide, 'skills');
+    if (fs.existsSync(skillsDir)) {
+      for (const entry of fs.readdirSync(skillsDir)) {
+        const full = path.join(skillsDir, entry);
+        if (fs.statSync(full).isFile() && entry.endsWith('.md')) {
+          fs.unlinkSync(full);
+        }
+      }
+    }
+    const agentsDir = path.join(root, ide, 'agents');
+    if (fs.existsSync(agentsDir)) {
+      for (const entry of fs.readdirSync(agentsDir)) {
+        if (/^gos-gos-/.test(entry)) {
+          fs.unlinkSync(path.join(agentsDir, entry));
+        }
+      }
+    }
+  }
+}
+
 function agentWrapper(agentId, target) {
   return `# ${agentId}\n\nFonte canonica: \`${target}\`\n\nLeia e siga o perfil em \`${target}\`.\nEste arquivo existe apenas como adapter fino para a IDE.`;
 }
@@ -38,10 +65,11 @@ function qwenCommandWrapper(name, description, target) {
   return `---\ndescription: "${desc}"\n---\n\n# ${name} (Qwen Command Adapter)\n\n> Adapter para Qwen Code. Fonte canonica: \`${target}\`.\n\nCANONICAL-SOURCE: ${target}\n\n## Adapter Contract\n\n1. Leia o arquivo canonico em **CANONICAL-SOURCE** por completo.\n2. Execute as instrucoes desse arquivo como fonte primaria.\n3. Argumentos do usuario: {{args}}`;
 }
 
-function claudeCommandWrapper(name, description, target, argumentHint) {
+function claudeCommandWrapper(name, description, target, argumentHint, ideLabel) {
   const desc = (description || name).replace(/"/g, '\\"').replace(/\n/g, ' ').slice(0, 200);
   const hint = argumentHint ? `\nargument-hint: "${argumentHint.replace(/"/g, '\\"')}"` : '\nargument-hint: "[argumentos opcionais]"';
-  return `---\ndescription: "${desc}"${hint}\n---\n\n# ${name} (Claude Adapter)\n\n> Adapter fino para Claude. Fonte canonica: \`${target}\`.\n\nCANONICAL-SOURCE: ${target}\n\n## Adapter Contract\n\n1. Leia o arquivo canonico indicado em **CANONICAL-SOURCE** por completo.\n2. Execute as instrucoes desse arquivo como fonte primaria.\n3. Argumentos do usuario: $ARGUMENTS`;
+  const label = ideLabel || 'Claude';
+  return `---\ndescription: "${desc}"${hint}\n---\n\n# ${name} (${label} Adapter)\n\n> Adapter fino para ${label}. Fonte canonica: \`${target}\`.\n\nCANONICAL-SOURCE: ${target}\n\n## Adapter Contract\n\n1. Leia o arquivo canonico indicado em **CANONICAL-SOURCE** por completo.\n2. Execute as instrucoes desse arquivo como fonte primaria.\n3. Argumentos do usuario: $ARGUMENTS`;
 }
 
 function extractAgentDescription(filePath) {
@@ -86,32 +114,35 @@ function main() {
   const agents = readJson(path.join(root, '.gos', 'agents', 'profiles', 'index.json')).profiles;
   const skills = readJson(path.join(root, '.gos', 'skills', 'registry.json')).skills;
 
+  cleanupStaleAdapters();
+
   for (const agent of agents) {
     const agentProfilePath = path.join(root, '.gos', 'agents', 'profiles', agent.path);
     const agentDesc = extractAgentDescription(agentProfilePath) || `${agent.id} agent`;
+    const aSlug = agentSlug(agent.id);
 
     // Claude commands (requires YAML frontmatter with description)
     const claudeFile = path.join(root, '.claude', 'commands', 'gos', 'agents', `${agent.id}.md`);
-    writeFile(claudeFile, claudeCommandWrapper(`gos-${agent.id}`, agentDesc, relativeTarget(claudeFile, agentProfilePath)));
+    writeFile(claudeFile, claudeCommandWrapper(aSlug, agentDesc, relativeTarget(claudeFile, agentProfilePath), '', 'Claude'));
 
     // Qwen commands (requires YAML frontmatter with description)
     const qwenCmd = path.join(root, '.qwen', 'commands', 'gos', 'agents', `${agent.id}.md`);
-    writeFile(qwenCmd, qwenCommandWrapper(`gos-${agent.id}`, agentDesc, relativeTarget(qwenCmd, agentProfilePath)));
+    writeFile(qwenCmd, qwenCommandWrapper(aSlug, agentDesc, relativeTarget(qwenCmd, agentProfilePath)));
 
     // Qwen sub-agents
-    const qwenAgent = path.join(root, '.qwen', 'agents', `gos-${agent.id}.md`);
+    const qwenAgent = path.join(root, '.qwen', 'agents', `${aSlug}.md`);
     const agentTarget = relativeTarget(qwenAgent, agentProfilePath);
     const safeDesc = agentDesc.replace(/"/g, '\\"').replace(/\n/g, ' ').slice(0, 200);
-    writeFile(qwenAgent, `---\nname: "gos-${agent.id}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${agentTarget}\`\nLeia e siga o perfil em \`${agentTarget}\`.`);
+    writeFile(qwenAgent, `---\nname: "${aSlug}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${agentTarget}\`\nLeia e siga o perfil em \`${agentTarget}\`.`);
 
     // Codex commands (slash commands no Codex IDE Extension)
     const codexCmd = path.join(root, '.codex', 'commands', 'gos', 'agents', `${agent.id}.md`);
-    writeFile(codexCmd, claudeCommandWrapper(`gos-${agent.id}`, agentDesc, relativeTarget(codexCmd, agentProfilePath)));
+    writeFile(codexCmd, claudeCommandWrapper(aSlug, agentDesc, relativeTarget(codexCmd, agentProfilePath), '', 'Codex'));
 
     // Codex sub-agents (Codex IDE espera .codex/agents/<id>.md)
-    const codexAgent = path.join(root, '.codex', 'agents', `gos-${agent.id}.md`);
+    const codexAgent = path.join(root, '.codex', 'agents', `${aSlug}.md`);
     const codexAgentTarget = relativeTarget(codexAgent, agentProfilePath);
-    writeFile(codexAgent, `---\nname: "gos-${agent.id}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${codexAgentTarget}\`\nLeia e siga o perfil em \`${codexAgentTarget}\`.`);
+    writeFile(codexAgent, `---\nname: "${aSlug}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${codexAgentTarget}\`\nLeia e siga o perfil em \`${codexAgentTarget}\`.`);
   }
 
   for (const skill of skills) {
@@ -139,8 +170,8 @@ function main() {
     writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, canonicalPath), skillDesc));
 
     writeFile(qwenCmd, qwenCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(qwenCmd, canonicalPath)));
-    writeFile(codexSkillCmd, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(codexSkillCmd, canonicalPath), skillArgHint));
-    writeFile(claudeSkill, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(claudeSkill, canonicalPath), skillArgHint));
+    writeFile(codexSkillCmd, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(codexSkillCmd, canonicalPath), skillArgHint, 'Codex'));
+    writeFile(claudeSkill, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(claudeSkill, canonicalPath), skillArgHint, 'Claude'));
   }
 
   const antigravityInstructions = [
@@ -251,7 +282,7 @@ function main() {
   // Evita regressoes silenciosas que ja quebraram a IDE no passado.
   const codexFailures = [];
   for (const agent of agents) {
-    const expectedAgent = path.join(root, '.codex', 'agents', `gos-${agent.id}.md`);
+    const expectedAgent = path.join(root, '.codex', 'agents', `${agentSlug(agent.id)}.md`);
     const expectedCmd = path.join(root, '.codex', 'commands', 'gos', 'agents', `${agent.id}.md`);
     if (!fs.existsSync(expectedAgent)) codexFailures.push(expectedAgent);
     if (!fs.existsSync(expectedCmd)) codexFailures.push(expectedCmd);
