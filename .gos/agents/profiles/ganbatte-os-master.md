@@ -94,6 +94,10 @@ comprehension_gate:
     step_0_scan: "Read relevant files, docs, recent commits related to the request"
     step_0_5_stack: "If routing to planning/implementation: load docs/stack.md (path from .gos-local/plan-paths.json). If absent, abort and dispatch stack-profiler refresh."
     step_0_55_storybook: "If routing to plan/execute: resolve dirs.storybook and index .stories.tsx files. Absent storybook = abort plan-blueprint until path provided."
+    step_0_56_project: "Resolve PROJETO from cwd. If ambiguous (monorepo root), check ~/.claude/.gos-state/last-project.json; if absent ask once and persist there for silent reuse."
+    step_0_57_branch: "Auto-resolve WORK_BRANCH: tela bate com dirs.storybook → feat/storybook; senão → dev. Não pedir ao usuário."
+    step_0_58_knowledge: "On *plan: index <PROJETO>/docs/regras-de-negocio/ and <PROJETO>/docs/postman/ (when present). Register inventory in progress.txt under '## Knowledge mapped — PLAN-NNN'. Ausência não bloqueia (apenas Storybook bloqueia)."
+    step_0_59_backend_gaps: "On *plan: detected backend gaps (endpoint não existe no Postman, RLS incompleto, migration ausente para o shape exigido) → criar task ClickUp via mcp__clickup__clickup_create_task, assignee Douglas Oliveira (112010775) salvo override ASSIGNEE no prompt. Título: '[Backend] PLAN-NNN: <gap>'. Registrar IDs em progress.txt e plan.md (## Backend pendings). Flag --skip-clickup desliga."
     step_0_6_progress: "If progress.txt exists at the configured path: read it for active plan/task context (memória L1)."
     step_1_document: "State what exists (current state, patterns, constraints) in factual terms"
     step_2_assess: "Determine which agent/skill/workflow is appropriate based on evidence, not assumption"
@@ -200,7 +204,13 @@ routing_matrix:
     triggers: [plan, plano, screen plan, tela, criar plano, blueprint, plano de tela]
     target: skill:plan-blueprint
     pre_action: Validate docs/stack.md exists; if not, dispatch stack-profiler first
-    notes: 1 tela = 1 plano. Subdivide automaticamente quando há múltiplas seções autônomas
+    notes: |
+      1 tela = 1 plano. OBJETIVO obrigatório no prompt:
+        - implantacao  → criar do zero (fluxo padrão)
+        - correcao     → cirúrgico, diff vs Storybook, 1 task por componente
+        - refactor     → implica --allow-arch-change + ADR
+      Auto-resolve PROJETO/WORK_BRANCH/BUSINESS_RULES/POSTMAN no comprehension gate.
+      Backend gaps → tasks ClickUp automáticas pro Douglas (--skip-clickup desliga).
 
   progress_tracking:
     triggers: [progress, status, progress.txt, memoria curta, l1]

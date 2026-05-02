@@ -1,12 +1,14 @@
 ---
 id: PLAN-<NNN>-<slug>
 tela: <nome da tela>
+objetivo: <implantacao | correcao | refactor>
 figma_url: <url ou null>
 status: pendente
 parent_plan: <PLAN-NNN ou null>
 children_plans: []
 stack_ref: docs/stack.md@<sha-curto>
 arch_change: false
+work_branch: <dev | feat/storybook>
 created_at: <iso>
 validated_at: null
 ---
@@ -73,6 +75,22 @@ validated_at: null
 - [ ] **Visual gate**: árvore JSX da tela espelha hierarquia do Figma (mesmas seções, mesma ordem)
 - [ ] <critério específico da tela 1>
 - [ ] <critério específico da tela 2>
+
+## Backend pendings
+
+> Gaps detectados confrontando Postman/regras-de-negocio com a necessidade da tela. Cada item vira task ClickUp atribuída ao Douglas (default) ou ao `ASSIGNEE` informado. Vazio = backend completo para esta tela.
+
+| Gap | Endpoint/Coleção esperada | ClickUp ID | Status |
+|-----|---------------------------|------------|--------|
+|     |                           |            |        |
+
+## Knowledge mapped
+
+> Inventário denso do que foi indexado no comprehension gate (regras-de-negocio + Postman).
+
+- **Regras de negócio**: `<lista de arquivos relevantes em docs/regras-de-negocio/>`
+- **Postman**: `<lista de coleções/endpoints relevantes em docs/postman/>`
+- **Stack ref**: `<sha de stack.md>`
 
 ## Riscos & Rollback
 

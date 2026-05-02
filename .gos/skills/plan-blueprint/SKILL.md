@@ -1,7 +1,7 @@
 ---
 name: plan-blueprint
 description: Cria um plano padronizado para uma tela (1 plano = 1 tela) seguindo a stack-of-record do projeto. Produz {plano, tasks, contexto, entrada-progress.txt} em três fases (Mapeamento → Aderência à stack → Execução). Pré-requisito duro: docs/stack.md existir. Subdivide automaticamente telas com seções autônomas múltiplas.
-argument-hint: "<tela|figma-url|descrição> [--from-figma-mcp] [--allow-arch-change]"
+argument-hint: "<tela> OBJETIVO=<implantacao|correcao|refactor> FIGMA=<url> [FIGMA+=...] [--from-figma-mcp] [--allow-arch-change] [--skip-clickup]"
 allowedTools: [Read, Glob, Grep, Bash, Write, Edit, Agent, AskUserQuestion]
 sourceDocs:
   - templates/planTemplate.md
@@ -25,14 +25,35 @@ Você está executando como **Tech Lead Frontend / Arquiteto Sênior** via skill
 
 $ARGUMENTS
 
-Auto-detecção de input:
-- URL `https://www.figma.com/...` → ativa modo Figma MCP
-- caminho de arquivo `.md`/`.png`/`.jpg` → modo descrição com referência visual
-- texto livre → modo descrição
+Campos obrigatórios no prompt:
+- `OBJETIVO` — `implantacao` | `correcao` | `refactor`
+- `FIGMA` — URL do frame principal (auto-ativa Figma MCP)
+
+Opcionais:
+- `FIGMA+` — lista de URLs de componentes
+- `NOTAS` — prosa livre (comportamento, edge cases, invioláveis)
+- `ASSIGNEE` — override do user_id ClickUp para tasks de backend (default: 112010775)
+
+Auto-resolvido pelo `gos-master` (comprehension gate, NÃO pedir ao usuário):
+- `PROJETO` — `cwd`; ambíguo → `~/.claude/.gos-state/last-project.json`
+- `WORK_BRANCH` — tela em Storybook → `feat/storybook`; senão → `dev`
+- `STORYBOOK_DIR/BRANCH` — `plan-paths.json`
+- `BUSINESS_RULES` — `<PROJETO>/docs/regras-de-negocio/` (indexar e registrar em progress.txt)
+- `POSTMAN` — `<PROJETO>/docs/postman/` (idem)
+- `BACKEND/RLS/SEED/SMOKE_E2E` — derivado de `stack.md` + regras + Postman
+
+OBJETIVO muda postura:
+
+| Valor | Comportamento |
+|-------|---------------|
+| `implantacao` | Cria do zero — Fase 1 → 2 → 3 padrão |
+| `correcao` | Modo cirúrgico — diff vs Storybook canônico, 1 task por componente, sem reescrever |
+| `refactor` | Implica `--allow-arch-change` + ADR obrigatória |
 
 Flags:
-- `--from-figma-mcp` — força leitura via Figma MCP
-- `--allow-arch-change` — libera Fase 2 propositiva (gera ADR)
+- `--from-figma-mcp` — força leitura via Figma MCP (default quando `FIGMA=` é Figma URL)
+- `--allow-arch-change` — libera Fase 2 propositiva (gera ADR); implícito em `OBJETIVO=refactor`
+- `--skip-clickup` — não cria tasks de backend automaticamente
 
 ## Pré-requisitos (gate)
 
@@ -81,6 +102,22 @@ Listar **componentes ausentes** separadamente — sinalizar como bloqueio ou can
 Saída desta fase é uma seção **"Aderência à Stack"** no plano — não redefine arquitetura.
 
 **Modo `--allow-arch-change`**: pode propor alteração. Gerar ADR em `dirs.adr` (template `templates/adr-tmpl.yaml`) ANTES de prosseguir. Plano referencia o ADR e marca `arch_change: true` no frontmatter.
+
+### 2.5 Backend gaps → ClickUp automático
+
+Postman é o **contrato backend**. Para cada dado/ação da tela:
+
+1. Confrontar com `<PROJETO>/docs/postman/` (já indexado no comprehension gate).
+2. Se o endpoint não existir, ou existir com shape divergente, ou faltar RLS/migration para suportar a tela → registrar como **backend pending**.
+3. Para cada pending, criar task ClickUp via `mcp__clickup__clickup_create_task`:
+   - **Assignee**: `ASSIGNEE` do prompt OU default `112010775` (Douglas Oliveira).
+   - **List**: `clickup.backend_list_id` de `plan-paths.json`. Ausente → registrar pending no plano com `clickup: pending` e seguir.
+   - **Título**: `[Backend] PLAN-NNN: <gap em uma linha>`
+   - **Descrição**: o que a tela precisa, qual coleção/endpoint do Postman cobre (ou não), referência ao plano (`docs/plans/PLAN-NNN/plan.md`), shape esperado.
+4. Registrar IDs criados em:
+   - `plan.md` → seção `## Backend pendings` (lista com `clickup_id`, status, link).
+   - `progress.txt` → bloco `## Backend pendings — PLAN-NNN`.
+5. Flag `--skip-clickup` desliga a criação (pending fica registrado apenas no plano).
 
 ## Fase 3 — Plano de Execução
 
@@ -145,6 +182,7 @@ Próximos passos:
 ## Instructions
 
 1. NUNCA prosseguir sem `stack.md` válido.
-2. Resolver TODOS os paths via `plan-paths.json`.
+2. Resolver TODOS os paths via `plan-paths.json`. PROJETO/WORK_BRANCH são auto-resolvidos pelo `gos-master` — não perguntar ao usuário.
 3. Status inicial do plano e tasks: `pendente`.
 4. Não pushar nada — apenas escrever arquivos locais.
+5. Backend pendings só criam tasks ClickUp se o `mcp__clickup__*` estiver disponível na sessão E `--skip-clickup` não for passado. Caso contrário, registrar apenas no plano.
