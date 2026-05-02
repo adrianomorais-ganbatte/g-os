@@ -93,6 +93,7 @@ comprehension_gate:
   protocol:
     step_0_scan: "Read relevant files, docs, recent commits related to the request"
     step_0_5_stack: "If routing to planning/implementation: load docs/stack.md (path from .gos-local/plan-paths.json). If absent, abort and dispatch stack-profiler refresh."
+    step_0_55_storybook: "If routing to plan/execute: resolve dirs.storybook and index .stories.tsx files. Absent storybook = abort plan-blueprint until path provided."
     step_0_6_progress: "If progress.txt exists at the configured path: read it for active plan/task context (memória L1)."
     step_1_document: "State what exists (current state, patterns, constraints) in factual terms"
     step_2_assess: "Determine which agent/skill/workflow is appropriate based on evidence, not assumption"
@@ -206,6 +207,15 @@ routing_matrix:
     target: skill:progress-tracker
     notes: State machine pendente → em-andamento → validacao → concluido
 
+  execute_plan:
+    triggers: [execute, executar plano, run plan, "*execute-plan", execute plan, executar PLAN]
+    target: skill:execute-plan
+    pre_action: Validate PLAN-NNN-<slug>/plan.md exists; load stack.md; index dirs.storybook stories
+    notes: |
+      Comando primário do ambiente Codex IDE Extension.
+      Ciclo Opus(plan) → Codex(execute). Roda task-a-task com state machine
+      e visual gate obrigatório contra Storybook canônico antes de validacao.
+
   product_decisions:
     triggers: [PRD, requirements, product decision, scope, feature priority]
     target: agent:po
@@ -292,6 +302,9 @@ commands:
   - name: progress
     args: "[init|show|set <plan>|status <task> <novo-status>|compact|read]"
     description: Gerencia progress.txt (memória L1) e state machine de status
+  - name: execute-plan
+    args: "<PLAN-NNN-slug> [--task T-NNN-NN] [--skip-visual-gate]"
+    description: Executa plano task-a-task com visual gate obrigatório (comando primário do Codex IDE)
 
   # Quality
   - name: check
@@ -328,7 +341,7 @@ available_squads:
   - name: git-operations
     purpose: SSH setup, quality gate, safe commit+push
 
-# ─── AVAILABLE SKILLS (18) ────────────────────────────────────
+# ─── AVAILABLE SKILLS (19) ────────────────────────────────────
 available_skills:
   - design-to-code
   - figma-implement-design
@@ -348,6 +361,7 @@ available_skills:
   - stack-profiler
   - plan-blueprint
   - progress-tracker
+  - execute-plan
 
 # ─── PLAYBOOKS ────────────────────────────────────────────────
 available_playbooks:
@@ -449,7 +463,8 @@ security:
 **Plan pipeline (stack-aware):**
 
 - `*stack [refresh|show|drift]` - Mantém docs/stack.md
-- `*plan <tela|figma-url|descrição>` - Cria plano por tela
+- `*plan <tela|figma-url|descrição>` - Cria plano por tela (Opus, planejamento)
+- `*execute-plan <PLAN-NNN-slug>` - Executa plano com visual gate (Codex IDE, execução)
 - `*progress [show|set|status|compact]` - Gerencia progress.txt (L1)
 
 **Framework:**

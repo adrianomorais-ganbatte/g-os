@@ -41,6 +41,9 @@ Flags:
    - Se ausente: ABORTAR. Despachar `stack-profiler refresh` e instruir o usuário a re-executar.
    - Se presente: ler integralmente. Verificar drift via `*stack drift` antes de prosseguir.
 3. Ler `progress.txt` se existir (memória L1).
+4. **Verificar `dirs.storybook`** (caminho do `plan-paths.json`):
+   - Se ausente OU diretório não existe: ABORTAR. Pedir caminho ao usuário (path absoluto fora do repo é válido, ex.: `E:\Github\Ganbatte\tmp\fractus-storybook`) e gravar em `plan-paths.json`.
+   - Se presente: indexar `.stories.tsx` disponíveis (lista usada na Fase 1.3).
 
 ## Fase 1 — Mapeamento Visual & Componentização
 
@@ -60,8 +63,10 @@ Caso contrário: trabalhar pela descrição/screenshot fornecido.
 
 Produzir tabela:
 
-| Elemento (Figma/descrição) | Componente do DS | Variant | Props relevantes |
-|----------------------------|------------------|---------|-------------------|
+| Elemento (Figma/descrição) | Componente do DS | Story (path) | Variant | Props relevantes |
+|----------------------------|------------------|--------------|---------|-------------------|
+
+A coluna `Story (path)` aponta para `.stories.tsx` indexado no gate. Componente sem story correspondente NÃO entra na tabela — vai pra "Componentes ausentes" e gera task de criação.
 
 Listar **componentes ausentes** separadamente — sinalizar como bloqueio ou candidato a criação (vai virar task própria).
 
@@ -127,6 +132,7 @@ Próximos passos:
 - **Backend read-only respeitado**: se `stack.md` declara backend read-only, plano NUNCA propõe schema novo.
 - **Next.js App Router**: decisão server vs client é explícita por elemento.
 - **Sem prosa decorativa**: plano deve ser executável, denso, com critérios mensuráveis.
+- **Storybook como contrato**: cada componente do DS na tabela DEVE apontar `.stories.tsx` existente em `dirs.storybook`. Sem story → componente vai pra "Componentes ausentes" e gera task de criação. Sem essa disciplina, o visual gate do `*execute-plan` quebra.
 
 ## Model guidance
 
