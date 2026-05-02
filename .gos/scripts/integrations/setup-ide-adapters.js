@@ -154,6 +154,13 @@ function main() {
     const codexAgent = path.join(root, '.codex', 'agents', `${aSlug}.md`);
     const codexAgentTarget = relativeTarget(codexAgent, agentProfilePath);
     writeFile(codexAgent, `---\nname: "${aSlug}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${codexAgentTarget}\`\nLeia e siga o perfil em \`${codexAgentTarget}\`.`);
+
+    // Antigravity / Gemini / Opencode usam um namespace plano (gos-<slug>) pra skills.
+    // Pra agents aparecerem no mesmo picker, emitir como wrapper SKILL.md tambem.
+    for (const ide of ['.antigravity', '.gemini', '.opencode']) {
+      const ideAgentSkill = path.join(root, ide, 'skills', aSlug, 'SKILL.md');
+      writeFile(ideAgentSkill, skillWrapper(agent.id, relativeTarget(ideAgentSkill, agentProfilePath), agentDesc));
+    }
   }
 
   for (const skill of skills) {
