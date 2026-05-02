@@ -38,6 +38,7 @@ const DEFAULTS = {
   },
   knowledge_sources: [
     { kind: 'design-system', path: '.referencia-storybook/docs/DESIGN_SYSTEM_REFERENCE.md', required: true },
+    { kind: 'storybook-canonical', path: '.referencia-storybook/', required: true },
   ],
   naming: { plan_prefix: 'PLAN', task_prefix: 'T', seq_padding: 3 },
   figma: { mcp_enabled: true, default_file_url: null },

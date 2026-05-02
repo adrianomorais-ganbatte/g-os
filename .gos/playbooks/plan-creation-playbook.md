@@ -62,19 +62,29 @@ Humano revisa:
 
 Se aprovado, prosseguir. Caso contrário: ajustar manualmente ou rerodar `*plan` com refinamento.
 
-### 4. Executar tasks
-
-Para cada task, dev (humano ou LLM):
+### 3.5. Pre-flight visual (antes de executar)
 
 ```
-*progress status T-NNN-NN em-andamento
+*execute-plan PLAN-NNN-<slug>
 ```
 
-Implementa, commita localmente (sem push), atualiza:
+A skill `execute-plan` resolve `dirs.storybook`, indexa `.stories.tsx` disponíveis e confronta cada componente da tabela "Componentes mapeados" do plano. Componente sem story → bloqueia e propõe task de criação ANTES das tasks de implementação.
 
-```
-*progress status T-NNN-NN validacao
-```
+> Ambiente recomendado: **Codex IDE Extension** (executor). O `*plan` da etapa 2 roda em Opus 4.7 (planejador). Adapter Codex é gerado por `npm run sync:ides`.
+
+### 4. Executar tasks (orquestrado por execute-plan)
+
+`execute-plan` itera as tasks em ordem de `seq`:
+
+1. `*progress status T-NNN-NN em-andamento` (state machine).
+2. Despacha agent (`labels: [agent:<slug>]`, default `dev`) para implementar.
+3. **Visual gate** antes de marcar `validacao`:
+   - Compara cada componente alterado com `<Componente>.stories.tsx` em 4 dimensões (anatomia, tokens, variants, densidade).
+   - Cruza JSX da tela com Figma MCP (árvore vs hierarquia).
+   - Falha → task volta a `em-andamento` com diff em `tasks/T-NNN-NN.notes.md`.
+4. Sucesso → `*progress status T-NNN-NN validacao`.
+
+Para rodar uma task específica fora do loop: `*execute-plan PLAN-NNN-<slug> --task T-NNN-NN`.
 
 ### 5. Validação
 
@@ -116,7 +126,8 @@ Validação humana + QA. Se aprovado:
 ## Skills relacionadas
 
 - `stack-profiler` — produz/mantém `stack.md`
-- `plan-blueprint` — cria plano por tela
+- `plan-blueprint` — cria plano por tela (Opus, planejamento)
 - `plan-to-tasks` — decompõe plano em tasks (chamada automaticamente)
+- `execute-plan` — executa plano com visual gate (Codex IDE, execução)
 - `progress-tracker` — gerencia `progress.txt`
 - `clickup` — sync opcional para tracking externo (não obrigatório)

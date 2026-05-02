@@ -1,5 +1,5 @@
 ---
-description: "Produz e mantém docs/stack.md como fonte canônica da stack-of-record do projeto. Lê arquivos de configuração, design system, Postman, regras de negócio e ADRs (paths resolvidos via .gos-local/plan-pat"
+description: "stack-profiler"
 ---
 
 # gos-stack-profiler (Qwen Command Adapter)

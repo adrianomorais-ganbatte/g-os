@@ -19,9 +19,9 @@ validated_at: null
 
 ## Componentes mapeados
 
-| Elemento | Componente do DS | Variant | Props |
-|----------|------------------|---------|-------|
-|          |                  |         |       |
+| Elemento | Componente do DS | Story (path) | Variant | Props |
+|----------|------------------|--------------|---------|-------|
+|          |                  |              |         |       |
 
 ## Componentes ausentes
 
@@ -68,6 +68,9 @@ validated_at: null
 - [ ] Sem console errors/warnings
 - [ ] TypeScript válido (`tsc --noEmit`)
 - [ ] Reutilização ≥ X% de componentes do DS
+- [ ] **Visual gate**: cada componente mapeado tem story em `dirs.stories/`
+- [ ] **Visual gate**: anatomia, tokens e densidade batem com a story canônica (≤ 1 desvio menor documentado em `T-NNN-NN.notes.md`)
+- [ ] **Visual gate**: árvore JSX da tela espelha hierarquia do Figma (mesmas seções, mesma ordem)
 - [ ] <critério específico da tela 1>
 - [ ] <critério específico da tela 2>
 
