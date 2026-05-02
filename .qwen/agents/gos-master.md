@@ -1,5 +1,5 @@
 ---
-name: "gos-gos-master"
+name: "gos-master"
 description: "ganbatte-os Master Orchestrator"
 model: inherit
 tools:

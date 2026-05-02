@@ -2,7 +2,7 @@
 description: "ganbatte-os Master Orchestrator"
 ---
 
-# gos-gos-master (Qwen Command Adapter)
+# gos-master (Qwen Command Adapter)
 
 > Adapter para Qwen Code. Fonte canonica: `../../../../.gos/agents/profiles/ganbatte-os-master.md`.
 
