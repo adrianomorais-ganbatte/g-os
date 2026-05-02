@@ -223,8 +223,21 @@ routing_matrix:
     pre_action: Validate PLAN-NNN-<slug>/plan.md exists; load stack.md; index dirs.storybook stories
     notes: |
       Comando primário do ambiente Codex IDE Extension.
-      Ciclo Opus(plan) → Codex(execute). Roda task-a-task com state machine
+      Ciclo Opus(plan) → Codex(execute) → Opus(validate). Roda task-a-task com state machine
       e visual gate obrigatório contra Storybook canônico antes de validacao.
+      Non-blocking em backend gaps: tasks com depends_on_backend não-resolvido viram
+      bloqueada-backend (ClickUp aberto pro Douglas), demais seguem.
+
+  validate_plan:
+    triggers: [validate, validar plano, "*validate-plan", validate plan, revisar plano, plano implementado]
+    target: skill:validate-plan
+    pre_action: Validate PLAN-NNN-<slug>/plan.md exists; load progress.txt
+    notes: |
+      Turn pós-execute. Para cada task em validacao, re-roda visual gate curto
+      (anatomia + tokens, sem refazer Figma MCP), confronta diff staged vs
+      Componentes mapeados, confere checklist do plano e da task.
+      Auto-marca concluido o que passa. Fecha plano quando todas tasks fecham
+      E backend pendings ClickUp estão concluídas. NÃO dá push.
 
   product_decisions:
     triggers: [PRD, requirements, product decision, scope, feature priority]
@@ -313,8 +326,11 @@ commands:
     args: "[init|show|set <plan>|status <task> <novo-status>|compact|read]"
     description: Gerencia progress.txt (memória L1) e state machine de status
   - name: execute-plan
-    args: "<PLAN-NNN-slug> [--task T-NNN-NN] [--skip-visual-gate]"
-    description: Executa plano task-a-task com visual gate obrigatório (comando primário do Codex IDE)
+    args: "<PLAN-NNN-slug> [--task T-NNN-NN] [--skip-visual-gate] [--skip-clickup]"
+    description: Executa plano task-a-task com visual gate obrigatório, non-blocking em backend gaps (Codex IDE)
+  - name: validate-plan
+    args: "<PLAN-NNN-slug> [NOTAS=...]"
+    description: Valida plano pós-execute; auto-marca concluido tasks que passam em checklist + visual gate curto + diff (Opus revisor)
 
   # Quality
   - name: check
@@ -351,7 +367,7 @@ available_squads:
   - name: git-operations
     purpose: SSH setup, quality gate, safe commit+push
 
-# ─── AVAILABLE SKILLS (19) ────────────────────────────────────
+# ─── AVAILABLE SKILLS (20) ────────────────────────────────────
 available_skills:
   - design-to-code
   - figma-implement-design
@@ -372,6 +388,7 @@ available_skills:
   - plan-blueprint
   - progress-tracker
   - execute-plan
+  - validate-plan
 
 # ─── PLAYBOOKS ────────────────────────────────────────────────
 available_playbooks:
@@ -474,7 +491,8 @@ security:
 
 - `*stack [refresh|show|drift]` - Mantém docs/stack.md
 - `*plan <tela|figma-url|descrição>` - Cria plano por tela (Opus, planejamento)
-- `*execute-plan <PLAN-NNN-slug>` - Executa plano com visual gate (Codex IDE, execução)
+- `*execute-plan <PLAN-NNN-slug>` - Executa plano com visual gate, non-blocking em backend gaps (Codex IDE, execução)
+- `*validate-plan <PLAN-NNN-slug>` - Valida plano pós-execute; auto-marca concluido (Opus, revisor)
 - `*progress [show|set|status|compact]` - Gerencia progress.txt (L1)
 
 **Framework:**

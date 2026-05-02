@@ -80,9 +80,15 @@ validated_at: null
 
 > Gaps detectados confrontando Postman/regras-de-negocio com a necessidade da tela. Cada item vira task ClickUp atribuída ao Douglas (default) ou ao `ASSIGNEE` informado. Vazio = backend completo para esta tela.
 
-| Gap | Endpoint/Coleção esperada | ClickUp ID | Status |
-|-----|---------------------------|------------|--------|
-|     |                           |            |        |
+> Coluna `Bloqueia tasks` lista os T-IDs frontend cujo frontmatter declara `depends_on_backend:` apontando para a `gap-key` desta linha (ex.: `migration-20260501150000`).
+
+| gap-key | Gap | Endpoint/Coleção esperada | ClickUp ID | Status | Bloqueia tasks |
+|---------|-----|---------------------------|------------|--------|----------------|
+|         |     |                           |            |        |                |
+
+## Mock strategy
+
+> Opcional. Quando o frontend opta por mock enquanto o backend não atende, descreva aqui (ex.: fixture em `src/__mocks__/projetos.json`, MSW handler, etc.). Tasks que usam mock NÃO declaram `depends_on_backend:` — apenas referenciam esta seção.
 
 ## Knowledge mapped
 
