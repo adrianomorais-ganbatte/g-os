@@ -103,13 +103,23 @@ function main() {
     const agentTarget = relativeTarget(qwenAgent, agentProfilePath);
     const safeDesc = agentDesc.replace(/"/g, '\\"').replace(/\n/g, ' ').slice(0, 200);
     writeFile(qwenAgent, `---\nname: "gos-${agent.id}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${agentTarget}\`\nLeia e siga o perfil em \`${agentTarget}\`.`);
+
+    // Codex commands (slash commands no Codex IDE Extension)
+    const codexCmd = path.join(root, '.codex', 'commands', 'gos', 'agents', `${agent.id}.md`);
+    writeFile(codexCmd, claudeCommandWrapper(`gos-${agent.id}`, agentDesc, relativeTarget(codexCmd, agentProfilePath)));
+
+    // Codex sub-agents (Codex IDE espera .codex/agents/<id>.md)
+    const codexAgent = path.join(root, '.codex', 'agents', `gos-${agent.id}.md`);
+    const codexAgentTarget = relativeTarget(codexAgent, agentProfilePath);
+    writeFile(codexAgent, `---\nname: "gos-${agent.id}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${codexAgentTarget}\`\nLeia e siga o perfil em \`${codexAgentTarget}\`.`);
   }
 
   for (const skill of skills) {
     const skillTargetPath = skill.skillFile || skill.path;
     const canonicalPath = path.join(root, '.gos', skillTargetPath);
     const claudeSkill = path.join(root, '.claude', 'commands', 'gos', 'skills', `${skill.slug}.md`);
-    const codexSkill = path.join(root, '.agents', 'skills', `gos-${skill.slug}`, 'SKILL.md');
+    const codexSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}`, 'SKILL.md');
+    const codexSkillCmd = path.join(root, '.codex', 'commands', 'gos', 'skills', `${skill.slug}.md`);
     const antigravitySkill = path.join(root, '.antigravity', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const geminiSkill = path.join(root, '.gemini', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const opencodeSkill = path.join(root, '.opencode', 'skills', `gos-${skill.slug}`, 'SKILL.md');
@@ -129,6 +139,7 @@ function main() {
     writeFile(qwenSkill, skillWrapper(skill.slug, relativeTarget(qwenSkill, canonicalPath), skillDesc));
 
     writeFile(qwenCmd, qwenCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(qwenCmd, canonicalPath)));
+    writeFile(codexSkillCmd, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(codexSkillCmd, canonicalPath), skillArgHint));
     writeFile(claudeSkill, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(claudeSkill, canonicalPath), skillArgHint));
   }
 
@@ -169,7 +180,98 @@ function main() {
     )
   );
 
+  // Codex IDE Extension — AGENTS.md + config.toml
+  // Codex e o ambiente de EXECUCAO (Opus planeja, Codex executa). Bloco abaixo garante
+  // que slash commands e subagents estao disponiveis ao abrir o projeto no Codex.
+  const codexAgentsMd = [
+    '# G-OS no Codex IDE Extension',
+    '',
+    'Este arquivo e auto-gerado por `npm run sync:ides`. Nao edite a mao.',
+    '',
+    'Codex IDE Extension e o ambiente de EXECUCAO do G-OS. Opus 4.7 planeja em outra IDE/sessao;',
+    'Codex executa task-a-task com `*execute-plan`.',
+    '',
+    'Leia sempre:',
+    '- `../AGENTS.md` (raiz do projeto)',
+    '- `../CLAUDE.md`',
+    '- `../.gos/docs/toolchain-map.md`',
+    '',
+    '## Execucao de planos (comando primario do Codex)',
+    '',
+    '```',
+    '*execute-plan PLAN-NNN-<slug>',
+    '```',
+    '',
+    'Ciclo: pre-flight visual -> loop por task com state machine -> visual gate -> validacao -> humano marca concluido.',
+    'Detalhes: `../.gos/skills/execute-plan/SKILL.md`.',
+    '',
+    '## Agents disponiveis',
+    '',
+    ...agents.map((agent) => `- \`gos-${agent.id}\` -> \`../.gos/agents/profiles/${agent.path}\``),
+    '',
+    '## Skills curadas',
+    '',
+    '| Slug | Arquivo canonico |',
+    '|------|------------------|',
+    ...skills.map((skill) => `| \`gos-${skill.slug}\` | \`../.gos/${skill.skillFile || skill.path}\` |`),
+    '',
+    '## Como o Codex consome',
+    '',
+    '- Slash commands em `.codex/commands/gos/{agents,skills}/<id>.md` -> Codex carrega o canonico apontado em CANONICAL-SOURCE e executa.',
+    '- Subagents em `.codex/agents/gos-<id>.md` -> referencia o profile em `.gos/agents/profiles/`.',
+    '- Skills em `.codex/skills/gos-<slug>/SKILL.md` -> wrapper fino que aponta para `.gos/skills/<slug>/SKILL.md`.',
+    ''
+  ].join('\n');
+  writeFile(path.join(root, '.codex', 'AGENTS.md'), codexAgentsMd);
+
+  const codexConfigToml = [
+    '# G-OS Codex IDE Extension config (auto-gerado por npm run sync:ides).',
+    '# Edite os arquivos canonicos em .gos/ ao inves deste.',
+    '',
+    'project = "g-os"',
+    '',
+    '[instructions]',
+    'files = [',
+    '  "AGENTS.md",',
+    '  "../AGENTS.md",',
+    '  "../CLAUDE.md",',
+    '  "../.gos/docs/toolchain-map.md",',
+    ']',
+    '',
+    '[execution]',
+    'primary_command = "*execute-plan"',
+    'planning_command = "*plan"',
+    'progress_command = "*progress"',
+    'stack_command = "*stack"',
+    ''
+  ].join('\n');
+  writeFile(path.join(root, '.codex', 'config.toml'), codexConfigToml);
+
+  // Validacao final: garantir que os arquivos do Codex foram gerados.
+  // Evita regressoes silenciosas que ja quebraram a IDE no passado.
+  const codexFailures = [];
+  for (const agent of agents) {
+    const expectedAgent = path.join(root, '.codex', 'agents', `gos-${agent.id}.md`);
+    const expectedCmd = path.join(root, '.codex', 'commands', 'gos', 'agents', `${agent.id}.md`);
+    if (!fs.existsSync(expectedAgent)) codexFailures.push(expectedAgent);
+    if (!fs.existsSync(expectedCmd)) codexFailures.push(expectedCmd);
+  }
+  for (const skill of skills) {
+    const expectedSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}`, 'SKILL.md');
+    const expectedCmd = path.join(root, '.codex', 'commands', 'gos', 'skills', `${skill.slug}.md`);
+    if (!fs.existsSync(expectedSkill)) codexFailures.push(expectedSkill);
+    if (!fs.existsSync(expectedCmd)) codexFailures.push(expectedCmd);
+  }
+  if (!fs.existsSync(path.join(root, '.codex', 'AGENTS.md'))) codexFailures.push('.codex/AGENTS.md');
+  if (!fs.existsSync(path.join(root, '.codex', 'config.toml'))) codexFailures.push('.codex/config.toml');
+  if (codexFailures.length > 0) {
+    console.error(`[sync:ides] Codex IDE adapters incompletos. Faltando ${codexFailures.length} arquivos:`);
+    for (const f of codexFailures) console.error(`  - ${path.relative(root, f)}`);
+    process.exit(1);
+  }
+
   console.log(`Adapters generated for ${agents.length} agents and ${skills.length} skills.`);
+  console.log(`Codex IDE: ${agents.length} agents + ${skills.length} skills + AGENTS.md + config.toml.`);
 }
 
 main();

@@ -1,5 +1,5 @@
 ---
-description: "Cria um plano padronizado para uma tela (1 plano = 1 tela) seguindo a stack-of-record do projeto. Produz {plano, tasks, contexto, entrada-progress.txt} em três fases (Mapeamento → Aderência à stack → "
+description: "plan-blueprint"
 ---
 
 # gos-plan-blueprint (Qwen Command Adapter)

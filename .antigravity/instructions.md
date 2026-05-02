@@ -35,6 +35,10 @@ Skills curadas:
 - humanizer
 - weekly-update
 - slack-review
+- stack-profiler
+- plan-blueprint
+- progress-tracker
+- execute-plan
 
 ## Como invocar Skills
 
@@ -61,3 +65,7 @@ Skills tambem disponiveis como adapters em `.antigravity/skills/`.
 | `gos-humanizer` | `.gos/skills/humanizer/SKILL.md` |
 | `gos-weekly-update` | `.gos/skills/weekly-update/SKILL.md` |
 | `gos-slack-review` | `.gos/skills/slack-review/SKILL.md` |
+| `gos-stack-profiler` | `.gos/skills/stack-profiler/SKILL.md` |
+| `gos-plan-blueprint` | `.gos/skills/plan-blueprint/SKILL.md` |
+| `gos-progress-tracker` | `.gos/skills/progress-tracker/SKILL.md` |
+| `gos-execute-plan` | `.gos/skills/execute-plan/SKILL.md` |

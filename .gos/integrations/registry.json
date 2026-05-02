@@ -13,7 +13,7 @@
     "antigravity": { "workspaceDir": ".antigravity", "skillsDir": ".antigravity/skills", "adapter": "integrations/antigravity", "status": "active" },
     "gemini-cli": { "workspaceDir": ".gemini", "contextFile": "GEMINI.md", "status": "active" },
     "cursor": { "workspaceDir": ".cursor", "ruleFile": ".cursor/rules/g-os.mdc", "status": "active" },
-    "codex": { "workspaceDir": ".codex", "skillsDir": ".agents/skills", "adapter": "integrations/codex", "status": "active" },
+    "codex": { "workspaceDir": ".codex", "skillsDir": ".codex/skills", "agentsDir": ".codex/agents", "commandsDir": ".codex/commands", "configFile": ".codex/config.toml", "rulesFile": ".codex/AGENTS.md", "adapter": "integrations/codex", "status": "active" },
     "opencode": { "workspaceDir": ".opencode", "adapter": "integrations/opencode", "status": "active" },
     "kilo-code": { "workspaceDir": ".kilocode", "ruleFile": ".kilocode/rules/g-os.md", "status": "active" },
     "qwen-code": { "workspaceDir": ".qwen", "skillsDir": ".qwen/skills", "commandsDir": ".qwen/commands/gos", "agentsDir": ".qwen/agents", "adapter": "integrations/qwen", "status": "active" }

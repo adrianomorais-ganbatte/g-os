@@ -48,17 +48,21 @@ Todo texto gerado deve passar por correcao ortografica e remocao de padroes de I
 gos-master | architect | dev | devops | po | qa | sm | squad-creator | ux-design-expert
 
 ### Skills (invoke via /gos:skills:{slug})
-design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup | stack-profiler | plan-blueprint | progress-tracker
+design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup | stack-profiler | plan-blueprint | progress-tracker | execute-plan
+
+### IDEs suportadas (npm run sync:ides gera adapters)
+Claude Code | Cursor | Gemini CLI | Qwen Code | Antigravity | Opencode | Kilo Code | **Codex IDE Extension** (ambiente de execucao, comando primario `*execute-plan`)
 
 ## Plan Pipeline (stack-aware)
 
-Pipeline padronizado para criacao de planos por tela. Toda tela = 1 plano. Stack-of-record (`docs/stack.md`) e contrato — alteracoes de stack exigem ADR.
+Pipeline padronizado para criacao de planos por tela. Toda tela = 1 plano. Stack-of-record (`docs/stack.md`) e contrato — alteracoes de stack exigem ADR. Divisao de trabalho: **Opus 4.7 planeja, Codex IDE executa**.
 
-| Comando | Skill | Funcao |
-|---------|-------|--------|
-| `*stack [refresh|show|drift]` | `stack-profiler` | Mantem `docs/stack.md` (canonico do projeto) |
-| `*plan <tela>` | `plan-blueprint` | Cria plano + tasks + context + atualiza `progress.txt` |
-| `*progress [show|set|status]` | `progress-tracker` | Memoria L1 + state machine de status |
+| Comando | Skill | IDE / Modelo | Funcao |
+|---------|-------|--------------|--------|
+| `*stack [refresh|show|drift]` | `stack-profiler` | qualquer | Mantem `docs/stack.md` (canonico do projeto) |
+| `*plan <tela>` | `plan-blueprint` | Opus 4.7 (planejador) | Cria plano + tasks + context + atualiza `progress.txt` |
+| `*execute-plan <PLAN-NNN>` | `execute-plan` | **Codex IDE Extension** (executor) | Executa task-a-task com visual gate vs Storybook canonico |
+| `*progress [show|set|status]` | `progress-tracker` | qualquer | Memoria L1 + state machine de status |
 
 State machine: `pendente -> em-andamento -> validacao -> concluido` (concluido somente apos validacao humana).
 

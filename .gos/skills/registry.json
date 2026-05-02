@@ -22,6 +22,7 @@
     { "slug": "slack-review", "path": "skills/slack-review/SKILL.md" },
     { "slug": "stack-profiler", "path": "skills/stack-profiler/SKILL.md" },
     { "slug": "plan-blueprint", "path": "skills/plan-blueprint/SKILL.md" },
-    { "slug": "progress-tracker", "path": "skills/progress-tracker/SKILL.md" }
+    { "slug": "progress-tracker", "path": "skills/progress-tracker/SKILL.md" },
+    { "slug": "execute-plan", "path": "skills/execute-plan/SKILL.md" }
   ]
 }

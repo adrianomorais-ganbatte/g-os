@@ -30,6 +30,7 @@ links: []
 ## Critérios de aceitação (DoD)
 
 - [ ] Implementação atende `valida_em` do plano
+- [ ] **Visual gate aprovado** (relatório em `T-NNN-NN.notes.md` com 4 seções: anatomia, tokens, variants, densidade)
 - [ ] Tests/CI verdes
 - [ ] Sem regressões
 - [ ] <métrica específica>

@@ -1,6 +1,6 @@
 ---
 name: "gos-progress-tracker"
-description: "Gerencia progress.txt como memória L1 (curta, otimizada para LLM) na raiz do projeto-cliente. Suporta init, set-current, update-status (state machine), compact e read. Sempre consultado quando há dúvi"
+description: "progress-tracker"
 ---
 
 # gos-progress-tracker
