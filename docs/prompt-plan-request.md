@@ -1,151 +1,106 @@
-# Prompts G-OS — criação e execução de plano por tela
+# Prompt G-OS — `*plan` simplificado
 
-> Invocação canônica: `/gos:agents:gos-master`. Plano canônico vive em
+> Invocação canônica: `/gos:agents:gos-master`. Plano vive em
 > `<PROJETO>/docs/plans/PLAN-NNN-<tela>/plan.md`.
-> **Sempre dois turns**: primeiro `*plan` (gera o diretório), depois `*execute-plan`.
+> **Sempre dois turns**: `*plan` (gera) → `*execute-plan` (executa, no Codex IDE).
 
 ---
 
-## 1) Criar o plano (`*plan`)
+## Template mínimo
 
 ```
 /gos:agents:gos-master *plan {{TELA}}
 
-TELA              = {{nome-da-tela}}
-PROJETO           = {{caminho-do-projeto}}
-STORYBOOK_DIR     = {{caminho-do-checkout-storybook}}
-STORYBOOK_BRANCH  = {{branch-canonica-storybook}}
-WORK_BRANCH       = {{branch-base-execucao}}
-
-FIGMA_FRAME       = {{url-figma-frame-principal}}
-FIGMA_COMPS       = [
-  {{url-figma-componente-1}},
-  {{url-figma-componente-2}}
-]
-FIGMA_FULL        = {{url-figma-tela-completa-opcional}}
-FLAGS             = --from-figma-mcp                # remova se não usar Figma MCP
-                                                    # +--allow-arch-change se mexer em stack
-                                                    # +--parent PLAN-NNN se for plano filho
-
-BACKEND           = {{ex.: supabase cloud (project: <ref>), RLS ON}}
-ROLES_TEST        = {{ex.: gestor=gestor@x.com / Senh@_123}}
-SEED              = {{ex.: supabase/seed-staging.sql}}
-SMOKE_E2E         = {{cenário literal — DoD do plano}}
-RLS_DOC           = {{paths das migrations de RLS}}
-BUSINESS_RULES    = {{<PROJETO>\docs\regras-de-negocio}}
-POSTMAN           = {{<PROJETO>\docs\postman}}
-
-NOTAS = """
-{{comportamento da tela em prosa livre — drawer compartilhado, regras visuais, edge cases}}
-"""
+OBJETIVO  = {{implantacao | correcao | refactor}}
+FIGMA     = {{url-frame-principal}}
+FIGMA+    = [{{url-comp-1}}, {{url-comp-2}}]    # opcional
+NOTAS     = """{{prosa livre — comportamento, edge cases, invioláveis}}"""
 ```
+
+`OBJETIVO` é obrigatório. Tudo o mais é auto-resolvido (ver abaixo).
 
 ---
 
-## 2) Executar o plano (`*execute-plan`) — turn separado
+## O que o `gos-master` resolve sozinho (não precisa colar)
 
-> Pré-checagem antes de colar: `ls <PROJETO>/docs/plans/PLAN-NNN-<TELA>/plan.md`
+Na fase de comprehension, antes de gerar o plano, o orquestrador:
+
+1. **PROJETO** — usa o `cwd` do projeto. Se ambíguo (monorepo na raiz), pergunta uma vez e salva em `~/.claude/.gos-state/last-project.json` para reuso silencioso nos próximos `*plan`.
+2. **WORK_BRANCH** — regra fixa:
+   - `OBJETIVO=implantacao|correcao|refactor` na app → `dev`
+   - tela é Storybook (path bate com `dirs.storybook`) → `feat/storybook`
+3. **STORYBOOK_DIR / STORYBOOK_BRANCH** — de `<PROJETO>/.gos-local/plan-paths.json` (`dirs.storybook`, `knowledge_sources.storybook_branch`).
+4. **BUSINESS_RULES** — indexa `<PROJETO>/docs/regras-de-negocio/` e registra inventário em `progress.txt` na seção `## Knowledge mapped — PLAN-NNN`.
+5. **POSTMAN** — indexa `<PROJETO>/docs/postman/` (contrato backend canônico) e registra inventário no mesmo bloco do progress.
+6. **BACKEND / RLS / SEED / SMOKE_E2E** — derivado de `docs/stack.md` + regras-de-negocio + Postman mapeados.
+
+> Workspaces sem `regras-de-negocio/` ou `postman/` não bloqueiam — só ficam fora do contexto. Storybook ausente segue bloqueando (regra do visual gate).
+
+---
+
+## Comportamentos novos do `OBJETIVO`
+
+| Objetivo | Postura do `plan-blueprint` |
+|----------|------------------------------|
+| `implantacao` | Cria do zero — fluxo padrão (Fase 1 → 2 → 3) |
+| `correcao` | Modo cirúrgico — diff vs Storybook canônico, 1 task por componente, sem reescrever |
+| `refactor` | Implica `--allow-arch-change` + ADR obrigatória |
+
+---
+
+## Backend gaps → tasks ClickUp automáticas
+
+Postman é o **contrato**: quando o `*plan` detecta uma necessidade de endpoint que não existe (ou existe incompleto / sem o shape exigido pela tela), abre task no ClickUp automaticamente:
+
+- **Assignee**: Douglas Oliveira (`112010775`).
+- **Título**: `[Backend] PLAN-NNN: <gap em uma linha>`
+- **Descrição**: o que a tela precisa, qual endpoint/coleção do Postman cobre (ou não), referência ao plano.
+- **List**: a backend list do projeto (resolvida via `.gos-local/plan-paths.json` → `clickup.backend_list_id`).
+- **IDs criados**: registrados no plano em `## Backend pendings` e em `progress.txt`.
+
+Override opcional no prompt: `ASSIGNEE = {{user-id}}` se quiser atribuir a outro dev.
+
+---
+
+## Executar o plano (turn separado)
+
+> Pré-checagem: `ls <PROJETO>/docs/plans/PLAN-NNN-<tela>/plan.md`
 
 ```
 /gos:agents:gos-master *execute-plan PLAN-NNN-{{TELA}}
 ```
 
----
-
-## Versão curta (1 linha — pipeline já quente)
-
-```
-/gos:agents:gos-master *plan {{TELA}} --from-figma-mcp \
-  --storybook-dir {{STORYBOOK_DIR}} --storybook-branch {{STORYBOOK_BRANCH}} \
-  --work-branch   {{WORK_BRANCH}}   --project          {{PROJETO}} \
-  --frame {{url}} --comp {{url}} --comp {{url}} --full {{url}}
-```
+> Ambiente: **Codex IDE Extension** (executor). Visual gate roda por task.
 
 ---
 
-## Exemplo preenchido — Fractus / pagina-projetos-inicial
+## Exemplos
 
+**Implantação nova:**
 ```
 /gos:agents:gos-master *plan pagina-projetos-inicial
 
-TELA              = pagina-projetos-inicial
-PROJETO           = E:\Github\Ganbatte\packages\fractus
-STORYBOOK_DIR     = E:\Github\Ganbatte\tmp\fractus-storybook-cleanup
-STORYBOOK_BRANCH  = feat/storybook
-WORK_BRANCH       = feat/storybook
-
-FIGMA_FRAME       = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25387
-FIGMA_COMPS       = [
-  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25389,   # row da tabela
-  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25392,   # drawer (skeleton compartilhado)
-  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25393    # specs do drawer
+OBJETIVO = implantacao
+FIGMA    = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25387
+FIGMA+   = [
+  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25389,
+  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25392
 ]
-FIGMA_FULL        = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25386
-FLAGS             = --from-figma-mcp
-
-BACKEND           = supabase cloud (project: szaxyfuhhgkzxazeexgm), RLS ON
-ROLES_TEST        = gestor=gestor@fractus.com.br / Senh@_123
-SEED              = supabase/seed-staging.sql + seed-auth-users.sql
-SMOKE_E2E         = login gestor → /dashboard/projetos mostra ≥1 row → clicar row OU eye abre drawer view → "Editar" troca para form → "Salvar" persiste + toast + revalida
-RLS_DOC           = supabase/migrations/*rls*.sql + 20260429175700_rbac_modular.sql
-BUSINESS_RULES    = E:\Github\Ganbatte\packages\fractus\docs\regras-de-negocio
-POSTMAN           = E:\Github\Ganbatte\packages\fractus\docs\postman
-
 NOTAS = """
-- Drawer único compartilhado entre criar/visualizar/editar.
-  Só o título muda: "Novo projeto" | "<nome>" (view) | "Editar: <nome>".
-  Mesmo skeleton (header fixo + corpo rolável + footer dinâmico).
-- Clicar na row OU no ícone Eye abre o drawer.
-- View: <dt>/<dd>, badges para área/tipo/estado, lista de financiadores.
-- Edit: mesmos inputs do create (RHF + Zod + projetoSchema reutilizado).
+Drawer único entre criar/visualizar/editar — só o título e o footer mudam.
+Row inteira clicável OU ícone Eye abre o drawer view.
 """
 ```
 
-Execução depois (turn separado):
-
-```
-/gos:agents:gos-master *execute-plan PLAN-001-pagina-projetos-inicial
-```
-
----
-
-## Exemplo preenchido — plano filho de correção (Fractus / projetos-fix)
-
+**Correção (plano filho):**
 ```
 /gos:agents:gos-master *plan pagina-projetos-fix --parent PLAN-001-pagina-projetos-inicial
 
-TELA              = pagina-projetos-fix
-PROJETO           = E:\Github\Ganbatte\packages\fractus
-STORYBOOK_DIR     = E:\Github\Ganbatte\tmp\fractus-storybook-cleanup
-STORYBOOK_BRANCH  = feat/storybook
-WORK_BRANCH       = feat/storybook
-
-FIGMA_FRAME       = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25387
-FIGMA_COMPS       = [
-  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25389,
-  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25392,
-  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25393
-]
-FIGMA_FULL        = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25386
-FLAGS             = --from-figma-mcp --parent PLAN-001-pagina-projetos-inicial
-
-BACKEND           = supabase cloud (project: szaxyfuhhgkzxazeexgm), RLS ON via has_permission
-ROLES_TEST        = gestor=gestor@fractus.com.br / Senh@_123
-SEED              = supabase/seed-staging.sql + seed-auth-users.sql + 20260501130000_seed_extended
-SMOKE_E2E         = login gestor → /dashboard/projetos lista ≥6 rows → row/eye abre drawer view → "Editar" → "Salvar" persiste + revalida → Esc fecha
-RLS_DOC           = supabase/migrations/20260501120000_rbac_modular_rls.sql + 20260429175700_rbac_modular.sql
-BUSINESS_RULES    = E:\Github\Ganbatte\packages\fractus\docs\regras-de-negocio
-POSTMAN           = E:\Github\Ganbatte\packages\fractus\docs\postman
-
-NOTAS = """
-INTENT: corrigir drift entre /dashboard/projetos (impl. PLAN-001) e Storybook canônico.
-NÃO reescrever — diagnosticar e patch cirúrgico, 1 task por componente.
-
-Confrontar 1:1 com Storybook: ProjectsTable, ProjectsToolbar, TablePagination,
-ProjectDetailDrawer, CustomDrawer, ProjectForm, CreateProjectDialog.
-
-Invioláveis: drawer único com prop `mode`; row inteira clicável OU eye;
-view = dt/dd + badges; edit reutiliza projetoSchema; stack inalterada.
+OBJETIVO = correcao
+FIGMA    = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25387
+NOTAS    = """
+Diff cirúrgico vs Storybook canônico. 1 task por componente.
+Invioláveis: drawer único com prop `mode`; stack inalterada.
 """
 ```
 
@@ -155,25 +110,30 @@ view = dt/dd + badges; edit reutiliza projetoSchema; stack inalterada.
 
 | Flag | Quando usar |
 |------|-------------|
-| `--from-figma-mcp` | Forçar leitura via Figma MCP |
-| `--allow-arch-change` | Tela exige stack nova → gera ADR |
+| `--from-figma-mcp` | Forçar leitura via Figma MCP (default quando `FIGMA=` URL Figma) |
+| `--allow-arch-change` | Implícito em `OBJETIVO=refactor` |
 | `--parent PLAN-NNN` | Plano filho |
 | `--no-progress` | Não atualizar `progress.txt` (raro) |
-| `--skip-storybook-sync` | Pular pre-flight do Storybook (no `*plan`) |
+| `--skip-storybook-sync` | Pular pre-flight Storybook (no `*plan`) |
 | `--skip-visual-gate` | Pular comparação 1:1 com `.stories.tsx` (no `*execute-plan`, raro) |
+| `--skip-clickup` | Não criar tasks de backend automáticas |
 
-## Visual gate — DoD obrigatório no `*execute-plan`
+---
 
-Por componente alterado/criado, `execute-plan` compara contra `<Componente>.stories.tsx` em `dirs.storybook`:
+## Visual gate — DoD do `*execute-plan`
 
-- **Anatomia**: ordem de slots/elementos (header → corpo → footer; ícones esquerda/direita).
-- **Tokens**: classes Tailwind/CSS batem com DS (cor, raio, espaçamento, tipografia).
+Por componente alterado/criado, compara contra `<Componente>.stories.tsx` em `dirs.storybook`:
+
+- **Anatomia**: ordem de slots/elementos.
+- **Tokens**: classes Tailwind/CSS batem com DS.
 - **Variants**: props expostos cobrem variants da story.
 - **Densidade**: padding/gap dentro de ±1 step da escala do DS.
 
-E cruza JSX da tela com Figma MCP no nível de árvore (mesmas seções, mesma ordem).
+E cruza JSX da tela com Figma MCP (mesmas seções, mesma ordem).
 
-Output: `tasks/T-NNN-NN.notes.md`. Divergência ≥ 1 item crítico → falha o gate, task volta a `em-andamento`. Não passa pra `validacao` sem aprovação do gate.
+Output: `tasks/T-NNN-NN.notes.md`. Divergência crítica → falha o gate, task volta a `em-andamento`.
+
+---
 
 ## Depois que o plano existe
 
@@ -181,5 +141,5 @@ Output: `tasks/T-NNN-NN.notes.md`. Divergência ≥ 1 item crítico → falha o 
 *progress show                                # estado atual
 *progress status T-NN-NN em-andamento         # iniciar task
 *progress status T-NN-NN validacao            # commit preparado, sem push
-*progress status T-NN-NN concluido            # após QA humano + smoke E2E
+*progress status T-NN-NN concluido            # apenas após QA humano + smoke E2E
 ```

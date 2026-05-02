@@ -39,19 +39,31 @@ Se houver drift, decidir entre:
 ### 2. Criar plano
 
 ```
-*plan <tela|figma-url|descrição>
+*plan <tela>
+
+OBJETIVO = implantacao | correcao | refactor   # obrigatório
+FIGMA    = <url-frame>
+FIGMA+   = [<url-comp>, ...]                   # opcional
+NOTAS    = """<prosa livre>"""                 # opcional
+ASSIGNEE = <user-id>                           # opcional, default 112010775 (Douglas)
 ```
+
+`gos-master` resolve no comprehension gate (não pedir ao usuário):
+- `PROJETO` (cwd, ou `~/.claude/.gos-state/last-project.json`)
+- `WORK_BRANCH` (`dev` para app, `feat/storybook` quando em Storybook)
+- Indexação de `<PROJETO>/docs/regras-de-negocio/` e `docs/postman/` (registrada em `progress.txt`)
 
 `plan-blueprint` executa:
 1. Fase 1 — Mapeamento Visual & Componentização
 2. Fase 2 — Aderência à Stack (sem redefinir arquitetura)
+2.5 Fase 2.5 — Backend gaps → criar tasks ClickUp pro Douglas (`--skip-clickup` desliga)
 3. Fase 3 — Plano de Execução
 
 Saídas:
-- `<dirs.planos>/PLAN-NNN-<slug>/plan.md`
+- `<dirs.planos>/PLAN-NNN-<slug>/plan.md` (com seções `## Backend pendings` e `## Knowledge mapped`)
 - `<dirs.planos>/PLAN-NNN-<slug>/context.md`
 - `<dirs.planos>/PLAN-NNN-<slug>/tasks/T-NNN-NN-*.md`
-- `progress.txt` atualizado com plano ativo
+- `progress.txt` atualizado com plano ativo + inventário de knowledge + backend pendings
 
 ### 3. Revisar e aceitar
 
