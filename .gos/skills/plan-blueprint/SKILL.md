@@ -183,7 +183,20 @@ Para cada plano (incluindo filhos), os 4 passos abaixo são **obrigatórios e at
 - Para CADA `T-NN*.md`: `head -1` = `---` E grep `^status: pendente$` retorna match. Use o gate da Phase 3.5 do `plan-to-tasks`. Falha → regerar tasks; se persistir, abortar com erro explícito ao usuário citando os arquivos malformados.
 - `progress.txt` aponta para o plano novo.
 
-Se qualquer pós-condição falhar: NÃO devolver "plano criado" ao usuário. Devolver erro indicando o que falhou e como retomar.
+### Gate determinístico — ÚLTIMA ação obrigatória do `*plan`
+
+Após escrever todos os arquivos e atualizar `progress.txt`, **executar via Bash**:
+
+```bash
+node <repo-do-framework>/.gos/scripts/integrations/check-plan.js <dirs.planos>/PLAN-NNN-<slug>
+```
+
+(No projeto-cliente o caminho do script é `.gos/scripts/integrations/check-plan.js`. Em workspaces que rodam o G-OS canônico, é `.G-OS/.gos/scripts/integrations/check-plan.js`.)
+
+- **Exit code 0** → plano válido, usável por `*execute-plan` / `*validate-plan`. SÓ ENTÃO devolver "plano criado" ao usuário com o resumo final.
+- **Exit code != 0** → NÃO devolver "plano criado". A saída do script aponta exatamente o que está errado (task sem frontmatter, status divergente, secao `## Status` no body, etc.). Tentar regerar via `plan-to-tasks` UMA vez; se persistir, abortar com a saída do `check-plan` literal e instruir o usuário a rodar `migrate-task-status.js`.
+
+Esse gate é **determinístico** — não depende do LLM verificar individualmente cada task. É a barreira que evita o bug PLAN-006 voltar.
 
 Resumo final:
 

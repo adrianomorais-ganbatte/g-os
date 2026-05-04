@@ -207,10 +207,11 @@ routing_matrix:
     pre_action: Validate docs/stack.md exists; if not, dispatch stack-profiler first. Run step_1_2_interactions — block + AskUserQuestion when tela tem table-clicável/drawer/modal/popup E INTERACOES ausente.
     notes: |
       *plan é operação ATÔMICA: {plan.md + context.md + tasks/T-NN.md (TODAS) + progress.txt}.
-      Plano sem tasks = falha — plan-blueprint deve invocar plan-to-tasks E verificar pós-condição
-      (cada T-NN.md tem frontmatter com `status: pendente`). Bug histórico: tasks geradas sem
-      frontmatter ficavam travadas em pendente mesmo após *execute-plan rodar código (PLAN-006).
-      Corrigido em commit subsequente. Planos preexistentes: rodar migrate-task-status.js.
+      Plano sem tasks = falha — plan-blueprint deve invocar plan-to-tasks E rodar o gate
+      determinístico `node .gos/scripts/integrations/check-plan.js <plan-dir>` como ÚLTIMA
+      ação. Exit != 0 bloqueia o "plano criado" — sem barreira no LLM (script roda fora).
+      Bug histórico: tasks geradas sem frontmatter ficavam travadas em pendente mesmo após
+      *execute-plan rodar código (PLAN-006). Planos preexistentes: rodar migrate-task-status.js.
 
       1 tela = 1 plano. OBJETIVO obrigatório no prompt:
         - implantacao  → criar do zero (fluxo padrão)
