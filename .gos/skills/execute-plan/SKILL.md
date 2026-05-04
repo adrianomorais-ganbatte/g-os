@@ -22,6 +22,15 @@ metadata:
 
 Voce esta executando como **Executor de Planos** via skill `execute-plan`. No ambiente Codex IDE Extension este e o comando primario do ciclo `Opus(plan) -> Codex(execute)`.
 
+## Contrato inviolavel — executar TODAS as tasks
+
+`*execute-plan` e uma operacao **completa**: roda **TODAS** as tasks executaveis do plano em ordem de `seq`, sem parar no meio. Parar apos T-01 ou T-02 e **bug do executor**, NAO comportamento esperado. Regras vinculantes:
+
+1. O loop so termina quando **toda** task tem `status` em `{validacao, concluido, bloqueada-backend}`. Tasks ainda em `pendente` ou `em-andamento` ao final = falha.
+2. Falha em UMA task NAO encerra o loop. Registra em `T-NNN-NN.notes.md`, mantem task em `em-andamento`, e **continua** para a proxima task. Ao final, reporta lista de tasks com falha.
+3. Se o executor for tentado a "pausar para usuario revisar" no meio do loop: NAO pausar. Concluir o loop e reportar tudo de uma vez no fechamento.
+4. Verificacao final obrigatoria antes do resumo: `for f in <tasks>/T-*.md; do grep '^status:' $f; done` — listar status de cada task. Qualquer status `pendente` ou `em-andamento` apos o loop = abortar com erro `executor-incomplete: <lista>` e instruir re-rodada.
+
 ## Input
 
 $ARGUMENTS
@@ -117,11 +126,21 @@ Para cada task **executavel**:
    - Sucesso -> invocar `*progress status T-NNN-NN validacao`. **Pos-condicao obrigatoria**: ler T-NNN-NN.md, confirmar `^status: validacao$` no frontmatter. Se nao mudou: ABORTAR a task com erro `progress-tracker-falhou: T-NNN-NN`. Preparar arquivos staged (sem commit) somente apos confirmacao.
    - Falha -> manter em `em-andamento`, gravar diff em `T-NNN-NN.notes.md`, retornar pra etapa 3.
 
-**Invariante por task**: ao terminar a iteracao, T-NNN-NN.md DEVE ter status diferente de `pendente`. Se ainda for `pendente` apos a iteracao, registrar como bug do executor em `progress.txt` (`notes=executor-skipped-progress: T-NNN-NN`) e abortar o loop — sintoma do bug original.
+**Invariante por task**: ao terminar a iteracao, T-NNN-NN.md DEVE ter status diferente de `pendente`. Se ainda for `pendente` apos a iteracao, registrar como bug do executor em `progress.txt` (`notes=executor-skipped-progress: T-NNN-NN`) — mas **NAO abortar o loop**: continuar para a proxima task. O abort vai acontecer no fechamento (verificacao global).
+
+**Invariante de loop**: nunca encerrar o loop com tasks restantes nao processadas. Falha local em uma task = continuar; pausa para revisao humana no meio = proibida.
 
 ## Fechamento
 
-Quando o loop terminar (todas as tasks executaveis em `validacao` ou puladas em `bloqueada-backend`):
+Quando o loop terminar (toda task processada — em `validacao`, `concluido`, ou `bloqueada-backend`):
+
+0. **Verificacao global obrigatoria** (antes de qualquer commit/resumo):
+   ```bash
+   missed=$(for f in <dirs.planos>/<PLAN-NNN-slug>/tasks/T-*.md; do
+     awk '/^---/{c++; next} c==1 && /^status: (pendente|em-andamento)/{print FILENAME; exit}' "$f"
+   done)
+   ```
+   Se `$missed` nao-vazio: ABORTAR com erro `executor-incomplete: <lista>` e mensagem orientando re-rodar `*execute-plan PLAN-NNN-<slug>` ou `--task T-NNN-NN` para as restantes. NAO preparar commit; NAO devolver "execucao concluida".
 
 1. Listar arquivos modificados via `git diff --name-only`.
 2. Preparar commit (NAO push). Mensagem segue Conventional Commits + referencia ao `PLAN-NNN-slug`. Se houve tasks bloqueadas, citar na mensagem (ex.: `feat(checkout): PLAN-042 T-01..T-05 (T-06,T-07 bloqueadas backend CU-XXX)`).
