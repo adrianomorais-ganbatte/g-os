@@ -21,9 +21,41 @@ validated_at: null
 
 ## Componentes mapeados
 
-| Elemento | Componente do DS | Story (path) | Variant | Props |
-|----------|------------------|--------------|---------|-------|
-|          |                  |              |         |       |
+| Elemento | Componente do DS | Story (path) | Variant | Props | Comportamento |
+|----------|------------------|--------------|---------|-------|---------------|
+|          |                  |              |         |       |               |
+
+> Coluna `Comportamento` é **obrigatória** quando o elemento é interativo (row clicável, botão, input, drawer/modal/popup trigger). Refinamentos cosméticos da página (bg, border, padding) NÃO entram aqui — vão para `## Page-level overrides`.
+
+## Interações & Estados
+
+> Cobre o `INTERACOES` do prompt. Cada bullet = um caminho do usuário (trigger → ação → resultado/estado). `validate-plan` cruza essa lista contra tasks com `interaction_target:` no frontmatter.
+
+Fluxos por trigger:
+
+1. <ex: Lista → Row click → Drawer abre `mode=view` com record.id → fechar (X ou backdrop) → volta lista>
+2. <ex: Lista → "Novo X" → Drawer abre `mode=create` vazio → Salvar → POST /x → fecha + refetch + toast>
+3. <ex: Toolbar → mudar filtro Período → debounce 300ms → refetch query>
+
+Estados visuais por componente (skeleton / empty / error / loading):
+
+- <ex: Tabela: skeleton 5 rows enquanto fetch; empty state com ilustração + CTA "Criar primeiro X">
+- <ex: Drawer Salvar: estado loading com spinner + disabled durante POST>
+- <ex: Toolbar refresh: ícone gira durante refetch>
+
+## Page-level overrides
+
+> Refinamentos do Figma da página que divergem da story canônica. **Política**: Figma da página vence a story em conflitos cosméticos (bg, border, padding, radius). Cada override é uma decisão (a/b/c).
+
+| Componente | Override observado | Decisão | Ação |
+|------------|--------------------|---------|------|
+|            |                    |         |      |
+
+Decisões possíveis:
+
+- **(a) className na página** — override cosmético e isolado; mantém story padrão e aplica via classe na composição da página.
+- **(b) Nova variant na story** — override aparece em ≥3 telas do projeto; vira variant reusável (ex.: `flat`, `seamless`).
+- **(c) Exceção documentada** — override específico desta tela e não merece variant; documentado aqui sem propagar pra story.
 
 ## Componentes ausentes
 
@@ -73,6 +105,12 @@ validated_at: null
 - [ ] **Visual gate**: cada componente mapeado tem story em `dirs.stories/`
 - [ ] **Visual gate**: anatomia, tokens e densidade batem com a story canônica (≤ 1 desvio menor documentado em `T-NNN-NN.notes.md`)
 - [ ] **Visual gate**: árvore JSX da tela espelha hierarquia do Figma (mesmas seções, mesma ordem)
+- [ ] **Comportamentos**: cada linha de "Interações & Estados" tem implementação testável (handler conectado, refetch disparando, estado visual renderizado)
+- [ ] **Overrides**: cada linha de "Page-level overrides" foi resolvida pela decisão registrada (a/b/c)
+- [ ] **Variants**: story canônica reflete novas variants criadas (decisões `b`)
+- [ ] **States**: skeleton/empty/error/loading implementados conforme matriz acima
+- [ ] **Refetch**: dispara após mutações (POST/PATCH/DELETE)
+- [ ] **Seed**: popula TODOS os campos exibidos no Figma (sem `-` em colunas mapeadas)
 - [ ] <critério específico da tela 1>
 - [ ] <critério específico da tela 2>
 

@@ -28,10 +28,11 @@ $ARGUMENTS
 Campos obrigatórios no prompt:
 - `OBJETIVO` — `implantacao` | `correcao` | `refactor`
 - `FIGMA` — URL do frame principal (auto-ativa Figma MCP)
+- `INTERACOES` — lista estruturada de interações da tela (`<Elemento> — <trigger> → <ação> → <resultado>`). **Obrigatório quando a tela tem table com row clicável OU drawer/modal/popup OU botão que dispara ação assíncrona**. `gos-master` recusa o `*plan` se vazio nessas condições.
 
 Opcionais:
 - `FIGMA+` — lista de URLs de componentes
-- `NOTAS` — prosa livre (comportamento, edge cases, invioláveis)
+- `NOTAS` — prosa livre (invioláveis, edge cases, contexto adicional)
 - `ASSIGNEE` — override do user_id ClickUp para tasks de backend (default: 112010775)
 
 Auto-resolvido pelo `gos-master` (comprehension gate, NÃO pedir ao usuário):
@@ -84,12 +85,36 @@ Caso contrário: trabalhar pela descrição/screenshot fornecido.
 
 Produzir tabela:
 
-| Elemento (Figma/descrição) | Componente do DS | Story (path) | Variant | Props relevantes |
-|----------------------------|------------------|--------------|---------|-------------------|
+| Elemento (Figma/descrição) | Componente do DS | Story (path) | Variant | Props relevantes | Comportamento |
+|----------------------------|------------------|--------------|---------|-------------------|---------------|
 
 A coluna `Story (path)` aponta para `.stories.tsx` indexado no gate. Componente sem story correspondente NÃO entra na tabela — vai pra "Componentes ausentes" e gera task de criação.
 
+Coluna `Comportamento` é obrigatória quando o elemento é interativo. Refinamentos cosméticos (bg, border, padding) NÃO entram aqui — vão para `## Page-level overrides` (Fase 1.4 abaixo).
+
 Listar **componentes ausentes** separadamente — sinalizar como bloqueio ou candidato a criação (vai virar task própria).
+
+### 1.4 Comportamentos & Overrides
+
+Sub-fase nova que materializa intenção de uso e divergência Figma↔Storybook:
+
+1. **Interações & Estados** (`## Interações & Estados` no plano):
+   - Lê `INTERACOES` do input. Se ausente E a tela tem table/drawer/modal/popup detectado em Figma MCP (layer names contendo `Drawer|Modal|Dialog|Popup|Sheet`) ou em `dirs.app` (página equivalente já existente): **bloqueia** a geração e devolve `AskUserQuestion` estruturado pedindo as interações com 3 exemplos pré-preenchidos (clickable row, submit, filtro).
+   - Reconcilia `INTERACOES` com Figma MCP prototype connections quando disponíveis (`figma.connections` revela frame→frame transitions). Conflito → prefere `INTERACOES` do usuário (intenção declarada).
+   - Cada bullet vira identificável (slug curto: `row-click-drawer-view`, `submit-create`, `filter-periodo`) — esses slugs são referenciados por `interaction_target:` nas tasks.
+   - Mapa de estados visuais (skeleton/empty/error/loading) por componente é obrigatório quando a tabela "Componentes mapeados" inclui Tabela ou Form.
+
+2. **Page-level overrides** (`## Page-level overrides` no plano):
+   - Para cada componente da tabela "Componentes mapeados": confronta CSS aplicado no Figma da página (padding, border, bg, radius, shadow) contra props/classes da story canônica em `.stories.tsx`.
+   - Diff cosmético vira linha em `## Page-level overrides` com decisão sugerida pela heurística:
+     - Override aparece em ≥3 telas do projeto (grep em `dirs.app`): **(b) nova variant na story**.
+     - Override aparece só nesta tela: **(a) className na página**.
+     - Override é workaround conhecido / hack temporário: **(c) exceção documentada**.
+   - Slugs curtos (`StatCard:flat-variant`, `Drawer:no-outer-border`) são referenciados por `override_target:` nas tasks.
+
+Política Figma vs Storybook (ver Fase 2):
+
+> Story define API/anatomia do componente; refinamentos cosméticos da página são aceitos via override registrado em `## Page-level overrides`. **Em conflito visual, Figma da página vence**.
 
 ## Fase 2 — Aderência à Stack
 
@@ -127,6 +152,12 @@ Para cada elemento mapeado:
 2. Lógica de fetching (onde o data source é chamado)
 3. Montagem da view (composição dos componentes do DS)
 4. Estado e interatividade (client components estritamente onde necessário)
+
+Regras de geração de tasks (cobertura de comportamento + overrides):
+
+- Toda interação em `## Interações & Estados` deve gerar **ao menos 1 task** com `interaction_target:` apontando pra ela. Se uma task cobre múltiplas interações, listar todos os slugs.
+- Toda linha de `## Page-level overrides` com decisão **(b)** gera task de variant na story (`area: ui-ux`, `agent:ux-design-expert`); decisões **(a)** e **(c)** geram tasks na página (`area: frontend`, `agent:dev`). Em ambos os casos, frontmatter da task declara `override_target:` apontando pro slug.
+- Tasks de seed data (quando aplicável — Tabela ou Form com fields no Figma) declaram fields obrigatórios e referenciam o checklist "Seed popula TODOS os campos exibidos".
 
 ## Subdivisão automática
 
@@ -169,7 +200,8 @@ Próximos passos:
 - **Backend read-only respeitado**: se `stack.md` declara backend read-only, plano NUNCA propõe schema novo.
 - **Next.js App Router**: decisão server vs client é explícita por elemento.
 - **Sem prosa decorativa**: plano deve ser executável, denso, com critérios mensuráveis.
-- **Storybook como contrato**: cada componente do DS na tabela DEVE apontar `.stories.tsx` existente em `dirs.storybook`. Sem story → componente vai pra "Componentes ausentes" e gera task de criação. Sem essa disciplina, o visual gate do `*execute-plan` quebra.
+- **Storybook como contrato base; Figma da página como contrato final**: cada componente do DS na tabela DEVE apontar `.stories.tsx` existente em `dirs.storybook`. Sem story → componente vai pra "Componentes ausentes" e gera task de criação. **Em conflito visual entre story e Figma da página, Figma vence** — divergência cosmética é registrada em `## Page-level overrides` com decisão a/b/c (não vira retrabalho no fim).
+- **Comportamento mapeado é obrigatório**: tela com table-clicável/drawer/modal/popup sem `INTERACOES` no input bloqueia plan generation (`AskUserQuestion`). Sem essa disciplina, o caso PLAN-005 (54 deltas em 26 rodadas de feedback) repete.
 
 ## Model guidance
 
