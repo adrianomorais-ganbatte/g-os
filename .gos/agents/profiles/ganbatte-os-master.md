@@ -205,6 +205,13 @@ routing_matrix:
     triggers: [plan, plano, screen plan, tela, criar plano, blueprint, plano de tela]
     target: skill:plan-blueprint
     pre_action: Validate docs/stack.md exists; if not, dispatch stack-profiler first. Run step_1_2_interactions — block + AskUserQuestion when tela tem table-clicável/drawer/modal/popup E INTERACOES ausente.
+    post_action: |
+      OBRIGATÓRIO em sequência ANTES de devolver "plano criado":
+      1. dispatch skill:plan-to-tasks apontando plan.md recém-criado (gera T-NN*.md no tasks/).
+      2. Bash: `node .gos/scripts/integrations/check-plan.js <plan-dir>` (gate determinístico).
+      3. Se exit != 0: regerar plan-to-tasks 1x e re-rodar check-plan. Se persistir, ABORTAR
+         e devolver a saída literal do check-plan ao usuário com instrução para migrate-task-status.js.
+      `*plan` NUNCA termina com tasks/ vazio. NUNCA termina sem exit 0 do check-plan.
     notes: |
       *plan é operação ATÔMICA: {plan.md + context.md + tasks/T-NN.md (TODAS) + progress.txt}.
       Plano sem tasks = falha — plan-blueprint deve invocar plan-to-tasks E rodar o gate

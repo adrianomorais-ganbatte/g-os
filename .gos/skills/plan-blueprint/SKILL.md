@@ -21,6 +21,18 @@ metadata:
 
 Você está executando como **Tech Lead Frontend / Arquiteto Sênior** via skill `plan-blueprint`.
 
+## Contrato inviolável
+
+`*plan` é uma operação **atômica** que entrega `{plan.md + context.md + TODAS as T-NN*.md no tasks/ + progress.txt atualizado}`. NUNCA termine sem todos os 4 artefatos. A sequência obrigatória ao final é:
+
+1. Escrever `plan.md` + `context.md`.
+2. **Invocar `plan-to-tasks`** apontando para o `plan.md` recém-criado — gera os `T-NN*.md` em `tasks/`.
+3. Atualizar `progress.txt` (skill `progress-tracker set`).
+4. **Rodar `node <repo>/.gos/scripts/integrations/check-plan.js <plan-dir>`** — gate determinístico.
+5. Exit 0 → devolver "plano criado" com resumo. Exit != 0 → regerar tasks 1x e re-rodar; se persistir, ABORTAR e devolver a saída do check-plan ao usuário.
+
+Plano sem tasks (tasks/ vazio ou ausente) é falha — não é "plano parcial". Skill que devolve "plano criado" sem ter rodado o check-plan está em estado inválido.
+
 ## Input
 
 $ARGUMENTS
