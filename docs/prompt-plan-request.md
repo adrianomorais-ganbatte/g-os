@@ -2,7 +2,7 @@
 
 > Invocação canônica: `/gos:agents:gos-master`. Plano vive em
 > `<PROJETO>/docs/plans/PLAN-NNN-<tela>/plan.md`.
-> **Sempre dois turns**: `*plan` (gera) → `*execute-plan` (executa, no Codex IDE).
+> Ciclo: `*plan` (Opus) → `*execute-plan` (Codex) → `*validate-plan` (Opus).
 
 ---
 
@@ -13,91 +13,51 @@
 
 OBJETIVO   = {{implantacao | correcao | refactor}}
 FIGMA      = {{url-frame-principal}}
-FIGMA+     = [{{url-comp-1}}, {{url-comp-2}}]    # opcional
+FIGMA+     = [{{url-comp-1}}, ...]              # opcional
 INTERACOES = """
 - <Elemento> — <trigger> → <ação> → <resultado/estado>
-- ex: Row da tabela — click → abre drawer mode=view com dados do projeto
-- ex: Botão "Novo projeto" — click → abre drawer mode=create vazio
-- ex: Drawer footer "Salvar" — click → POST /projetos → fecha drawer + refetch list
-- ex: Combobox UF — type → filtra options client-side (acentos preservados)
-- ex: Select Tipo — change → atualiza queryParam, refetch list
+- ex: Row — click → drawer mode=view com record.id
+- ex: Botão "Salvar" — submit → POST /x → fecha + refetch + toast
+- ex: Select Período — change → debounce 300ms → refetch query
 """
-NOTAS      = """{{prosa livre — invioláveis, edge cases, contexto adicional}}"""
+NOTAS      = """{{invioláveis, edge cases, contexto}}"""   # opcional
 ```
 
-`OBJETIVO` é obrigatório. `INTERACOES` é **obrigatório** quando a tela tem table com row clicável OU drawer/modal/popup OU botão que dispara ação assíncrona — `gos-master` recusa o `*plan` e abre `AskUserQuestion` se o campo estiver vazio nessas condições. Tudo o mais é auto-resolvido (ver abaixo).
+`OBJETIVO` é obrigatório.
 
-### Padrões comuns de `INTERACOES`
+`INTERACOES` é **obrigatório** quando a tela tem table com row clicável OU drawer/modal/popup OU botão que dispara ação assíncrona. `gos-master` recusa o `*plan` (`AskUserQuestion` estruturado) se vazio nessas condições.
 
-| Padrão | Exemplo |
-|--------|---------|
-| Clickable row | `Row — click → drawer mode=view com record.id` |
-| Drawer create-only | `Botão "Novo X" — click → drawer mode=create vazio` |
-| Drawer shared (create/view/edit) | `Botão Eye — click → drawer mode=view; botão Edit no drawer → muda mode=edit` |
-| Modal de confirmação | `Botão Delete — click → modal "Tem certeza?" → confirm → DELETE /x → refetch` |
-| Filtro toolbar | `Select Período — change → debounce 300ms → atualiza queryParam → refetch` |
-| Submit assíncrono | `Form Salvar — submit → loading + disabled → POST /x → toast + refetch + close` |
-| Empty / loading state | `Tabela sem dados → empty state com CTA; durante fetch → skeleton 5 rows` |
-| Refetch após mutação | `Após POST/PATCH/DELETE → invalidateQueries(['x']) ou router.refresh()` |
-
----
-
-## O que o `gos-master` resolve sozinho (não precisa colar)
-
-Na fase de comprehension, antes de gerar o plano, o orquestrador:
-
-1. **PROJETO** — usa o `cwd` do projeto. Se ambíguo (monorepo na raiz), pergunta uma vez e salva em `~/.claude/.gos-state/last-project.json` para reuso silencioso nos próximos `*plan`.
-2. **WORK_BRANCH** — regra fixa:
-   - `OBJETIVO=implantacao|correcao|refactor` na app → `dev`
-   - tela é Storybook (path bate com `dirs.storybook`) → `feat/storybook`
-3. **STORYBOOK_DIR / STORYBOOK_BRANCH** — de `<PROJETO>/.gos-local/plan-paths.json` (`dirs.storybook`, `knowledge_sources.storybook_branch`).
-4. **BUSINESS_RULES** — indexa `<PROJETO>/docs/regras-de-negocio/` e registra inventário em `progress.txt` na seção `## Knowledge mapped — PLAN-NNN`.
-5. **POSTMAN** — indexa `<PROJETO>/docs/postman/` (contrato backend canônico) e registra inventário no mesmo bloco do progress.
-6. **BACKEND / RLS / SEED / SMOKE_E2E** — derivado de `docs/stack.md` + regras-de-negocio + Postman mapeados.
-
-> Workspaces sem `regras-de-negocio/` ou `postman/` não bloqueiam — só ficam fora do contexto. Storybook ausente segue bloqueando (regra do visual gate).
-
----
-
-## Comportamentos novos do `OBJETIVO`
-
-| Objetivo | Postura do `plan-blueprint` |
-|----------|------------------------------|
-| `implantacao` | Cria do zero — fluxo padrão (Fase 1 → 2 → 3) |
-| `correcao` | Modo cirúrgico — diff vs Storybook canônico, 1 task por componente, sem reescrever |
+| OBJETIVO | Postura |
+|----------|---------|
+| `implantacao` | Cria do zero (Fase 1 → 2 → 3) |
+| `correcao` | Cirúrgico — diff vs Storybook canônico, 1 task por componente |
 | `refactor` | Implica `--allow-arch-change` + ADR obrigatória |
 
 ---
 
-## Backend gaps → tasks ClickUp automáticas
+## O que `gos-master` resolve sozinho
 
-Postman é o **contrato**: quando o `*plan` detecta uma necessidade de endpoint que não existe (ou existe incompleto / sem o shape exigido pela tela), abre task no ClickUp automaticamente:
+No comprehension gate (não pedir ao usuário): `PROJETO` (cwd ou `~/.claude/.gos-state/last-project.json`); `WORK_BRANCH` (app → `dev`, Storybook → `feat/storybook`); `STORYBOOK_DIR/BRANCH`, `BUSINESS_RULES`, `POSTMAN`, `BACKEND/RLS/SEED` (de `.gos-local/plan-paths.json` + `docs/stack.md` + `docs/regras-de-negocio/` + `docs/postman/`).
 
-- **Assignee**: Douglas Oliveira (`112010775`).
-- **Título**: `[Backend] PLAN-NNN: <gap em uma linha>`
-- **Descrição**: o que a tela precisa, qual endpoint/coleção do Postman cobre (ou não), referência ao plano.
-- **List**: a backend list do projeto (resolvida via `.gos-local/plan-paths.json` → `clickup.backend_list_id`).
-- **IDs criados**: registrados no plano em `## Backend pendings` e em `progress.txt`.
-
-Override opcional no prompt: `ASSIGNEE = {{user-id}}` se quiser atribuir a outro dev.
+Storybook ausente bloqueia (regra do visual gate). Postman/regras-de-negocio ausentes não bloqueiam — só ficam fora do contexto.
 
 ---
 
-## Executar o plano (turn separado)
+## Backend gaps → ClickUp automático
 
-> Pré-checagem: `ls <PROJETO>/docs/plans/PLAN-NNN-<tela>/plan.md`
+Postman é o contrato: endpoint inexistente / shape divergente vira task ClickUp pro Douglas (`assignee=112010775`, override via `ASSIGNEE`). IDs registrados em `## Backend pendings` do `plan.md` + `progress.txt`. `--skip-clickup` desliga.
+
+`*execute-plan` é **non-blocking**: tasks frontend com `depends_on_backend:` apontando pra gap aberto viram `bloqueada-backend`; demais seguem.
+
+---
+
+## Executar e validar
 
 ```
 /gos:agents:gos-master *execute-plan PLAN-NNN-{{TELA}}
 ```
 
-> Ambiente: **Codex IDE Extension** (executor). Visual gate roda por task. **Non-blocking em backend gaps**: tasks com `depends_on_backend:` apontando pra gap aberto no ClickUp ficam `bloqueada-backend` (não trava as outras); demais tasks frontend seguem.
-
----
-
-## Validar implementação (turn pós-execute)
-
-Quando `*execute-plan` finalizar (tasks em `validacao` + commit preparado), rode:
+> **Codex IDE Extension** (executor). Visual gate por task contra Storybook canônico. Pre-flight smoke (screenshot vs Figma frame) quando Storybook story-da-página OU Playwright MCP disponível.
 
 ```
 /gos:agents:gos-master *validate-plan PLAN-NNN-{{TELA}}
@@ -105,43 +65,26 @@ Quando `*execute-plan` finalizar (tasks em `validacao` + commit preparado), rode
 NOTAS = """<opcional — desvios conhecidos, contexto de QA>"""
 ```
 
-> Ambiente: **Opus 4.7** (revisor). Compara checklist + diff staged + Storybook canônico, marca `concluido` automaticamente o que passa, mantém em `validacao` o que falha, lista backend pendings com ClickUp IDs. **Não dá push** — push é ato consciente humano (`git push`).
-
-Variante curta (alias livre, sem registro de skill — gera o mesmo turn):
-
-```
-plano implementado, revise e garanta que foi 100% aplicado e sem gaps
-
-{{plano}} = PLAN-NNN-{{TELA}}
-
-se tiver sido concluida, marque como concluida com anotações se fizer sentido adicionais da execução
-
-/gos:agents:gos-master
-```
+> **Opus 4.7** (revisor). Compara checklist + diff staged + Storybook curto + cobertura de `interaction_target`/`override_target`. Auto-marca `concluido` o que passa. **Não dá push** — push é manual (`git push`).
 
 ---
 
-## Exemplos
+## Exemplo
 
-**Implantação nova:**
 ```
 /gos:agents:gos-master *plan pagina-projetos-inicial
 
 OBJETIVO   = implantacao
-FIGMA      = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25387
-FIGMA+     = [
-  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25389,
-  https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25392
-]
+FIGMA      = https://www.figma.com/design/.../FRACTUS?node-id=9140-25387
+FIGMA+     = [https://...node-id=9140-25389, https://...node-id=9140-25392]
 INTERACOES = """
-- Row da tabela — click → abre drawer mode=view com record.id
+- Row da tabela — click → drawer mode=view com record.id
 - Ícone Eye da row — click → mesmo comportamento (atalho)
-- Botão "Novo projeto" — click → abre drawer mode=create vazio
-- Drawer "Salvar" (mode=create) — click → POST /projetos → fecha + refetch + toast
-- Drawer "Salvar" (mode=edit) — click → PATCH /projetos/:id → fecha + refetch + toast
+- Botão "Novo projeto" — click → drawer mode=create vazio
+- Drawer "Salvar" (create) — submit → POST /projetos → fecha + refetch + toast
+- Drawer "Salvar" (edit) — submit → PATCH /projetos/:id → fecha + refetch + toast
 - Toolbar filtro Período — change → debounce 300ms → refetch query
-- Toolbar refresh — click → ícone gira durante refetch
-- Tabela sem dados → empty state com CTA "Criar primeiro projeto"; durante fetch → skeleton 5 rows
+- Tabela vazia → empty state com CTA "Criar primeiro projeto"; durante fetch → skeleton 5 rows
 """
 NOTAS = """
 Drawer único entre criar/visualizar/editar — só o título e o footer mudam (prop `mode`).
@@ -149,56 +92,13 @@ Stack inalterada — usa server actions já existentes em src/app/projetos/actio
 """
 ```
 
-**Correção (plano filho):**
-```
-/gos:agents:gos-master *plan pagina-projetos-fix --parent PLAN-001-pagina-projetos-inicial
-
-OBJETIVO = correcao
-FIGMA    = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25387
-NOTAS    = """
-Diff cirúrgico vs Storybook canônico. 1 task por componente.
-Invioláveis: drawer único com prop `mode`; stack inalterada.
-"""
-```
+Plano filho: adicionar `--parent PLAN-NNN-<slug>` ao comando.
 
 ---
 
-## Flags úteis
+## Referência
 
-| Flag | Quando usar |
-|------|-------------|
-| `--from-figma-mcp` | Forçar leitura via Figma MCP (default quando `FIGMA=` URL Figma) |
-| `--allow-arch-change` | Implícito em `OBJETIVO=refactor` |
-| `--parent PLAN-NNN` | Plano filho |
-| `--no-progress` | Não atualizar `progress.txt` (raro) |
-| `--skip-storybook-sync` | Pular pre-flight Storybook (no `*plan`) |
-| `--skip-visual-gate` | Pular comparação 1:1 com `.stories.tsx` (no `*execute-plan`, raro) |
-| `--skip-clickup` | Não criar tasks de backend automáticas |
-
----
-
-## Visual gate — DoD do `*execute-plan`
-
-Por componente alterado/criado, compara contra `<Componente>.stories.tsx` em `dirs.storybook`:
-
-- **Anatomia**: ordem de slots/elementos.
-- **Tokens**: classes Tailwind/CSS batem com DS.
-- **Variants**: props expostos cobrem variants da story.
-- **Densidade**: padding/gap dentro de ±1 step da escala do DS.
-
-E cruza JSX da tela com Figma MCP (mesmas seções, mesma ordem).
-
-Output: `tasks/T-NNN-NN.notes.md`. Divergência crítica → falha o gate, task volta a `em-andamento`.
-
----
-
-## Depois que o plano existe
-
-```
-*progress show                                # estado atual
-*progress status T-NN-NN em-andamento         # iniciar task
-*progress status T-NN-NN validacao            # commit preparado, sem push
-*progress status T-NN-NN bloqueada-backend    # set automatico pelo *execute-plan quando depends_on_backend aberto
-*progress status T-NN-NN concluido            # marcado automaticamente pelo *validate-plan; manual aceito tambem
-*progress status T-NN-NN pendente --rollback  # rollback humano
-```
+- Flags adicionais (`--from-figma-mcp`, `--allow-arch-change`, `--no-progress`, `--skip-storybook-sync`, `--skip-visual-gate`, `--skip-clickup`): ver `.gos/skills/plan-blueprint/SKILL.md` e `.gos/skills/execute-plan/SKILL.md`.
+- Visual gate (5 dimensões: anatomia, tokens, variants, densidade, comportamentos): ver `.gos/skills/execute-plan/SKILL.md`.
+- State machine + comandos `*progress`: ver `.gos/skills/progress-tracker/SKILL.md`.
+- Pipeline completo end-to-end: ver `.gos/playbooks/plan-creation-playbook.md`.
