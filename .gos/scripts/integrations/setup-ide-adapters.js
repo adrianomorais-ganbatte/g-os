@@ -29,7 +29,8 @@ function agentSlug(id) {
 function cleanupStaleAdapters() {
   // Remove arquivos .md soltos no root de skills/ (formato legado) em todas as IDEs.
   // Codex/Qwen/Gemini/Opencode/Antigravity esperam <slug>/SKILL.md (diretorio), nao .md solto.
-  const allIdes = ['.codex', '.qwen', '.gemini', '.opencode', '.antigravity'];
+  // .agent e o diretorio canonico do Antigravity (workspace scope: .agent/skills/, .agent/workflows/).
+  const allIdes = ['.codex', '.qwen', '.gemini', '.opencode', '.agent'];
   for (const ide of allIdes) {
     const skillsDir = path.join(root, ide, 'skills');
     if (fs.existsSync(skillsDir)) {
@@ -48,6 +49,13 @@ function cleanupStaleAdapters() {
         }
       }
     }
+  }
+
+  // Legado: .antigravity/ era o diretorio errado (Antigravity nunca leu isso — usa .agent/).
+  // Remove silenciosamente para evitar drift entre IDEs.
+  const legacyAntigravity = path.join(root, '.antigravity');
+  if (fs.existsSync(legacyAntigravity)) {
+    fs.rmSync(legacyAntigravity, { recursive: true, force: true });
   }
 }
 
@@ -147,12 +155,21 @@ function main() {
     const codexAgentTarget = relativeTarget(codexAgent, agentProfilePath);
     writeFile(codexAgent, `---\nname: "${aSlug}"\ndescription: "${safeDesc}"\nmodel: inherit\ntools:\n  - Read\n  - Glob\n  - Grep\n  - Bash\n  - Edit\n  - Write\n---\n\nFonte canonica: \`${codexAgentTarget}\`\nLeia e siga o perfil em \`${codexAgentTarget}\`.`);
 
-    // Codex / Antigravity / Gemini / Opencode usam namespace plano gos-<slug> em skills/.
+    // Codex / Antigravity (.agent/) / Gemini / Opencode usam namespace plano gos-<slug> em skills/.
     // Agents aparecem no mesmo picker se emitidos como wrapper SKILL.md em skills/.
-    for (const ide of ['.codex', '.antigravity', '.gemini', '.opencode']) {
+    for (const ide of ['.codex', '.agent', '.gemini', '.opencode']) {
       const ideAgentSkill = path.join(root, ide, 'skills', aSlug, 'SKILL.md');
       writeFile(ideAgentSkill, skillWrapper(agent.id, relativeTarget(ideAgentSkill, agentProfilePath), agentDesc));
     }
+
+    // Antigravity workflows (.agent/workflows/<id>.md) — slash command invocation no picker.
+    const antigravityWorkflow = path.join(root, '.agent', 'workflows', `${agent.id}.md`);
+    const workflowTarget = relativeTarget(antigravityWorkflow, agentProfilePath);
+    const safeAgentDesc = agentDesc.replace(/"/g, '\\"').replace(/\n/g, ' ').slice(0, 200);
+    writeFile(
+      antigravityWorkflow,
+      `---\ndescription: "${safeAgentDesc}"\n---\n\n# /${agent.id} (Antigravity Workflow)\n\nFonte canonica: \`${workflowTarget}\`\n\nLeia o arquivo canonico apontado em CANONICAL-SOURCE e execute as instrucoes como fonte primaria.\n\nCANONICAL-SOURCE: ${workflowTarget}\n\nArgumentos do usuario seguem o prompt do agente.`
+    );
   }
 
   for (const skill of skills) {
@@ -160,7 +177,7 @@ function main() {
     const canonicalPath = path.join(root, '.gos', skillTargetPath);
     const claudeSkill = path.join(root, '.claude', 'commands', 'gos', 'skills', `${skill.slug}.md`);
     const codexSkill = path.join(root, '.codex', 'skills', `gos-${skill.slug}`, 'SKILL.md');
-    const antigravitySkill = path.join(root, '.antigravity', 'skills', `gos-${skill.slug}`, 'SKILL.md');
+    const antigravitySkill = path.join(root, '.agent', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const geminiSkill = path.join(root, '.gemini', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const opencodeSkill = path.join(root, '.opencode', 'skills', `gos-${skill.slug}`, 'SKILL.md');
     const qwenSkill = path.join(root, '.qwen', 'skills', `gos-${skill.slug}`, 'SKILL.md');
@@ -181,42 +198,10 @@ function main() {
     writeFile(claudeSkill, claudeCommandWrapper(`gos-${skill.slug}`, skillDesc, relativeTarget(claudeSkill, canonicalPath), skillArgHint, 'Claude'));
   }
 
-  const antigravityInstructions = [
-    '# G-OS Antigravity Instructions',
-    '',
-    'Leia sempre:',
-    '- `AGENTS.md`',
-    '- `CLAUDE.md`',
-    '- `.gos/docs/toolchain-map.md`',
-    '',
-    'Agentes disponiveis:',
-    ...agents.map((agent) => `- ${agent.id}`),
-    '',
-    'Skills curadas:',
-    ...skills.map((skill) => `- ${skill.slug}`),
-    '',
-    '## Como invocar Skills',
-    '',
-    'Para usar uma skill, leia o arquivo canonico e siga suas instrucoes.',
-    'Skills tambem disponiveis como adapters em `.antigravity/skills/`.',
-    '',
-    '| Skill | Arquivo canonico |',
-    '|-------|-----------------|',
-    ...skills.map((skill) => `| \`gos-${skill.slug}\` | \`.gos/${skill.skillFile || skill.path}\` |`)
-  ].join('\n');
-
-  writeFile(path.join(root, '.antigravity', 'instructions.md'), antigravityInstructions);
-  writeFile(
-    path.join(root, '.antigravity', 'config.json'),
-    JSON.stringify(
-      {
-        project: 'g-os',
-        instructions: ['instructions.md', '../AGENTS.md', '../CLAUDE.md']
-      },
-      null,
-      2
-    )
-  );
+  // Antigravity le AGENTS.md no root do workspace (ja existe no projeto).
+  // Skills vivem em .agent/skills/<slug>/SKILL.md (workspace scope, registrado acima no loop).
+  // Workflows (.agent/workflows/<id>.md) sao slash commands no picker da IDE.
+  // Rules opcionais em .agent/rules/ — nao geramos automaticamente (regras vivem no AGENTS.md).
 
   // Codex IDE Extension — AGENTS.md + config.toml
   // Codex e o ambiente de EXECUCAO (Opus planeja, Codex executa). Bloco abaixo garante
