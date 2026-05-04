@@ -58,9 +58,16 @@ Para cada `T-NNN-NN-*.md` em `validacao`:
    c) Output: append em `tasks/T-NNN-NN.notes.md` na secao `## Validate run <iso>`.
 2. **Confronto diff x mapeamento**: arquivos alterados pela task estao listados em "Componentes mapeados" do plano? Arquivos fora do mapeamento -> warning (nao falha por padrao).
 3. **Checklist da task (DoD)**: ler `## Criterios de aceitacao` da task. Itens nao marcados (`[ ]`) = falha automatica.
-4. **Resultado**:
-   - **Tudo bate** -> `*progress status T-NNN-NN concluido` (auto-marca; rollback humano via `*progress status T-NNN-NN pendente --rollback` se necessario).
-   - **Falha** -> mantem `validacao`, registra divergencia em `T-NNN-NN.notes.md` secao `## Validate run <iso>`, devolve `current=` no progress apontando pra essa task.
+4. **Triagem da falha (regra: backend nao impacta frontend)**: quando algum item falha, **classificar a causa-raiz** antes de decidir o estado:
+   - Causa **frontend** (componente faltando, classe errada, handler ausente, anatomia divergente, token errado, comportamento mapeado sem implementacao no diff): **falha real do frontend** -> mantem `validacao`, registra em `T-NNN-NN.notes.md`.
+   - Causa **backend** (smoke falha por ACL/visibilidade/permissao por perfil; dados ausentes no DB; endpoint nao retorna o shape esperado; coluna `-` por seed incompleto fora do escopo da task; perfil/role sem acesso ao recurso): **NAO e falha do frontend**. Acao:
+     a) Marcar a task como `concluido` se o codigo frontend esta correto (passou nas 3 dimensoes do gate curto).
+     b) Abrir/atualizar entrada em `## Backend pendings` do `plan.md` descrevendo o gap (ex.: `acl-lideranca-projetos-detalhe`, `seed-area-projeto`, `endpoint-projetos-detalhes-by-perfil`).
+     c) Criar/atualizar task ClickUp via `mcp__clickup__clickup_create_task` (assignee `112010775`, list `clickup.backend_list_id`). Gravar `ClickUp ID` na tabela.
+     d) Registrar em `T-NNN-NN.notes.md` secao `## Validate run <iso>` o motivo da reclassificacao.
+   - Causa **ambigua** (nao da pra decidir entre fe/be sem investigacao adicional): mantem `validacao` E abre task ClickUp investigativa. NAO bloquear o plano por ambiguidade.
+
+   **Tudo bate** -> `*progress status T-NNN-NN concluido` (auto-marca; rollback humano via `*progress status T-NNN-NN pendente --rollback` se necessario).
 
 ## Fechamento do plano
 
@@ -104,6 +111,7 @@ Se `validate-plan` detectar que uma task em `validacao` claramente NAO foi imple
 ## Regras criticas
 
 - **Auto-conclusao e default**: tudo que passa em checklist + visual gate curto + diff vira `concluido` automaticamente. Rollback humano sempre disponivel.
+- **Backend nao impacta status de tasks frontend**: smoke ou e2e que falha por ACL/visibilidade/dados/endpoint NAO mantem task frontend em `validacao` — reclassifica como `concluido` (codigo OK) + abre/atualiza `Backend pendings` + ClickUp. O fechamento do plano fica bloqueado pelo ClickUp do backend, NAO pela task frontend.
 - **Sem push automatico**: commit ja preparado pelo `*execute-plan`, push e manual.
 - **State machine respeitada**: tasks `bloqueada-backend` ficam intocadas — backend tem que fechar primeiro.
 - **Backend pendings via ClickUp MCP**: se MCP indisponivel, registra warning e mantem plano em `validacao` ate humano confirmar manualmente.
