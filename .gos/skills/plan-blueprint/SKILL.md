@@ -170,12 +170,20 @@ Frontmatter linka via `parent_plan` / `children_plans`.
 
 ## Saída
 
-Para cada plano (incluindo filhos):
+Para cada plano (incluindo filhos), os 4 passos abaixo são **obrigatórios e atômicos** — `*plan` NÃO termina sem todos. Falhar qualquer um aborta com erro explícito (não retornar plano-sem-tasks ao usuário; foi exatamente isso que motivou o bug do PLAN-006).
 
 1. `<dirs.planos>/PLAN-NNN-<slug>/plan.md` — gerado a partir de `templates/planTemplate.md`. Frontmatter inclui `stack_ref: <dirs.stack>@<sha-curto>` para travar a versão da stack.
 2. `<dirs.planos>/PLAN-NNN-<slug>/context.md` — gerado a partir de `templates/contextTemplate.md`. Denso, indexado.
-3. Disparar `plan-to-tasks` automaticamente apontando para o `plan.md` recém-criado → produz tasks em `<dirs.tasks>` (resolvido com `{plan}` substituído).
+3. **Disparar `plan-to-tasks`** apontando para o `plan.md` recém-criado → produz tasks em `<dirs.tasks>` (resolvido com `{plan}` substituído). Esta chamada é **vinculante** — `*plan` é uma operação `{plano + tasks + context + progress}`, nunca só plano. Se `plan-to-tasks` falhar (gate de Phase 3.5), abortar `*plan` inteiro (não deixar plano órfão).
 4. Disparar `progress-tracker set-current` apontando o plano novo → atualiza `progress.txt`.
+
+**Pós-condições obrigatórias** (verificar antes de devolver controle ao usuário):
+
+- `<dirs.planos>/PLAN-NNN-<slug>/tasks/` existe e contém ≥1 `T-NN*.md`.
+- Para CADA `T-NN*.md`: `head -1` = `---` E grep `^status: pendente$` retorna match. Use o gate da Phase 3.5 do `plan-to-tasks`. Falha → regerar tasks; se persistir, abortar com erro explícito ao usuário citando os arquivos malformados.
+- `progress.txt` aponta para o plano novo.
+
+Se qualquer pós-condição falhar: NÃO devolver "plano criado" ao usuário. Devolver erro indicando o que falhou e como retomar.
 
 Resumo final:
 

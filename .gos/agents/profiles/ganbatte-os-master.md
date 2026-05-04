@@ -206,6 +206,12 @@ routing_matrix:
     target: skill:plan-blueprint
     pre_action: Validate docs/stack.md exists; if not, dispatch stack-profiler first. Run step_1_2_interactions — block + AskUserQuestion when tela tem table-clicável/drawer/modal/popup E INTERACOES ausente.
     notes: |
+      *plan é operação ATÔMICA: {plan.md + context.md + tasks/T-NN.md (TODAS) + progress.txt}.
+      Plano sem tasks = falha — plan-blueprint deve invocar plan-to-tasks E verificar pós-condição
+      (cada T-NN.md tem frontmatter com `status: pendente`). Bug histórico: tasks geradas sem
+      frontmatter ficavam travadas em pendente mesmo após *execute-plan rodar código (PLAN-006).
+      Corrigido em commit subsequente. Planos preexistentes: rodar migrate-task-status.js.
+
       1 tela = 1 plano. OBJETIVO obrigatório no prompt:
         - implantacao  → criar do zero (fluxo padrão)
         - correcao     → cirúrgico, diff vs Storybook, 1 task por componente
@@ -224,7 +230,7 @@ routing_matrix:
   execute_plan:
     triggers: [execute, executar plano, run plan, "*execute-plan", execute plan, executar PLAN]
     target: skill:execute-plan
-    pre_action: Validate PLAN-NNN-<slug>/plan.md exists; load stack.md; index dirs.storybook stories
+    pre_action: Validate PLAN-NNN-<slug>/plan.md exists; load stack.md; index dirs.storybook stories. Verificar que cada T-NN.md tem frontmatter com `status:` — task malformada ABORTA com instrução para rodar migrate-task-status.js.
     notes: |
       Comando primário do ambiente Codex IDE Extension.
       Ciclo Opus(plan) → Codex(execute) → Opus(validate). Roda task-a-task com state machine
@@ -233,6 +239,8 @@ routing_matrix:
       vs Figma frame antes da T-01 (gera tasks T-000-XX para gaps grandes).
       Non-blocking em backend gaps: tasks com depends_on_backend não-resolvido viram
       bloqueada-backend (ClickUp aberto pro Douglas), demais seguem.
+      Transições de status são VINCULANTES com pós-condição: cada task DEVE sair de pendente
+      antes da próxima — se o executor não chamar progress-tracker, abortar (bug PLAN-006).
 
   validate_plan:
     triggers: [validate, validar plano, "*validate-plan", validate plan, revisar plano, plano implementado]
