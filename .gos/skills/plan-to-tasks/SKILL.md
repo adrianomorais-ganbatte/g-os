@@ -49,40 +49,24 @@ For each task, create a file following o caminho resolvido em `plan-paths.json`:
 
 Naming: usar `naming.task_prefix` e `naming.seq_padding` do `plan-paths.json` (defaults: `T`, padding 3 → `T-042-001`).
 
-Use this template (from `templates/taskTemplate.md`):
+**Template — CONTRATO DURO**: a estrutura canônica vive em `templates/taskTemplate.md`. Esta skill **DEVE ler esse arquivo na Phase 1** e usar **exatamente** os campos do frontmatter de lá — sem omitir, renomear ou reordenar. NÃO reproduza template inline aqui (já causou bug onde tasks geradas não tinham `status:` no frontmatter — rastreável a planos com tasks travadas em `pendente` mesmo após execução).
 
-```markdown
----
-id: TASK-<YYYYMM>-<seq>
-title: <imperative action verb + what>
-area: <security|backend|ui-ux|routers|migrations|tests|general>
-labels: [agent:<slug>, type:<refactor|bug|feature|chore>]
-priority: <P0|P1|P2>
-estimate: "<2h|4h|1d>"
-assignees: []
-due: null
-links: []
----
+Campos obrigatórios do frontmatter (do `taskTemplate.md`, presentes em CADA T-NN.md gerado):
+- `id`, `plan_id`, `seq`, `title`, `area`, `labels`, `priority`, `estimate`
+- **`status: pendente`** — invariante. Sem isso o `progress-tracker` não consegue transicionar e o `*execute-plan`/`*validate-plan` quebram.
+- `valida_em`, `depends_on_backend: []`, `interaction_target: []`, `override_target: []`, `assignees: []`, `links: []`
 
-## Contexto
-<why this task exists — link to the source plan/ADR/PRD>
+Body: copiar as seções do `taskTemplate.md` (`## Contexto`, `## Objetivo`, `## Plano de execução`, `## Critérios de aceitação (DoD)`, `## Riscos & Rollback`) — **NÃO** adicionar seção `## Status` no body. Status vive APENAS no frontmatter.
 
-## Objetivo
-<expected result in 1-2 sentences>
+### Phase 3.5 — Verificação pós-geração (gate)
 
-## Plano de execução
-- [ ] Step 1
-- [ ] Step 2
-- [ ] Step 3
+Para cada `T-NN*.md` gerado: confirmar que `head -1` retorna `---` E o frontmatter contém literalmente `status: pendente`. Se qualquer task falhar, regerar (não prosseguir com tasks malformadas — silenciar aqui é o bug original).
 
-## Critérios de aceitação (DoD)
-- [ ] Tests/CI green
-- [ ] No regressions
-- [ ] <measurable metric: e.g., coverage ≥70% | endpoint returns <200ms | UI renders correctly on mobile>
-
-## Riscos & Rollback
-- <risk>
-- Rollback plan: <git tag/migration revert command>
+```bash
+for f in <dirs.tasks>/T-*.md; do
+  head -1 "$f" | grep -q '^---$' || { echo "FALHA frontmatter: $f"; exit 1; }
+  grep -q '^status: pendente$' "$f" || { echo "FALHA status: $f"; exit 1; }
+done
 ```
 
 ### Phase 4 — Output a summary

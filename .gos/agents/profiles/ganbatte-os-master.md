@@ -99,6 +99,7 @@ comprehension_gate:
     step_0_58_knowledge: "On *plan: index <PROJETO>/docs/regras-de-negocio/ and <PROJETO>/docs/postman/ (when present). Register inventory in progress.txt under '## Knowledge mapped — PLAN-NNN'. Ausência não bloqueia (apenas Storybook bloqueia)."
     step_0_59_backend_gaps: "On *plan: detected backend gaps (endpoint não existe no Postman, RLS incompleto, migration ausente para o shape exigido) → criar task ClickUp via mcp__clickup__clickup_create_task, assignee Douglas Oliveira (112010775) salvo override ASSIGNEE no prompt. Título: '[Backend] PLAN-NNN: <gap>'. Registrar IDs em progress.txt e plan.md (## Backend pendings). Flag --skip-clickup desliga."
     step_0_6_progress: "If progress.txt exists at the configured path: read it for active plan/task context (memória L1)."
+    step_1_2_interactions: "On *plan: detect if a tela tem table-clicável/drawer/modal/popup. Heurística: (a) Figma MCP frames com layer names contendo Drawer|Modal|Dialog|Popup|Sheet; (b) NOTAS menciona drawer/modal/popup/clickable row; (c) tela existente em dirs.app com componente equivalente (page.tsx que importa Drawer/Dialog). Se sim E INTERACOES ausente no input: BLOQUEAR plan-blueprint e disparar AskUserQuestion estruturado pedindo lista de interações com 3 exemplos pré-preenchidos (clickable row, submit assíncrono, filtro). Resposta vira entrada da Fase 1.4 do plan-blueprint (`## Interações & Estados`). Telas simples (form linear, lista read-only, página estática) NÃO acionam o bloqueio."
     step_1_document: "State what exists (current state, patterns, constraints) in factual terms"
     step_2_assess: "Determine which agent/skill/workflow is appropriate based on evidence, not assumption"
     step_3_delegate: "Route with context summary so the target has full picture"
@@ -203,13 +204,30 @@ routing_matrix:
   plan_creation:
     triggers: [plan, plano, screen plan, tela, criar plano, blueprint, plano de tela]
     target: skill:plan-blueprint
-    pre_action: Validate docs/stack.md exists; if not, dispatch stack-profiler first
+    pre_action: Validate docs/stack.md exists; if not, dispatch stack-profiler first. Run step_1_2_interactions — block + AskUserQuestion when tela tem table-clicável/drawer/modal/popup E INTERACOES ausente.
+    post_action: |
+      OBRIGATÓRIO em sequência ANTES de devolver "plano criado":
+      1. dispatch skill:plan-to-tasks apontando plan.md recém-criado (gera T-NN*.md no tasks/).
+      2. Bash: `node .gos/scripts/integrations/check-plan.js <plan-dir>` (gate determinístico).
+      3. Se exit != 0: regerar plan-to-tasks 1x e re-rodar check-plan. Se persistir, ABORTAR
+         e devolver a saída literal do check-plan ao usuário com instrução para migrate-task-status.js.
+      `*plan` NUNCA termina com tasks/ vazio. NUNCA termina sem exit 0 do check-plan.
     notes: |
+      *plan é operação ATÔMICA: {plan.md + context.md + tasks/T-NN.md (TODAS) + progress.txt}.
+      Plano sem tasks = falha — plan-blueprint deve invocar plan-to-tasks E rodar o gate
+      determinístico `node .gos/scripts/integrations/check-plan.js <plan-dir>` como ÚLTIMA
+      ação. Exit != 0 bloqueia o "plano criado" — sem barreira no LLM (script roda fora).
+      Bug histórico: tasks geradas sem frontmatter ficavam travadas em pendente mesmo após
+      *execute-plan rodar código (PLAN-006). Planos preexistentes: rodar migrate-task-status.js.
+
       1 tela = 1 plano. OBJETIVO obrigatório no prompt:
         - implantacao  → criar do zero (fluxo padrão)
         - correcao     → cirúrgico, diff vs Storybook, 1 task por componente
         - refactor     → implica --allow-arch-change + ADR
       Auto-resolve PROJETO/WORK_BRANCH/BUSINESS_RULES/POSTMAN no comprehension gate.
+      INTERACOES obrigatório quando tela tem table-clicável/drawer/modal/popup — gos-master bloqueia
+      e abre AskUserQuestion se ausente. Plano captura comportamentos (Fase 1.4 do plan-blueprint)
+      e page-level overrides (Figma da página > Storybook canônico em conflito visual).
       Backend gaps → tasks ClickUp automáticas pro Douglas (--skip-clickup desliga).
 
   progress_tracking:
@@ -220,11 +238,28 @@ routing_matrix:
   execute_plan:
     triggers: [execute, executar plano, run plan, "*execute-plan", execute plan, executar PLAN]
     target: skill:execute-plan
-    pre_action: Validate PLAN-NNN-<slug>/plan.md exists; load stack.md; index dirs.storybook stories
+    pre_action: Validate PLAN-NNN-<slug>/plan.md exists; load stack.md; index dirs.storybook stories. Verificar que cada T-NN.md tem frontmatter com `status:` — task malformada ABORTA com instrução para rodar migrate-task-status.js.
     notes: |
       Comando primário do ambiente Codex IDE Extension.
-      Ciclo Opus(plan) → Codex(execute). Roda task-a-task com state machine
-      e visual gate obrigatório contra Storybook canônico antes de validacao.
+      Ciclo Opus(plan) → Codex(execute) → Opus(validate). Roda task-a-task com state machine
+      e visual gate obrigatório (5 dimensões: anatomia, tokens, variants, densidade, comportamentos)
+      contra Storybook canônico antes de validacao. Pre-flight smoke compara screenshot da página
+      vs Figma frame antes da T-01 (gera tasks T-000-XX para gaps grandes).
+      Non-blocking em backend gaps: tasks com depends_on_backend não-resolvido viram
+      bloqueada-backend (ClickUp aberto pro Douglas), demais seguem.
+      Transições de status são VINCULANTES com pós-condição: cada task DEVE sair de pendente
+      antes da próxima — se o executor não chamar progress-tracker, abortar (bug PLAN-006).
+
+  validate_plan:
+    triggers: [validate, validar plano, "*validate-plan", validate plan, revisar plano, plano implementado]
+    target: skill:validate-plan
+    pre_action: Validate PLAN-NNN-<slug>/plan.md exists; load progress.txt
+    notes: |
+      Turn pós-execute. Para cada task em validacao, re-roda visual gate curto
+      (anatomia + tokens, sem refazer Figma MCP), confronta diff staged vs
+      Componentes mapeados, confere checklist do plano e da task.
+      Auto-marca concluido o que passa. Fecha plano quando todas tasks fecham
+      E backend pendings ClickUp estão concluídas. NÃO dá push.
 
   product_decisions:
     triggers: [PRD, requirements, product decision, scope, feature priority]
@@ -313,8 +348,11 @@ commands:
     args: "[init|show|set <plan>|status <task> <novo-status>|compact|read]"
     description: Gerencia progress.txt (memória L1) e state machine de status
   - name: execute-plan
-    args: "<PLAN-NNN-slug> [--task T-NNN-NN] [--skip-visual-gate]"
-    description: Executa plano task-a-task com visual gate obrigatório (comando primário do Codex IDE)
+    args: "<PLAN-NNN-slug> [--task T-NNN-NN] [--skip-visual-gate] [--skip-clickup]"
+    description: Executa plano task-a-task com visual gate obrigatório, non-blocking em backend gaps (Codex IDE)
+  - name: validate-plan
+    args: "<PLAN-NNN-slug> [NOTAS=...]"
+    description: Valida plano pós-execute; auto-marca concluido tasks que passam em checklist + visual gate curto + diff (Opus revisor)
 
   # Quality
   - name: check
@@ -351,7 +389,7 @@ available_squads:
   - name: git-operations
     purpose: SSH setup, quality gate, safe commit+push
 
-# ─── AVAILABLE SKILLS (19) ────────────────────────────────────
+# ─── AVAILABLE SKILLS (20) ────────────────────────────────────
 available_skills:
   - design-to-code
   - figma-implement-design
@@ -372,6 +410,7 @@ available_skills:
   - plan-blueprint
   - progress-tracker
   - execute-plan
+  - validate-plan
 
 # ─── PLAYBOOKS ────────────────────────────────────────────────
 available_playbooks:
@@ -474,7 +513,8 @@ security:
 
 - `*stack [refresh|show|drift]` - Mantém docs/stack.md
 - `*plan <tela|figma-url|descrição>` - Cria plano por tela (Opus, planejamento)
-- `*execute-plan <PLAN-NNN-slug>` - Executa plano com visual gate (Codex IDE, execução)
+- `*execute-plan <PLAN-NNN-slug>` - Executa plano com visual gate, non-blocking em backend gaps (Codex IDE, execução)
+- `*validate-plan <PLAN-NNN-slug>` - Valida plano pós-execute; auto-marca concluido (Opus, revisor)
 - `*progress [show|set|status|compact]` - Gerencia progress.txt (L1)
 
 **Framework:**

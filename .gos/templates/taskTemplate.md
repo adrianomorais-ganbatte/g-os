@@ -9,6 +9,9 @@ priority: <P0|P1|P2>
 estimate: "<2h|4h|1d>"
 status: pendente
 valida_em: <referência ao critério no checklist do plano>
+depends_on_backend: []   # opcional — gap-keys da tabela ## Backend pendings do plano pai
+interaction_target: []   # opcional — bullets de "## Interações & Estados" do plano pai que esta task implementa/preserva (ex.: ["row-click-drawer-view", "submit-create"])
+override_target: []      # opcional — linhas de "## Page-level overrides" do plano pai que esta task resolve (ex.: ["StatCard:flat-variant"])
 assignees: []
 links: []
 ---
@@ -30,7 +33,9 @@ links: []
 ## Critérios de aceitação (DoD)
 
 - [ ] Implementação atende `valida_em` do plano
-- [ ] **Visual gate aprovado** (relatório em `T-NNN-NN.notes.md` com 4 seções: anatomia, tokens, variants, densidade)
+- [ ] **Visual gate aprovado** (relatório em `T-NNN-NN.notes.md` com 5 seções: anatomia, tokens, variants, densidade, comportamentos)
+- [ ] **Comportamentos**: cada `interaction_target` declarado tem handler/estado implementado e observável no diff
+- [ ] **Overrides**: cada `override_target` declarado foi aplicado conforme decisão (a/b/c) registrada em `## Page-level overrides`
 - [ ] Tests/CI verdes
 - [ ] Sem regressões
 - [ ] <métrica específica>
