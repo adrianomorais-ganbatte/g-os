@@ -75,7 +75,19 @@ Fixa o plano ativo. Ex.: `*progress set PLAN-042-checkout`. Atualiza:
 
 ### `status <task-id> <novo-status>`
 
-Muda status de uma task. Valida via state machine. Atualiza `progress.txt` (`last_done`, `next`) e o frontmatter do task file. Se a task fechar o checklist do plano, sugere `*progress status <plan-id> validacao`.
+Muda status de uma task. Valida via state machine. Atualiza:
+
+1. **Frontmatter do task file** (campo `status:` no YAML do topo). Esta e a fonte de verdade — `execute-plan`/`validate-plan` leem dali. **NAO** atualizar/criar secao `## Status` no body.
+2. `progress.txt` (`last_done`, `next`).
+
+Pre-condicao: o task file DEVE ter frontmatter YAML valido com campo `status:`. Se ausente:
+- Detectar via `head -1` != `---` OU grep `^status:` vazio.
+- Se task tem secao `## Status` no body (formato legado bugado): abortar com mensagem `task-malformada: T-NNN-NN usa formato body-status — rodar scripts/integrations/migrate-task-status.js antes de continuar`.
+- Se nao tem nem frontmatter nem `## Status`: abortar com `task-sem-status: regenerar via plan-to-tasks`.
+
+Falha de pre-condicao NAO e silenciada — se silenciar, executor segue achando que transicionou e tasks travam em `pendente` (bug original que motivou esse contrato).
+
+Se a task fechar o checklist do plano, sugere `*progress status <plan-id> validacao`.
 
 ### `compact`
 

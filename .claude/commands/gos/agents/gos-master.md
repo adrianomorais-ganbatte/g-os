@@ -3,7 +3,7 @@ description: "ganbatte-os Master Orchestrator"
 argument-hint: "[argumentos opcionais]"
 ---
 
-# gos-gos-master (Claude Adapter)
+# gos-master (Claude Adapter)
 
 > Adapter fino para Claude. Fonte canonica: `../../../../.gos/agents/profiles/ganbatte-os-master.md`.
 

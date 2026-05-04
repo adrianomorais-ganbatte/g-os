@@ -41,7 +41,11 @@ Formato esperado:
 
 ## Loop por task
 
-Iterar tasks em `<dirs.planos>/<PLAN-NNN-slug>/tasks/` cujo frontmatter status seja `validacao`. Tasks em outros estados (pendente, em-andamento, bloqueada-backend, concluido) sao puladas com log curto.
+**Gate de formato (pre-loop)**: para cada `T-NN*.md` em `<dirs.planos>/<PLAN-NNN-slug>/tasks/`, confirmar `head -1 == "---"` E `grep -q '^status:'` no frontmatter. Tasks malformadas (sem frontmatter ou usando `## Status` no body) sao registradas como erro de plano: validate-plan ABORTA com mensagem `tasks-malformadas: <lista> — rodar scripts/integrations/migrate-task-status.js OU regerar via plan-to-tasks`. Isso evita o falso negativo onde tasks com codigo pronto aparecem `pendente` por bug de gerador (caso PLAN-006).
+
+Iterar tasks cujo frontmatter `status:` seja `validacao`. Tasks em outros estados (pendente, em-andamento, bloqueada-backend, concluido) sao puladas com log curto.
+
+**Diagnostico do bug PLAN-006**: se TODAS as tasks estao em `pendente` E `git diff --staged` ou `git log --since=<plan.created_at>` mostra alteracoes nos arquivos esperados, e provavel que `*execute-plan` rodou sem transicionar (bug do executor). Reportar como `executor-skipped-progress` e instruir humano: rodar `migrate-task-status.js --infer-from-diff` OU re-rodar `*execute-plan PLAN-NNN-<slug>` (que agora tem pos-condicao obrigatoria).
 
 Para cada `T-NNN-NN-*.md` em `validacao`:
 

@@ -90,7 +90,8 @@ Iterar tasks em ordem de `seq`. Antes de executar cada task, **classificar**:
 
 Para cada task **executavel**:
 
-1. **Mover para em-andamento**: `*progress status T-NNN-NN em-andamento`. State machine valida transicao.
+0. **Pre-flight da task — gate de formato**: ler `tasks/T-NNN-NN*.md`. Confirmar que tem frontmatter YAML (`head -1 == "---"`) e contém `^status:` no frontmatter. Se ausente: ABORTAR a task com erro `task-malformada: T-NNN-NN sem frontmatter status — rodar plan-to-tasks regenerador OU migrate-task-status.js`. NUNCA tentar executar codigo sem frontmatter valido — sintoma do bug onde tasks ficam travadas em `pendente`.
+1. **Mover para em-andamento**: invocar `*progress status T-NNN-NN em-andamento` (skill `progress-tracker`). **Pos-condicao obrigatoria**: ler T-NNN-NN.md de novo e confirmar `^status: em-andamento$` no frontmatter. Se nao mudou: ABORTAR e instruir humano. NAO seguir para implementacao com status pendente — esse e o bug central reportado.
 2. **Despachar agent**: ler `labels: [agent:<slug>]` da task. Default: `dev`. Invocar via Agent tool com prompt completo (objetivo, plano de execucao, DoD, paths relevantes).
 3. **Implementacao**: agent edita arquivos seguindo o plano de execucao da task. Stack como contrato — nada fora de `docs/stack.md` salvo se `arch_change=true` no frontmatter do plano pai.
 4. **Visual gate** (antes de propor `validacao`):
@@ -113,8 +114,10 @@ Para cada task **executavel**:
    e) Divergencia >= 1 item critico (anatomia, tokens nao-overrideados, ou comportamento mapeado sem implementacao) -> falha o gate.
 
 5. **Resultado do gate**:
-   - Sucesso -> `*progress status T-NNN-NN validacao`. Preparar arquivos staged (sem commit).
+   - Sucesso -> invocar `*progress status T-NNN-NN validacao`. **Pos-condicao obrigatoria**: ler T-NNN-NN.md, confirmar `^status: validacao$` no frontmatter. Se nao mudou: ABORTAR a task com erro `progress-tracker-falhou: T-NNN-NN`. Preparar arquivos staged (sem commit) somente apos confirmacao.
    - Falha -> manter em `em-andamento`, gravar diff em `T-NNN-NN.notes.md`, retornar pra etapa 3.
+
+**Invariante por task**: ao terminar a iteracao, T-NNN-NN.md DEVE ter status diferente de `pendente`. Se ainda for `pendente` apos a iteracao, registrar como bug do executor em `progress.txt` (`notes=executor-skipped-progress: T-NNN-NN`) e abortar o loop — sintoma do bug original.
 
 ## Fechamento
 
