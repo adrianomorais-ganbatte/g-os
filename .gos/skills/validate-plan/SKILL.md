@@ -47,9 +47,10 @@ Para cada `T-NNN-NN-*.md` em `validacao`:
 
 1. **Visual gate curto**: para cada componente do plano que a task tocou:
    a) Localizar `<Componente>.stories.tsx` em `<dirs.storybook>`.
-   b) Comparar implementacao vs story canonica em 2 dimensoes (curto, sem refazer Figma MCP):
+   b) Comparar implementacao vs story canonica em 3 dimensoes (curto, sem refazer Figma MCP completo):
       - **Anatomia**: ordem de slots/elementos.
-      - **Tokens**: classes Tailwind/variaveis CSS batem com DS.
+      - **Tokens**: classes Tailwind/variaveis CSS batem com DS — divergencia registrada em `## Page-level overrides` do plano NAO falha (gate confirma aplicacao do override).
+      - **Comportamentos**: para cada `interaction_target:` da task, grep do handler/estado no diff. Para cada `override_target:` da task, grep das classes/props da decisao.
    c) Output: append em `tasks/T-NNN-NN.notes.md` na secao `## Validate run <iso>`.
 2. **Confronto diff x mapeamento**: arquivos alterados pela task estao listados em "Componentes mapeados" do plano? Arquivos fora do mapeamento -> warning (nao falha por padrao).
 3. **Checklist da task (DoD)**: ler `## Criterios de aceitacao` da task. Itens nao marcados (`[ ]`) = falha automatica.
@@ -61,15 +62,17 @@ Para cada `T-NNN-NN-*.md` em `validacao`:
 
 Apos o loop:
 
-1. **Checklist do plano**: ler `## Checklist de aceite` em `plan.md`. Itens nao marcados -> plano permanece em `validacao` mesmo se todas as tasks fecharam.
-2. **Backend pendings**: ler `## Backend pendings`. Para cada linha com `ClickUp ID`:
+1. **Cobertura de comportamento**: ler `## Interações & Estados` em `plan.md`. Para cada bullet (slug): existe AO MENOS 1 task com `interaction_target:` apontando pra ele E status `concluido`? Bullet sem cobertura -> plano permanece em `validacao` (registrar em `T-NNN-NN.notes.md` da task mais proxima do dominio).
+2. **Cobertura de overrides**: ler `## Page-level overrides`. Cada linha com decisao (a/b/c) tem task `concluido` cobrindo? grep do `override_target:` correspondente nos frontmatter de tasks. Override sem cobertura -> plano permanece em `validacao`.
+3. **Checklist do plano**: ler `## Checklist de aceite` em `plan.md`. Itens nao marcados -> plano permanece em `validacao` mesmo se todas as tasks fecharam.
+4. **Backend pendings**: ler `## Backend pendings`. Para cada linha com `ClickUp ID`:
    - Consultar `mcp__clickup__clickup_get_task <ID>`.
    - Se status != `concluido`/`closed` -> bloqueio ainda ativo.
    - Atualizar coluna `Status` da tabela com o estado atual do ClickUp.
-3. **Decisao**:
-   - Todas tasks `concluido` + checklist do plano marcado + backend pendings todos `concluido` no ClickUp -> marcar `plan.md` frontmatter `validated_at: <iso>` + `*progress status PLAN-NNN-<slug> concluido`.
+5. **Decisao**:
+   - Todas tasks `concluido` + cobertura de comportamento + cobertura de overrides + checklist do plano marcado + backend pendings todos `concluido` no ClickUp -> marcar `plan.md` frontmatter `validated_at: <iso>` + `*progress status PLAN-NNN-<slug> concluido`.
    - Caso contrario -> manter `validacao`, listar bloqueios.
-4. **Push**: NAO. Commit ja foi preparado por `*execute-plan`. Push e ato consciente humano (`git push`).
+6. **Push**: NAO. Commit ja foi preparado por `*execute-plan`. Push e ato consciente humano (`git push`).
 
 ## Saida final ao usuario
 
@@ -89,8 +92,8 @@ proximo passo: <git push | resolver bloqueios | re-rodar visual gate em T-...>
 
 ## Diferenca x execute-plan (anti-overlap)
 
-- `execute-plan`: visual gate completo (4 dimensoes + Figma MCP), executa codigo via Agent tool, opera estado `em-andamento`.
-- `validate-plan`: visual gate curto (2 dimensoes, sem Figma MCP), nao executa codigo, opera estado `validacao -> concluido`. Reaproveita `notes.md` mas em secao separada `## Validate run <iso>`.
+- `execute-plan`: visual gate completo (5 dimensoes + Figma MCP arvore), pre-flight smoke (screenshot vs frame), executa codigo via Agent tool, opera estado `em-andamento`.
+- `validate-plan`: visual gate curto (3 dimensoes — anatomia, tokens, comportamentos — sem Figma MCP completo), nao executa codigo, opera estado `validacao -> concluido`, valida cobertura de `interaction_target` e `override_target` no plano. Reaproveita `notes.md` em secao separada `## Validate run <iso>`.
 
 Se `validate-plan` detectar que uma task em `validacao` claramente NAO foi implementada (diff staged nao toca os arquivos esperados), nao reabre execucao — devolve falha clara e instrui usuario a rodar `*execute-plan PLAN-NNN-<slug> --task T-NNN-NN`.
 

@@ -60,12 +60,14 @@ Pipeline padronizado para criacao de planos por tela. Toda tela = 1 plano. Stack
 | Comando | Skill | IDE / Modelo | Funcao |
 |---------|-------|--------------|--------|
 | `*stack [refresh|show|drift]` | `stack-profiler` | qualquer | Mantem `docs/stack.md` (canonico do projeto) |
-| `*plan <tela>` | `plan-blueprint` | Opus 4.7 (planejador) | Cria plano + tasks + context + atualiza `progress.txt` |
-| `*execute-plan <PLAN-NNN>` | `execute-plan` | **Codex IDE Extension** (executor) | Executa task-a-task com visual gate vs Storybook canonico, non-blocking em backend gaps |
+| `*plan <tela>` | `plan-blueprint` | Opus 4.7 (planejador) | Cria plano + tasks + context + atualiza `progress.txt`. Captura comportamentos (`## Interacoes & Estados`) e page-level overrides (`## Page-level overrides`). INTERACOES obrigatorio quando tela tem table-clicavel/drawer/modal/popup. |
+| `*execute-plan <PLAN-NNN>` | `execute-plan` | **Codex IDE Extension** (executor) | Executa task-a-task com visual gate (5 dim: anatomia, tokens, variants, densidade, comportamentos) vs Storybook canonico. Pre-flight smoke compara screenshot da pagina vs Figma frame antes da T-01. Non-blocking em backend gaps. |
 | `*validate-plan <PLAN-NNN>` | `validate-plan` | Opus 4.7 (revisor) | Valida pos-execute; auto-marca concluido tasks que passam em checklist + visual gate curto + diff |
 | `*progress [show|set|status]` | `progress-tracker` | qualquer | Memoria L1 + state machine de status |
 
-State machine: `pendente -> em-andamento -> validacao -> concluido`. Estado lateral `bloqueada-backend` (introduzido pelo `*execute-plan` quando task tem `depends_on_backend:` em aberto no ClickUp; libera quando ClickUp fecha). `concluido` marcado automaticamente pelo `*validate-plan` quando passa em checklist + visual gate curto + diff.
+State machine: `pendente -> em-andamento -> validacao -> concluido`. Estado lateral `bloqueada-backend` (introduzido pelo `*execute-plan` quando task tem `depends_on_backend:` em aberto no ClickUp; libera quando ClickUp fecha). `concluido` marcado automaticamente pelo `*validate-plan` quando passa em checklist + visual gate curto + diff + cobertura de `interaction_target`/`override_target`.
+
+**Politica Figma vs Storybook**: story define API/anatomia do componente; em conflito visual cosmetico (bg, border, padding, radius), Figma da pagina vence — divergencia e registrada em `## Page-level overrides` do plano com decisao a/b/c (a=className, b=variant nova, c=excecao documentada). Sem essa disciplina, refinamentos da pagina viram retrabalho no fim (caso PLAN-005: 54 deltas em 26 rodadas).
 
 Paths do projeto-cliente sao resolvidos via `.gos-local/plan-paths.json` — nada hardcoded. Nesse arquivo declara-se onde estao `docs/plans/`, `docs/postman/`, `docs/regras-de-negocio/`, design system, etc. Cada projeto/dev pode organizar diferente.
 

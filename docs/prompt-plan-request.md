@@ -11,13 +11,34 @@
 ```
 /gos:agents:gos-master *plan {{TELA}}
 
-OBJETIVO  = {{implantacao | correcao | refactor}}
-FIGMA     = {{url-frame-principal}}
-FIGMA+    = [{{url-comp-1}}, {{url-comp-2}}]    # opcional
-NOTAS     = """{{prosa livre — comportamento, edge cases, invioláveis}}"""
+OBJETIVO   = {{implantacao | correcao | refactor}}
+FIGMA      = {{url-frame-principal}}
+FIGMA+     = [{{url-comp-1}}, {{url-comp-2}}]    # opcional
+INTERACOES = """
+- <Elemento> — <trigger> → <ação> → <resultado/estado>
+- ex: Row da tabela — click → abre drawer mode=view com dados do projeto
+- ex: Botão "Novo projeto" — click → abre drawer mode=create vazio
+- ex: Drawer footer "Salvar" — click → POST /projetos → fecha drawer + refetch list
+- ex: Combobox UF — type → filtra options client-side (acentos preservados)
+- ex: Select Tipo — change → atualiza queryParam, refetch list
+"""
+NOTAS      = """{{prosa livre — invioláveis, edge cases, contexto adicional}}"""
 ```
 
-`OBJETIVO` é obrigatório. Tudo o mais é auto-resolvido (ver abaixo).
+`OBJETIVO` é obrigatório. `INTERACOES` é **obrigatório** quando a tela tem table com row clicável OU drawer/modal/popup OU botão que dispara ação assíncrona — `gos-master` recusa o `*plan` e abre `AskUserQuestion` se o campo estiver vazio nessas condições. Tudo o mais é auto-resolvido (ver abaixo).
+
+### Padrões comuns de `INTERACOES`
+
+| Padrão | Exemplo |
+|--------|---------|
+| Clickable row | `Row — click → drawer mode=view com record.id` |
+| Drawer create-only | `Botão "Novo X" — click → drawer mode=create vazio` |
+| Drawer shared (create/view/edit) | `Botão Eye — click → drawer mode=view; botão Edit no drawer → muda mode=edit` |
+| Modal de confirmação | `Botão Delete — click → modal "Tem certeza?" → confirm → DELETE /x → refetch` |
+| Filtro toolbar | `Select Período — change → debounce 300ms → atualiza queryParam → refetch` |
+| Submit assíncrono | `Form Salvar — submit → loading + disabled → POST /x → toast + refetch + close` |
+| Empty / loading state | `Tabela sem dados → empty state com CTA; durante fetch → skeleton 5 rows` |
+| Refetch após mutação | `Após POST/PATCH/DELETE → invalidateQueries(['x']) ou router.refresh()` |
 
 ---
 
@@ -106,15 +127,25 @@ se tiver sido concluida, marque como concluida com anotações se fizer sentido 
 ```
 /gos:agents:gos-master *plan pagina-projetos-inicial
 
-OBJETIVO = implantacao
-FIGMA    = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25387
-FIGMA+   = [
+OBJETIVO   = implantacao
+FIGMA      = https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25387
+FIGMA+     = [
   https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25389,
   https://www.figma.com/design/kXd8uP6dgeSuQypFnPmuQP/FRACTUS?node-id=9140-25392
 ]
+INTERACOES = """
+- Row da tabela — click → abre drawer mode=view com record.id
+- Ícone Eye da row — click → mesmo comportamento (atalho)
+- Botão "Novo projeto" — click → abre drawer mode=create vazio
+- Drawer "Salvar" (mode=create) — click → POST /projetos → fecha + refetch + toast
+- Drawer "Salvar" (mode=edit) — click → PATCH /projetos/:id → fecha + refetch + toast
+- Toolbar filtro Período — change → debounce 300ms → refetch query
+- Toolbar refresh — click → ícone gira durante refetch
+- Tabela sem dados → empty state com CTA "Criar primeiro projeto"; durante fetch → skeleton 5 rows
+"""
 NOTAS = """
-Drawer único entre criar/visualizar/editar — só o título e o footer mudam.
-Row inteira clicável OU ícone Eye abre o drawer view.
+Drawer único entre criar/visualizar/editar — só o título e o footer mudam (prop `mode`).
+Stack inalterada — usa server actions já existentes em src/app/projetos/actions.ts.
 """
 ```
 
