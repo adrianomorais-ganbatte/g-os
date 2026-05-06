@@ -250,6 +250,19 @@ routing_matrix:
       Transições de status são VINCULANTES com pós-condição: cada task DEVE sair de pendente
       antes da próxima — se o executor não chamar progress-tracker, abortar (bug PLAN-006).
 
+  audit_screenshots:
+    triggers: ["*audit-screenshots", audit screenshots, auditar print, comparar com figma, "essa tela esta errada", "isso aqui esta divergindo", auditoria visual, prints divergentes]
+    target: skill:audit-screenshots
+    pre_action: Validate .gos-local/plan-paths.json + docs/figma-screen-map.md exist (path em campo `figma_screen_map`). Ausência aborta com instrução clara.
+    notes: |
+      Skill conversacional. Recebe N prints (anotados ou nao) ao longo da sessao,
+      mapeia cada print -> tela -> Figma frame via figma-screen-map.md, acumula
+      divergencias. Ao receber `close [SLUG]` emite UM plano `PLAN-NNN-fix-audit-<SLUG>`
+      com tasks pendentes — NAO executa codigo. Plano gerado e input direto pra
+      *execute-plan e *validate-plan (mesmo template).
+      Quando o usuario cola imagem sem comando explicito, assumir `*audit-screenshots add`.
+      Anotacoes em vermelho do usuario = high-signal (peso 2x na decisao de virar task).
+
   validate_plan:
     triggers: [validate, validar plano, "*validate-plan", validate plan, revisar plano, plano implementado]
     target: skill:validate-plan
