@@ -48,7 +48,7 @@ Todo texto gerado deve passar por correcao ortografica e remocao de padroes de I
 gos-master | architect | dev | devops | po | qa | sm | squad-creator | ux-design-expert
 
 ### Skills (invoke via /gos:skills:{slug})
-design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup | stack-profiler | plan-blueprint | progress-tracker | execute-plan | validate-plan
+design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup | humanizer | weekly-update | slack-review | stack-profiler | plan-blueprint | progress-tracker | execute-plan | validate-plan | audit-screenshots
 
 ### IDEs suportadas (npm run sync:ides gera adapters)
 Claude Code | Cursor | Gemini CLI | Qwen Code | Antigravity | Opencode | Kilo Code | **Codex IDE Extension** (ambiente de execucao, comando primario `*execute-plan`)
