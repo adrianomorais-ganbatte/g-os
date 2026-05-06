@@ -128,6 +128,33 @@ Política Figma vs Storybook (ver Fase 2):
 
 > Story define API/anatomia do componente; refinamentos cosméticos da página são aceitos via override registrado em `## Page-level overrides`. **Em conflito visual, Figma da página vence**.
 
+### 1.5 Drift map antecipado
+
+Executa ANTES de Fase 3 emitir tasks. Materializa divergências Figma↔Storybook por componente para que cada uma vire override (a/b/c) ou task explícita logo no plano, evitando o padrão PLAN-005 (39 deltas descobertos durante execução).
+
+Para cada componente em "Componentes mapeados":
+
+a) **Screenshot do Figma**: via Figma MCP `get_image` pelo node-id do componente OU export do frame. Salva em `<dirs.planos>/<PLAN-NNN-slug>/drift/<Componente>.figma.png`. Reusa imagem existente entre re-runs (cache).
+b) **Screenshot da story canônica**: usa Storybook estático (`<dirs.storybook>/storybook-static`) ou local rodando. Salva em `<dirs.planos>/<PLAN-NNN-slug>/drift/<Componente>.story.png`. Se nem estático nem local: pula esse componente com warning.
+c) **Diff curto**: cria `<dirs.planos>/<PLAN-NNN-slug>/drift/<Componente>.diff.md` com 3 colunas (Anatomia diff, Token diff, Estados ausentes). Inspeção visual + grep no CSS extraído via Figma MCP. Sem pixel-diff.
+d) **Drift map cumulativo**: `<dirs.planos>/<PLAN-NNN-slug>/drift-map.md` lista canônica de TODAS divergências detectadas. Cada linha alimenta `## Page-level overrides` (decisão a/b/c) OU vira task na Fase 3 com `override_target:` ou `interaction_target:` apontando.
+
+Bloqueio:
+- Figma MCP indisponível E Storybook indisponível → `drift-map.md` = `"drift detection skipped: missing tooling (Figma MCP + Storybook)"`. Warning único, NÃO bloqueia.
+- Figma MCP disponível mas Storybook ausente → roda apenas captura Figma; diff fica vazio mas registra `figma_url` por componente para usar em execute-plan.
+- Ambos disponíveis → drift map é input obrigatório da Fase 3 (cada divergência DEVE ter encaminhamento override OU task).
+
+### 1.6 Cleanup de starter legado
+
+Detecção: ler `.gos-local/plan-paths.json` campo opcional `legacy_starter_dirs: []` (ex.: `["src/figma-make/", "tmp/stitch-export/"]`). Vazio OU ausente → pula esta sub-fase. Preenchido:
+
+a) Para cada componente em "Componentes mapeados", `grep` o nome do componente nos `legacy_starter_dirs`. Match → registrar em `<dirs.planos>/<PLAN-NNN-slug>/legacy-cleanup.md` com path do arquivo legado encontrado.
+b) Para a tela alvo (`<dirs.app>/<rota-da-tela>`), `grep` por imports oriundos de `legacy_starter_dirs`. Match → registrar arquivo + linha em `legacy-cleanup.md`.
+c) **Fase 3 emite tasks `T-NN-cleanup-legacy-<slug>`** (uma por arquivo legado) com `cleanup_target: <path>` no frontmatter. Ordem: cleanup roda DEPOIS da implementação real do componente DS (depende do `interaction_target` correspondente estar `concluido`), ANTES de fechar o plano.
+d) Sem o campo `legacy_starter_dirs`: comportamento atual preservado 100%. Projetos sem starter legado não pagam custo desta sub-fase.
+
+Por que: declara "código Make/Stitch não fica" como contrato do pipeline, não como lembrança humana task-a-task.
+
 ## Fase 2 — Aderência à Stack
 
 **Modo padrão (sem `--allow-arch-change`)**: SOMENTE referenciar a stack já registrada em `stack.md`. Para cada dado/ação da tela, listar:
@@ -139,6 +166,17 @@ Política Figma vs Storybook (ver Fase 2):
 Saída desta fase é uma seção **"Aderência à Stack"** no plano — não redefine arquitetura.
 
 **Modo `--allow-arch-change`**: pode propor alteração. Gerar ADR em `dirs.adr` (template `templates/adr-tmpl.yaml`) ANTES de prosseguir. Plano referencia o ADR e marca `arch_change: true` no frontmatter.
+
+### 2.4 Schema/contrato gate (executa antes de Fase 3)
+
+Quando a tela exibe ou consome dados, validar contrato backend ANTES de emitir tasks frontend dependentes — evita o padrão PLAN-012/013 (schema descoberto incompleto durante execução).
+
+a) Para cada campo exibido na tela (extraído de "Componentes mapeados" + "Interações & Estados"):
+   - **Postman**: `grep` do endpoint esperado em `<dirs.postman>`. Endpoint ausente → entrada em `## Backend pendings` tipo `endpoint-missing`, gap-key formato `endpoint-<rota>-missing`.
+   - **Prisma/SQL**: ler arquivos declarados em `plan-paths.json` campo `backend_schema_files: []` (ex.: `["packages/api/prisma/schema.prisma"]`). Campo ausente → entrada `field-missing: <table>.<field>`, gap-key formato `field-<table>-<field>-missing`.
+b) Cada entrada gerada cria task ClickUp via `mcp__clickup__clickup_create_task` (assignee `112010775` ou override `ASSIGNEE`, list `clickup.backend_list_id`) ANTES da Fase 3 emitir tasks frontend dependentes. ClickUp ID grava em `## Backend pendings`.
+c) Tasks frontend que dependem do campo recebem frontmatter `depends_on_backend: [<gap-key>]` automaticamente — `*execute-plan` já trata como `bloqueada-backend`.
+d) Nenhum dos arquivos declarados existe (sem Postman E sem `backend_schema_files`) → warning único, NÃO bloqueia. Plano segue sem schema gate.
 
 ### 2.5 Backend gaps → ClickUp automático
 

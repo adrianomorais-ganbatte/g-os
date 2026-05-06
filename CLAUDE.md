@@ -69,6 +69,14 @@ State machine: `pendente -> em-andamento -> validacao -> concluido`. Estado late
 
 **Politica Figma vs Storybook**: story define API/anatomia do componente; em conflito visual cosmetico (bg, border, padding, radius), Figma da pagina vence — divergencia e registrada em `## Page-level overrides` do plano com decisao a/b/c (a=className, b=variant nova, c=excecao documentada). Sem essa disciplina, refinamentos da pagina viram retrabalho no fim (caso PLAN-005: 54 deltas em 26 rodadas).
 
+**Drift map automatico (Fase 1.5 do `*plan`)**: com Figma MCP + Storybook disponiveis, `*plan` gera `<plano>/drift-map.md` antes de emitir tasks — screenshots side-by-side por componente; cada divergencia vira override ou task explicita. Sem essa etapa, ~70% das divergencias viraram retrabalho durante execucao.
+
+**Cleanup de starter legado (Fase 1.6)**: `.gos-local/plan-paths.json` campo `legacy_starter_dirs: ["src/figma-make/", ...]` faz `*plan` emitir tasks `T-NN-cleanup-legacy-<slug>` automaticamente para arquivos do starter. Sem o campo, comportamento atual preservado.
+
+**Schema/contrato gate (Fase 2.4)**: `.gos-local/plan-paths.json` campo `backend_schema_files: [...]` (Postman + Prisma) faz `*plan` validar contrato antes de emitir tasks frontend; gaps viram task ClickUp + entrada em `## Backend pendings`.
+
+**Skill `*audit-screenshots`**: conversacional. Recebe N prints anotados em uma sessao, resolve cada print -> tela -> Figma frame via `docs/figma-screen-map.md`, compara, e ao fechar emite UM plano de correcao com tasks pendentes (sem executar). Acoplado ao mesmo template — output e input valido para `*execute-plan`/`*validate-plan`.
+
 Paths do projeto-cliente sao resolvidos via `.gos-local/plan-paths.json` — nada hardcoded. Nesse arquivo declara-se onde estao `docs/plans/`, `docs/postman/`, `docs/regras-de-negocio/`, design system, etc. Cada projeto/dev pode organizar diferente.
 
 Playbook completo: `.gos/playbooks/plan-creation-playbook.md`

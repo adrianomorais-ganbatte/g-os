@@ -75,6 +75,8 @@ Apos o loop:
 
 1. **Cobertura de comportamento**: ler `## Interações & Estados` em `plan.md`. Para cada bullet (slug): existe AO MENOS 1 task com `interaction_target:` apontando pra ele E status `concluido`? Bullet sem cobertura -> plano permanece em `validacao` (registrar em `T-NNN-NN.notes.md` da task mais proxima do dominio).
 2. **Cobertura de overrides**: ler `## Page-level overrides`. Cada linha com decisao (a/b/c) tem task `concluido` cobrindo? grep do `override_target:` correspondente nos frontmatter de tasks. Override sem cobertura -> plano permanece em `validacao`.
+2.1. **Cobertura de drift map**: ler `## Drift map` (e `<plano>/drift-map.md` se existir). Cada linha tem override implementado OU task `concluido` cobrindo? Linha sem encaminhamento -> plano permanece em `validacao` (registrar em `T-NNN-NN.notes.md` da task mais proxima).
+2.2. **Cleanup legado**: para cada task com frontmatter `cleanup_target: <path>`, confirmar que o arquivo foi removido. Comando: `git log --diff-filter=D --name-only --since=<plan.created_at> -- <path>` deve retornar match OU `git diff --staged --name-only --diff-filter=D` contem `<path>`. Falha -> task volta a `validacao` (nao auto-conclui).
 3. **Checklist do plano**: ler `## Checklist de aceite` em `plan.md`. Itens nao marcados -> plano permanece em `validacao` mesmo se todas as tasks fecharam.
 4. **Backend pendings**: ler `## Backend pendings`. Para cada linha com `ClickUp ID`:
    - Consultar `mcp__clickup__clickup_get_task <ID>`.

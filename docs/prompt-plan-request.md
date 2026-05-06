@@ -43,6 +43,24 @@ Storybook ausente bloqueia (regra do visual gate). Postman/regras-de-negocio aus
 
 ---
 
+## Drift map automático (Fase 1.5)
+
+Figma MCP + Storybook disponíveis → `*plan` gera `<plano>/drift-map.md` antes de emitir tasks. Cada divergência Figma-vs-Story vira override (a/b/c) OU task explícita. Sem essa etapa, ~70% das divergências viram retrabalho descoberto durante execução (caso PLAN-005: 39 deltas em 57 tasks).
+
+## Cleanup de starter legado (Fase 1.6)
+
+Declare em `.gos-local/plan-paths.json` o campo `legacy_starter_dirs: ["src/figma-make/", ...]`. Cada plano que toca componente com correspondente legado emite task `T-NN-cleanup-legacy-<slug>` automaticamente. Sem o campo, comportamento atual preservado.
+
+## Schema/contrato gate (Fase 2.4)
+
+Declare em `.gos-local/plan-paths.json` o campo `backend_schema_files: ["packages/api/prisma/schema.prisma"]` (e mantenha `docs/postman/`). `*plan` valida que cada campo da tela existe no schema/Postman ANTES de emitir tasks frontend. Gaps viram task ClickUp + entrada em `## Backend pendings` automaticamente.
+
+## Auditoria por screenshot (skill `audit-screenshots`)
+
+Cole prints (anotados ou não) ao longo da sessão. `*audit-screenshots add` acumula; `*audit-screenshots close [SLUG]` emite `PLAN-NNN-fix-audit-*` com tasks pendentes (sem executar). Mapeamento tela↔Figma vem de `docs/figma-screen-map.md` (path declarado em `plan-paths.json` campo `figma_screen_map`).
+
+---
+
 ## Backend gaps → ClickUp automático
 
 Postman é o contrato: endpoint inexistente / shape divergente vira task ClickUp pro Douglas (`assignee=112010775`, override via `ASSIGNEE`). IDs registrados em `## Backend pendings` do `plan.md` + `progress.txt`. `--skip-clickup` desliga.
