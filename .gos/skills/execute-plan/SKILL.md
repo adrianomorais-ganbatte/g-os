@@ -86,6 +86,11 @@ Comparacao:
 
 Pre-flight smoke nao substitui o visual gate por task — ele captura gaps grandes (componente faltando, KPI row ausente) que viraram tasks novas em PLAN-004/PLAN-005.
 
+**Drift map como input adicional**: se `<dirs.planos>/<PLAN-NNN-slug>/drift-map.md` existir (gerado na Fase 1.5 do `plan-blueprint`), pre-flight smoke consome cada linha:
+- Para cada divergencia listada: validar override aplicado (grep das classes/props declaradas em `## Page-level overrides`) OU task de implementacao agendada (grep `override_target:` ou `interaction_target:` nos frontmatter de `tasks/T-*.md`).
+- Item sem encaminhamento (sem override aplicado E sem task agendada) = task `T-000-XX` pre-flight com `priority: P0`, prepend na fila, renumera tasks subsequentes.
+- Drift map ausente: nao bloqueia (pipeline antigo continua funcionando).
+
 ## Loop por task
 
 Iterar tasks em ordem de `seq`. Antes de executar cada task, **classificar**:

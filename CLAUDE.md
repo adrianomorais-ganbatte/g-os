@@ -48,7 +48,7 @@ Todo texto gerado deve passar por correcao ortografica e remocao de padroes de I
 gos-master | architect | dev | devops | po | qa | sm | squad-creator | ux-design-expert
 
 ### Skills (invoke via /gos:skills:{slug})
-design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup | stack-profiler | plan-blueprint | progress-tracker | execute-plan | validate-plan
+design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup | humanizer | weekly-update | slack-review | stack-profiler | plan-blueprint | progress-tracker | execute-plan | validate-plan | audit-screenshots
 
 ### IDEs suportadas (npm run sync:ides gera adapters)
 Claude Code | Cursor | Gemini CLI | Qwen Code | Antigravity | Opencode | Kilo Code | **Codex IDE Extension** (ambiente de execucao, comando primario `*execute-plan`)
@@ -68,6 +68,14 @@ Pipeline padronizado para criacao de planos por tela. Toda tela = 1 plano. Stack
 State machine: `pendente -> em-andamento -> validacao -> concluido`. Estado lateral `bloqueada-backend` (introduzido pelo `*execute-plan` quando task tem `depends_on_backend:` em aberto no ClickUp; libera quando ClickUp fecha). `concluido` marcado automaticamente pelo `*validate-plan` quando passa em checklist + visual gate curto + diff + cobertura de `interaction_target`/`override_target`.
 
 **Politica Figma vs Storybook**: story define API/anatomia do componente; em conflito visual cosmetico (bg, border, padding, radius), Figma da pagina vence — divergencia e registrada em `## Page-level overrides` do plano com decisao a/b/c (a=className, b=variant nova, c=excecao documentada). Sem essa disciplina, refinamentos da pagina viram retrabalho no fim (caso PLAN-005: 54 deltas em 26 rodadas).
+
+**Drift map automatico (Fase 1.5 do `*plan`)**: com Figma MCP + Storybook disponiveis, `*plan` gera `<plano>/drift-map.md` antes de emitir tasks — screenshots side-by-side por componente; cada divergencia vira override ou task explicita. Sem essa etapa, ~70% das divergencias viraram retrabalho durante execucao.
+
+**Cleanup de starter legado (Fase 1.6)**: `.gos-local/plan-paths.json` campo `legacy_starter_dirs: ["src/figma-make/", ...]` faz `*plan` emitir tasks `T-NN-cleanup-legacy-<slug>` automaticamente para arquivos do starter. Sem o campo, comportamento atual preservado.
+
+**Schema/contrato gate (Fase 2.4)**: `.gos-local/plan-paths.json` campo `backend_schema_files: [...]` (Postman + Prisma) faz `*plan` validar contrato antes de emitir tasks frontend; gaps viram task ClickUp + entrada em `## Backend pendings`.
+
+**Skill `*audit-screenshots`**: conversacional. Recebe N prints anotados em uma sessao, resolve cada print -> tela -> Figma frame via `docs/figma-screen-map.md`, compara, e ao fechar emite UM plano de correcao com tasks pendentes (sem executar). Acoplado ao mesmo template — output e input valido para `*execute-plan`/`*validate-plan`.
 
 Paths do projeto-cliente sao resolvidos via `.gos-local/plan-paths.json` — nada hardcoded. Nesse arquivo declara-se onde estao `docs/plans/`, `docs/postman/`, `docs/regras-de-negocio/`, design system, etc. Cada projeto/dev pode organizar diferente.
 

@@ -57,6 +57,24 @@ Decisões possíveis:
 - **(b) Nova variant na story** — override aparece em ≥3 telas do projeto; vira variant reusável (ex.: `flat`, `seamless`).
 - **(c) Exceção documentada** — override específico desta tela e não merece variant; documentado aqui sem propagar pra story.
 
+## Drift map
+
+> Gerado em Fase 1.5 do `plan-blueprint`. Side-by-side Figma vs Storybook por componente. Cada linha JÁ reconciliada para override (a/b/c) OU task explícita. Vazio = drift detection rodou sem divergências OU foi pulado por falta de tooling (Figma MCP + Storybook).
+
+| Componente | Divergência | Resolução | Referência |
+|------------|-------------|-----------|------------|
+|            |             |           |            |
+
+> Path dos artefatos: `drift/<Componente>.figma.png`, `drift/<Componente>.story.png`, `drift/<Componente>.diff.md`. Cumulativo em `drift-map.md`.
+
+## Cleanup de starter legado
+
+> Gerado em Fase 1.6. Listado quando `.gos-local/plan-paths.json` declara `legacy_starter_dirs`. Cada linha vira task `T-NN-cleanup-legacy-<slug>` com `cleanup_target: <path>` no frontmatter. Vazio = projeto sem starter legado declarado OU nenhum match encontrado.
+
+| Path legado | Substituto DS | Task |
+|-------------|---------------|------|
+|             |               |      |
+
 ## Componentes ausentes
 
 > Listar componentes não cobertos pelo DS. Cada um vira task de criação separada (priorizar reuso/extensão antes de propor novo).
@@ -111,6 +129,9 @@ Decisões possíveis:
 - [ ] **States**: skeleton/empty/error/loading implementados conforme matriz acima
 - [ ] **Refetch**: dispara após mutações (POST/PATCH/DELETE)
 - [ ] **Seed**: popula TODOS os campos exibidos no Figma (sem `-` em colunas mapeadas)
+- [ ] **Drift map**: cada linha de `## Drift map` (Fase 1.5) tem override implementado OU task `concluido` cobrindo
+- [ ] **Cleanup legado**: tasks com `cleanup_target:` removeram os arquivos declarados (nenhum import de `legacy_starter_dirs` sobrevive na tela)
+- [ ] **Schema/contrato gate**: nenhum campo da tela referencia coluna/endpoint inexistente sem entrada correspondente em `## Backend pendings`
 - [ ] <critério específico da tela 1>
 - [ ] <critério específico da tela 2>
 

@@ -35,7 +35,13 @@ const DEFAULTS = {
     regras_negocio: null,
     api_contracts: null,
     fluxos: null,
+    docs: 'docs/',
+    app: 'src/app/',
+    figma_screen_map: 'docs/figma-screen-map.md',
+    audit_session_file: '.gos-local/audit-session.json',
   },
+  legacy_starter_dirs: [],
+  backend_schema_files: [],
   knowledge_sources: [
     { kind: 'design-system', path: '.referencia-storybook/docs/DESIGN_SYSTEM_REFERENCE.md', required: true },
     { kind: 'storybook-canonical', path: '.referencia-storybook/', required: true },
