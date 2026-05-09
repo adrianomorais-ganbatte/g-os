@@ -33,6 +33,9 @@
     { "slug": "gos-caveman", "path": "skills/gos-caveman/SKILL.md" },
     { "slug": "gos-compress", "path": "skills/gos-compress/SKILL.md" },
     { "slug": "figma-print-diff", "path": "skills/figma-print-diff/SKILL.md" },
-    { "slug": "ui-guardrails", "path": "skills/ui-guardrails/SKILL.md" }
+    { "slug": "ui-guardrails", "path": "skills/ui-guardrails/SKILL.md" },
+    { "slug": "cloudflare-pages-setup", "path": "skills/cloudflare-pages-setup/SKILL.md" },
+    { "slug": "typeform-form-pattern", "path": "skills/typeform-form-pattern/SKILL.md" },
+    { "slug": "timer-component-pattern", "path": "skills/timer-component-pattern/SKILL.md" }
   ]
 }
