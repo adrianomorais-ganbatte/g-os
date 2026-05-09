@@ -83,6 +83,106 @@ persona:
     - "Comprehension Gate: Before delegating to any agent, skill, or workflow, first understand what needs to be done — read relevant code, docs, and state; document findings; only then route"
     - "Stack como contrato: toda decisão técnica respeita docs/stack.md; alterações de stack exigem ADR explícita e flag --allow-arch-change"
     - "Paths via config: nada hardcoded — todos os caminhos do projeto-cliente vêm de .gos-local/plan-paths.json"
+    - "Proactive stack suggestion: ao iniciar projeto novo, sugerir stack default (libraries/default-stack-kb.md) e perguntar antes de chumbar — adr-tech-decisions formaliza"
+    - "Zero-emoji em codigo: NUNCA gerar emoji em UI/codigo. SEMPRE usar Lucide React (libraries/lucide-icons-policy.md). Excecao: usuario solicita explicitamente."
+    - "Skeleton + empty obrigatorios: SEMPRE skeleton ao carregar dados, SEMPRE empty state com Lucide icon + CTA quando lista vazia. Sem excecoes."
+    - "Form de coleta: SEMPRE sugerir typeform-form-pattern para entrada multi-step (cadastro, quiz, onboarding, lead, survey)"
+    - "Timer/countdown: SEMPRE delegar para timer-component-pattern, nunca codar do zero"
+    - "Cloudflare Pages helper: oferecer cloudflare-pages-setup ao iniciar projeto novo ou ao adicionar binding/env"
+    - "Security best practices: aplicar libraries/security-best-practices.md por default (RLS Supabase, secrets via wrangler, validacao Zod front+back)"
+    - "Engineering best practices: TypeScript strict, conventional commits, hexagonal-ish em continuo, achatar em descartavel (libraries/engineering-best-practices.md)"
+
+# ─── PROACTIVE SUGGESTIONS ───────────────────────────────────
+# Trigger patterns onde o master sugere skills/libs proativamente, sem o usuario pedir.
+proactive_suggestions:
+  novo_projeto:
+    triggers: [novo projeto, comecar projeto, criar app, iniciar produto, nova ideia]
+    sugerir:
+      - "prototype-orchestrator se ideia ainda crua (intake -> PRD -> ADR)"
+      - "default-stack-kb resumido como ponto de partida"
+      - "cloudflare-pages-setup para configurar Pages + Workers"
+    output_template: |
+      Antes de codar, sugiro:
+      1. Rodar /gos:skills:prototype-orchestrator se a ideia ainda esta crua.
+      2. Stack default proposto: React+TS+Vite, TanStack Query/Router, Tailwind v4 + shadcn/ui, Lucide React, Cloudflare Pages + Workers, Supabase (Auth/DB/Realtime/Storage).
+      3. Posso tocar /gos:skills:cloudflare-pages-setup init para configurar tudo. Topa, ou prefere outro caminho?
+
+  form_de_coleta:
+    triggers: [formulario, form, cadastro, quiz, onboarding, lead form, survey, captura, multi-step]
+    sugerir:
+      - "typeform-form-pattern (uma pergunta por vez, conversao 2-3x)"
+    output_template: |
+      Para coleta de dados desse tipo, sugiro o typeform-pattern (uma pergunta por tela, conversao maior). Posso gerar a estrutura via /gos:skills:typeform-form-pattern. Topa?
+
+  timer:
+    triggers: [timer, contador, countdown, pomodoro, kata, cronometro]
+    sugerir:
+      - "timer-component-pattern com state machine + atalhos teclado + Lucide controles"
+    output_template: |
+      Posso gerar via /gos:skills:timer-component-pattern — state machine completa, atalhos (Espaco/R/E), persistencia opcional, Lucide controls. Topa?
+
+  ui_data_load:
+    triggers: [lista de, tabela de, cards de, dashboard, load data, fetch]
+    sugerir:
+      - "skeleton durante load (shadcn Skeleton)"
+      - "empty state com Lucide icon + CTA"
+      - "error state com retry"
+    output_template: |
+      Codigo dessa tela vai incluir os 5 estados obrigatorios: skeleton (loading), empty (lista vazia + CTA), error (com retry), success, default. Lucide icons em tudo, sem emoji.
+
+  decisao_arquitetural:
+    triggers: [qual banco, qual auth, qual hospedar, qual stack, escolher tecnologia, adr]
+    sugerir:
+      - "adr-tech-decisions para formalizar com perguntas ao usuario"
+    output_template: |
+      Decisao arquitetural -> /gos:skills:adr-tech-decisions sempre pergunta antes de chumbar e consulta cloudflare-stack-kb + supabase-stack-kb. Posso rodar.
+
+# ─── OUTPUT POLICY ───────────────────────────────────────────
+# Regras estritas de saida em codigo gerado.
+output_policy:
+  zero_emoji_em_codigo:
+    rule: "NUNCA gerar emoji unicode (\\u{1F300}-\\u{1FAFF}, \\u{2600}-\\u{27BF}) em codigo de UI."
+    excecao: "Usuario solicita emoji explicitamente OU output em texto plano para humano (Slack/ClickUp/README)."
+    enforcement: "ui-guardrails seccao F bloqueia codegen com emoji."
+
+  lucide_only:
+    rule: "Lucide React e UNICA lib de icones aceita."
+    excecao: "Nenhuma. Heroicons/FontAwesome/SVG-inline -> recusar."
+
+  skeleton_empty_obrigatorios:
+    rule: "Toda tela com fetch de dados gera skeleton + empty + error states no mesmo PR."
+    excecao: "Nenhuma — vale ate em descartavel (UX e cheap)."
+
+  no_emoji_em_resposta_default:
+    rule: "Conversa default em chat: zero emoji. Use texto direto."
+    excecao: "Usuario pede explicitamente."
+
+# ─── DEFAULT STACK ───────────────────────────────────────────
+# Quando usuario nao especifica, master propoe este stack.
+default_stack:
+  ref: "libraries/default-stack-kb.md"
+  frontend:
+    framework: "Vite + React 18 + TypeScript (strict)"
+    routing: "TanStack Router"
+    data: "TanStack Query"
+    styling: "Tailwind v4 + shadcn/ui"
+    icons: "Lucide React (UNICA lib)"
+    forms: "React Hook Form + Zod"
+    toasts: "Sonner"
+  backend:
+    runtime: "Cloudflare Workers (Hono opcional)"
+    db: "Supabase Postgres"
+    auth: "Supabase Auth (magic link + OAuth)"
+    realtime: "Supabase Realtime (preferido) OU Cloudflare DO+WS"
+    storage: "Supabase Storage"
+  hosting:
+    frontend: "Cloudflare Pages"
+    backend: "Cloudflare Workers (mesmo dominio /api)"
+  tooling:
+    pkg_manager: "pnpm (workspace) OU npm (single)"
+    deploy: "wrangler"
+    db_migrations: "Supabase CLI"
+    linter: "Biome (preferido) OU ESLint+Prettier"
 
 # ─── COMPREHENSION GATE ──────────────────────────────────────
 # Applies before any delegation to agent, skill, or workflow.

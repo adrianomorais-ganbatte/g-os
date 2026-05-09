@@ -34,11 +34,13 @@ Voce esta executando como **UI Guardrails Validator** via skill `ui-guardrails`.
 Para CADA task de UI:
 
 ### A. Estados visuais (5 obrigatorios)
-- [ ] Loading: skeleton ou spinner declarado
-- [ ] Empty: copy + ilustracao/icone + CTA
-- [ ] Error: mensagem + recovery action
-- [ ] Success (quando aplicavel): toast/inline
-- [ ] Default (renderizado normal)
+- [ ] Loading: **skeleton OBRIGATORIO** (shadcn `Skeleton`) para listas/cards/tabelas; spinner Lucide `Loader2` so para botoes ou acoes pontuais.
+- [ ] Empty: copy + Lucide icon (h-12 w-12 text-muted-foreground) + CTA primario.
+- [ ] Error: mensagem + Lucide `AlertTriangle` + recovery action (botao retry).
+- [ ] Success (quando aplicavel): Lucide `CheckCircle2` em toast/inline.
+- [ ] Default (renderizado normal).
+
+**Regra critica**: **SEMPRE skeleton ao carregar dados**, **SEMPRE empty state quando lista vazia**. Sem excecoes mesmo em descartavel.
 
 ### B. Responsividade (3 breakpoints minimos)
 - [ ] Mobile (<768px): layout declarado
@@ -57,6 +59,14 @@ Para CADA task de UI:
 - [ ] Typography via classes (`text-base`, NUNCA `text-[15px]`)
 - [ ] Border-radius via scale (`rounded-md`, NUNCA `rounded-[7px]`)
 
+### F. Lucide React (zero-emoji policy)
+- [ ] Import de icones SO de `lucide-react` (nunca FontAwesome/Heroicons/outra lib).
+- [ ] **Zero emoji unicode em strings de UI** (regex `/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u`).
+- [ ] Icon-only button com `aria-label` obrigatorio.
+- [ ] Tamanhos canonicos: `h-3.5 w-3.5` inline, `h-4 w-4` button, `h-5 w-5` heading, `h-12 w-12` empty state, `h-16 w-16` hero.
+
+Detalhe: `libraries/lucide-icons-policy.md`.
+
 ### E. Interacao (quando aplicavel)
 - [ ] Trigger -> acao -> resultado declarado em `## Interacoes & Estados`
 - [ ] Edge case: o que acontece se trigger duplicar (debounce)?
@@ -71,6 +81,7 @@ Para CADA task de UI:
 | C faltando (a11y) | medium | Warning. Codegen continua mas adiciona TODO no codigo. |
 | D faltando (tokens) | medium | Warning. Codegen pode prosseguir mas relatorio ao final. |
 | E faltando (interacao) | high (se ha trigger) | Bloqueia. plan-blueprint ja exige isso — caso aqui e detectar regressao. |
+| F faltando (Lucide/emoji) | high | Bloqueia. Recusar codigo com emoji em UI ou icone nao-Lucide. |
 
 ## Output
 
