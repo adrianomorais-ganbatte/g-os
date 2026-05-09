@@ -27,9 +27,16 @@ Você está executando como **Tech Lead Frontend / Arquiteto Sênior** via skill
 
 1. Escrever `plan.md` + `context.md`.
 2. **Invocar `plan-to-tasks`** apontando para o `plan.md` recém-criado — gera os `T-NN*.md` em `tasks/`.
-3. Atualizar `progress.txt` (skill `progress-tracker set`).
-4. **Rodar `node <repo>/.gos/scripts/integrations/check-plan.js <plan-dir>`** — gate determinístico.
-5. Exit 0 → devolver "plano criado" com resumo. Exit != 0 → regerar tasks 1x e re-rodar; se persistir, ABORTAR e devolver a saída do check-plan ao usuário.
+3. **Invocar `ui-guardrails <plan-dir>`** — bloqueia se faltar estado/responsivo/a11y/tokens em qualquer task de UI. Skip permitido se `descartavel: true` no frontmatter (passa a warning).
+4. Atualizar `progress.txt` (skill `progress-tracker set`).
+5. **Rodar `node <repo>/.gos/scripts/integrations/check-plan.js <plan-dir>`** — gate determinístico.
+6. (Opcional, default ligado) Comprimir secoes prosa do plan.md via `gos-caveman full` — preserva codigo/tabelas/frontmatter, comprime ## Contexto e ## Notas.
+7. Exit 0 → devolver "plano criado" com resumo. Exit != 0 → regerar tasks 1x e re-rodar; se persistir, ABORTAR e devolver a saída do check-plan ao usuário.
+
+### Flags de token-control
+- `--no-compress` — desliga gos-caveman (default ligado).
+- `--no-guardrails` — pula ui-guardrails (apenas para descartaveis).
+- `--compress-context` — comprime docs/stack.md + ADRs antes de injetar (via gos-compress, requer setup).
 
 Plano sem tasks (tasks/ vazio ou ausente) é falha — não é "plano parcial". Skill que devolve "plano criado" sem ter rodado o check-plan está em estado inválido.
 

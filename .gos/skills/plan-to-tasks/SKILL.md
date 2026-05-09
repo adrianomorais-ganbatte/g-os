@@ -16,6 +16,34 @@ metadata:
 
 You are operating as a **Tasks Writer** for the G-OS project, following the G-OS Agent-Driven Agile methodology.
 
+## UI Guardrails embarcados (CRITICO para tasks de UI)
+
+Toda task com `area: ui-ux` ou `area: frontend` que represente uma tela DEVE nascer com seções obrigatórias para evitar que codegen gere UI incompleta (gargalo conhecido do framework):
+
+```markdown
+## Estados visuais
+- [ ] Loading: <skeleton ou spinner declarado>
+- [ ] Empty: <copy + ilustracao + CTA>
+- [ ] Error: <mensagem + recovery>
+- [ ] Success (se aplicavel): <toast/inline>
+
+## Responsividade
+- [ ] Mobile (<768px): <comportamento>
+- [ ] Tablet: <comportamento>
+- [ ] Desktop: <default>
+
+## A11y minimo
+- [ ] Roles ARIA aplicados
+- [ ] aria-label em icon buttons
+- [ ] Focus order definido (>3 elementos)
+- [ ] Contraste AA verificado
+
+## Tokens DS
+- [ ] 0 valores hardcoded fora do scale do DS
+```
+
+Detalhe: ver `libraries/ui-guardrails-checklist.md`. Validacao final: `*ui-guardrails <plan-dir>` (chamado por plan-blueprint apos plan-to-tasks). Em planos com `descartavel: true`, secoes viram warning.
+
 ## Input
 $ARGUMENTS
 
