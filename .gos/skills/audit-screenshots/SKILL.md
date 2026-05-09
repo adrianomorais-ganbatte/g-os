@@ -23,6 +23,19 @@ metadata:
 
 Voce esta executando como **Auditor Visual** via skill audit-screenshots. Acumula divergencias visuais detectadas pelo usuario em prints, mapeia cada uma pro Figma canonico, e ao fechar emite UM plano de correcao (OBJETIVO=correcao) com tasks pendentes — sem executar codigo.
 
+## Contrato de single-pass (CRITICO — fix do gargalo de contexto)
+
+Comparacao print vs Figma deve ser SEMPRE single-pass dentro da acao `add`:
+
+1. Ao receber print -> imagem fica em contexto.
+2. Pull do frame Figma via MCP -> 2 imagens em contexto.
+3. Lenses 1-6 (ver `libraries/visual-diff-lenses.md`) executadas IMEDIATAMENTE, com ambas imagens visiveis.
+4. Divergencias materializadas em texto descritivo COMPLETO no JSON da sessao (`expected`, `actual`, `where`) — NUNCA "ver imagem", "comparar depois".
+5. Imagens do print/figma ficam em disco para audit-evidence; texto da divergencia ja e self-contained.
+6. Acao `close` NUNCA re-compara. Apenas le `audit-session.json` (puro texto) + agrupa + escreve plan/tasks.
+
+Violacao -> bug. Se acao `close` perceber que alguma divergencia esta vazia/incompleta, abortar com instrucao para o usuario re-rodar `add` daquele print.
+
 ## Input
 
 $ARGUMENTS
@@ -77,12 +90,14 @@ Persistido em <dirs.audit_state> (default .gos-local/audit-session.json):
    c) Ambiguo ou sem sinal: AskUserQuestion listando 5 candidatos top do mapa + opcao "outro" (usuario digita rota).
 3. **Resolver figma_node_id + URL** via lookup no mapa.
 4. **Pull do frame Figma** via Figma MCP get_image pelo node-id. Salvar em .gos-local/audit-images/NN.figma.png. Se Figma MCP indisponivel: registrar figma_image_path: null e seguir (comparacao fica baseada apenas no print + node-id).
-5. **Comparacao curta** (anatomia visivel + tokens primarios + estados):
-   - Inspecionar print vs Figma frame.
+5. **Comparacao single-pass** (lenses 1-6 com ambas imagens em contexto AGORA):
+   - Aplicar lenses na ordem (layout -> tokens -> estados -> conteudo -> interacao -> a11y) — ver `libraries/visual-diff-lenses.md`.
    - Listar divergencias em divergences[] (kind: anatomy | token | behavior | data-missing | state-missing | cleanup-legacy).
+   - **CADA divergencia DEVE ter** `where` (localizacao precisa), `expected` (do Figma), `actual` (do print). Sem qualquer um, NAO persistir — re-aplicar lens.
    - **Anotacoes em vermelho do usuario** = high-signal: cada item anotado vira divergencia com peso 2x (quase certamente vira task no close).
    - Comentarios livres do usuario (user_context) = high-signal igual.
-6. **Persistir** entrada nova no audit-session.json.
+   - Validar self-contained: usuario que ler so o JSON (sem ver imagem) entende cada item? Se nao -> reescrever.
+6. **Persistir** entrada nova no audit-session.json (somente apos validar self-contained).
 7. **Output ao usuario** (curto):
 
        [audit] +1 print (total: N) — tela: <rota> (node-id: NNNN-NNNNN)
@@ -107,7 +122,10 @@ Nao emite plano. Nao modifica estado.
 
 ## Acao close [SLUG]
 
+**REGRA CRITICA**: `close` opera SOMENTE sobre o JSON da sessao (texto). NUNCA re-le imagens. NUNCA re-aplica lenses. Se uma divergencia esta vazia/incompleta no JSON, abortar com mensagem ao usuario para re-rodar `add` daquele print especifico — close nao tenta consertar.
+
 1. **Resolver SLUG**: argumento explicito > <projeto-name>-<iso-date>. Sanitizar (lowercase, hifens).
+1.5. **Validar self-contained**: ler audit-session.json e verificar que cada divergencia tem `where`, `expected`, `actual`, `kind`, `fix`. Faltando -> abortar com lista de prints incompletos.
 2. **Calcular PLAN-NNN**: ler <dirs.planos>/ e pegar maior NNN existente + 1.
 3. **Agrupar divergencias por tela** (resolved_screen).
 4. **Emitir <dirs.planos>/PLAN-NNN-fix-audit-<SLUG>/plan.md** baseado em templates/planTemplate.md:

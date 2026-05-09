@@ -25,6 +25,14 @@
     { "slug": "progress-tracker", "path": "skills/progress-tracker/SKILL.md" },
     { "slug": "execute-plan", "path": "skills/execute-plan/SKILL.md" },
     { "slug": "validate-plan", "path": "skills/validate-plan/SKILL.md" },
-    { "slug": "audit-screenshots", "path": "skills/audit-screenshots/SKILL.md" }
+    { "slug": "audit-screenshots", "path": "skills/audit-screenshots/SKILL.md" },
+    { "slug": "idea-intake", "path": "skills/idea-intake/SKILL.md" },
+    { "slug": "prd-from-intake", "path": "skills/prd-from-intake/SKILL.md" },
+    { "slug": "adr-tech-decisions", "path": "skills/adr-tech-decisions/SKILL.md" },
+    { "slug": "prototype-orchestrator", "path": "skills/prototype-orchestrator/SKILL.md" },
+    { "slug": "gos-caveman", "path": "skills/gos-caveman/SKILL.md" },
+    { "slug": "gos-compress", "path": "skills/gos-compress/SKILL.md" },
+    { "slug": "figma-print-diff", "path": "skills/figma-print-diff/SKILL.md" },
+    { "slug": "ui-guardrails", "path": "skills/ui-guardrails/SKILL.md" }
   ]
 }
