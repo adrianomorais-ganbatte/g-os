@@ -1,6 +1,6 @@
 ---
 name: "gos-audit-screenshots"
-description: "Skill conversacional. Recebe N prints (anotados ou nao) da aplicacao em uma sessao. Mapeia print -> tela -> Figma frame via docs/figma-screen-map.md. Acumula divergencias entre inputs. Ao fechar, emit"
+description: "Skill conversacional de auditoria visual STREAMING. Abre UM plano de correcao (status aberto) e escreve cada task NA HORA por insumo (print/screenshot + Figma URL), em vez de enfileirar e processar no"
 ---
 
 # gos-audit-screenshots

@@ -1,219 +1,259 @@
 ---
 name: audit-screenshots
-description: Skill conversacional. Recebe N prints (anotados ou nao) da aplicacao em uma sessao. Mapeia print -> tela -> Figma frame via docs/figma-screen-map.md. Acumula divergencias entre inputs. Ao fechar, emite UM plano de correcao com tasks pendentes (sem executar). Mesmo template do *plan — output e input direto pra *execute-plan.
-argument-hint: "<acao> [contexto]   # acao: add | list | close [SLUG] | discard"
+description: Skill conversacional de auditoria visual STREAMING. Abre UM plano de correcao (status aberto) e escreve cada task NA HORA por insumo (print/screenshot + Figma URL), em vez de enfileirar e processar no fim. Cada divergencia passa pelo gate de reuso de componente (design-to-code): mapeia -> checa biblioteca -> reuse/create/merge. Usa Figma MCP (expected), Playwright (actual), figma-print-diff (confronto). Modo validate confronta Figma x implementado varrendo figma-screen-map.md. check-plan.js roda so no finalize.
+argument-hint: "<acao> [SLUG|tipo-tela]   # acao: open | add | validate | list | finalize [SLUG] | discard"
 allowedTools: [Read, Glob, Grep, Bash, Write, Edit, AskUserQuestion]
 sourceDocs:
+  - skills/figma-print-diff/SKILL.md
+  - skills/component-dedup/SKILL.md
   - skills/plan-blueprint/SKILL.md
-  - skills/plan-to-tasks/SKILL.md
+  - libraries/component-reuse-gate.md
+  - libraries/visual-diff-lenses.md
   - templates/planTemplate.md
   - templates/taskTemplate.md
+  - playbooks/audit-streaming-playbook.md
 use-when:
-  - usuario cola print + diz "isso aqui esta errado"
-  - usuario pede "compara essa tela com Figma e abre tasks"
-  - usuario quer agrupar varias divergencias em UM plano de correcao
-  - usuario menciona "auditoria visual" ou "tela X esta divergindo do Figma"
+  - usuario cola print + diz "isso aqui esta errado" (vira task na hora no plano aberto)
+  - usuario pede "compara essa tela com Figma e abre a correcao"
+  - usuario quer auditar varias telas de um tipo (validate) confrontando Figma x implementado
+  - acumular correcoes de N telas em UM plano de fix, com task escrita por insumo
 do-not-use-for:
-  - executar correcao (use *execute-plan apos *audit-screenshots close)
-  - planejar tela nova (use *plan)
+  - executar correcao (use *execute-plan apos *audit-screenshots finalize)
+  - planejar tela nova (use *plan / plan-blueprint)
   - validar plano executado (use *validate-plan)
 metadata:
   category: planning
 ---
 
-Voce esta executando como **Auditor Visual** via skill audit-screenshots. Acumula divergencias visuais detectadas pelo usuario em prints, mapeia cada uma pro Figma canonico, e ao fechar emite UM plano de correcao (OBJETIVO=correcao) com tasks pendentes — sem executar codigo.
+Voce esta executando como **Auditor Visual Streaming** via skill `audit-screenshots`. Ao inves de
+enfileirar prints e materializar o plano so no fim, voce **abre UM plano de correcao imediatamente**
+(`status: aberto`) e **escreve cada task na hora** que recebe um insumo (print/screenshot + Figma URL +
+contexto). Cada divergencia passa pelo **gate de reuso de componente** (design-to-code) antes de virar
+task. O plano so e' fechado e validado por `check-plan.js` no `finalize`.
 
-## Contrato de single-pass (CRITICO — fix do gargalo de contexto)
+## Por que streaming (pivot do modelo de fila)
 
-Comparacao print vs Figma deve ser SEMPRE single-pass dentro da acao `add`:
+O modelo antigo (`add` acumula em `audit-session.json` -> `close` materializa tudo) perdia contexto e
+nao funcionava bem. O modelo novo:
 
-1. Ao receber print -> imagem fica em contexto.
+- **Plano-primeiro**: `open` cria `plan.md` (draft) antes de qualquer insumo. O diretorio do plano E' o
+  estado — nao existe mais `audit-session.json`.
+- **Task-por-insumo**: cada print/tela vira task `status: pendente` na hora, com sua evidencia anexada.
+- **Gate de reuso por divergencia**: divergencia de table/card/form -> reusa primitiva existente ou cria
+  (nunca patch one-off). Ver `libraries/component-reuse-gate.md`.
+
+## Contrato atomico x streaming (CRITICO — nao quebrar check-plan.js)
+
+`check-plan.js` exige todas as tasks `status: pendente` NA CRIACAO e e' byte-identico ao canonico.
+NUNCA modificar o gate. A conciliacao e' por status do plano:
+
+1. `open` escreve `plan.md` com **`status: aberto`** (draft). **NAO** roda check-plan.
+2. `add`/`validate` escrevem cada `T-NN*.md` ja com **`status: pendente`** (eager).
+3. `finalize` flipa `plan.md` para **`status: pendente`** e **so entao** roda `check-plan.js`.
+
+Plano `aberto` e' um estado valido intermediario; plano so vira input de `*execute-plan` apos `finalize`.
+
+## Contrato single-pass do `add` (CRITICO — fix do gargalo de contexto)
+
+A comparacao actual vs Figma deve ser SEMPRE single-pass dentro de `add`, delegada a `figma-print-diff`:
+
+1. Capturar actual (print colado OU Playwright) -> imagem em disco + em contexto.
 2. Pull do frame Figma via MCP -> 2 imagens em contexto.
-3. Lenses 1-6 (ver `libraries/visual-diff-lenses.md`) executadas IMEDIATAMENTE, com ambas imagens visiveis.
-4. Divergencias materializadas em texto descritivo COMPLETO no JSON da sessao (`expected`, `actual`, `where`) — NUNCA "ver imagem", "comparar depois".
-5. Imagens do print/figma ficam em disco para audit-evidence; texto da divergencia ja e self-contained.
-6. Acao `close` NUNCA re-compara. Apenas le `audit-session.json` (puro texto) + agrupa + escreve plan/tasks.
+3. `figma-print-diff` aplica lenses 1-6 (`libraries/visual-diff-lenses.md`) IMEDIATAMENTE, ambas visiveis.
+4. Divergencias materializadas em texto COMPLETO (`where`, `expected`, `actual`) — NUNCA "ver imagem".
+5. Gate de reuso de componente roda sobre as divergencias estruturais.
+6. Task escrita na hora, self-contained. Imagens ficam em `audit-evidence/` para historico.
 
-Violacao -> bug. Se acao `close` perceber que alguma divergencia esta vazia/incompleta, abortar com instrucao para o usuario re-rodar `add` daquele print.
+Violacao -> bug. Insumo cuja task ficar incompleta/vazia: re-rodar `add` daquele print.
 
 ## Input
 
 $ARGUMENTS
 
-Formato: <acao> [SLUG-opcional]
+Formato: `<acao> [SLUG-ou-tipo-tela]`
 
 Acoes:
-- add (default quando o usuario cola imagem) — registra 1+ prints na sessao corrente
-- list — imprime resumo da sessao (prints, telas resolvidas, divergencias acumuladas)
-- close [SLUG] — fecha sessao + emite plano PLAN-NNN-fix-audit-<SLUG-ou-iso>
-- discard — zera sessao corrente (apaga audit-session.json + audit-images/)
+- `open [SLUG]` — abre o plano de correcao (draft). Default do SLUG: `<projeto>-<iso-date>`.
+- `add` (default quando o usuario cola imagem) — registra 1+ insumos -> 1 task cada, NA HORA.
+- `validate <tipo-tela|--all>` — sweep: varre `figma-screen-map.md`, captura+confronta cada tela do tipo.
+- `list` — resumo do plano aberto (telas, tasks, decisoes de componente).
+- `finalize [SLUG]` — fecha + valida (`check-plan.js`).
+- `discard` — aborta o plano aberto.
 
-Quando o usuario simplesmente cola imagem sem comando explicito, assumir add automaticamente.
+Quando o usuario cola imagem sem comando explicito: se existe plano aberto -> `add`; senao -> `open`
+(criar plano com SLUG default) e em seguida `add`.
 
 ## Pre-requisitos (gate)
 
-1. Resolver paths via .gos-local/plan-paths.json. Ausente -> abortar e instruir rodar *plan ou criar manualmente o arquivo.
-2. Resolver dirs.figma_screen_map (campo figma_screen_map em plan-paths.json; default: <dirs.docs>/figma-screen-map.md). Arquivo ausente -> abortar com mensagem clara: "rode *audit-screenshots apenas em projetos que mantenham docs/figma-screen-map.md (mapa canonico tela->Figma)".
-3. Resolver dirs.audit_state (campo audit_session_file; default: <projeto>/.gos-local/audit-session.json).
-4. Ler dirs.audit_state se existir — sessao em curso. Senao, criar sessao nova ao primeiro add.
+1. Resolver paths via `.gos-local/plan-paths.json`. Ausente -> abortar e instruir rodar `*plan` ou criar manualmente.
+2. Resolver `dirs.figma_screen_map` (campo `figma_screen_map`; default `<dirs.docs>/figma-screen-map.md`).
+   Arquivo ausente -> abortar: "rode *audit-screenshots apenas em projetos que mantenham docs/figma-screen-map.md".
+3. Resolver `dirs.audit_evidence` (campo `audit_evidence`; default `<plano>/audit-evidence`).
+4. Resolver **plano aberto corrente** via `progress.txt` (set-current). Se o plano corrente nao tem
+   `status: aberto`, `add`/`validate` exigem um `open` antes (ou abrem um novo).
 
-## Estado da sessao
+## Acao open [SLUG]
 
-Persistido em <dirs.audit_state> (default .gos-local/audit-session.json):
+1. **Resolver SLUG**: argumento explicito > `<projeto-name>-<iso-date>`. Sanitizar (lowercase, hifens).
+2. **Calcular PLAN-NNN**: ler `<dirs.planos>/` e pegar maior NNN + 1.
+3. **Escrever `<dirs.planos>/PLAN-NNN-fix-<SLUG>/plan.md`** de `templates/planTemplate.md`:
+   - Frontmatter: `objetivo: correcao`, **`status: aberto`**, `audit_streaming: true`, `created_at: <iso>`,
+     `figma_url:` (preenchido no primeiro `add`).
+   - Secoes vazias prontas para append: `## Contexto`, `## Componentes mapeados`, `## Interacoes & Estados`,
+     `## Page-level overrides`, `## Backend pendings`, `## Drift map`.
+4. **Escrever `context.md`** (template `contextTemplate.md`).
+5. **Criar `tasks/` vazio** e `audit-evidence/`.
+6. **progress-tracker set-current** apontando o plano novo (status aberto).
+7. **NAO rodar check-plan.js** (plano e' draft).
+8. Output:
 
-    {
-      "session_id": "audit-2026-05-06T14-22-03",
-      "created_at": "<iso>",
-      "screenshots": [
-        {
-          "n": 1,
-          "image_path": ".gos-local/audit-images/01.png",
-          "user_context": "tabela negocios mostrando coluna Area com -",
-          "resolved_screen": "/dashboard/projetos/[id]?tab=negocios",
-          "figma_node_id": "9140-25431",
-          "figma_url": "https://www.figma.com/design/.../?node-id=9140-25431",
-          "figma_image_path": ".gos-local/audit-images/01.figma.png",
-          "divergences": [
-            { "kind": "data-missing", "where": "coluna Area", "fix": "seed/endpoint deve popular project.area" },
-            { "kind": "token", "where": "row hover", "fix": "bg-muted/50 (Figma) vs bg-transparent (atual)" }
-          ]
-        }
-      ]
-    }
+       [audit] PLAN-NNN-fix-<SLUG> ABERTO (status: aberto)
+       cole prints (add) ou rode *audit-screenshots validate <tipo-tela> | finalize
 
 ## Acao add
 
-1. **Salvar imagem(s)** colada(s) pelo usuario em .gos-local/audit-images/NN.png (n = ultimo + 1; multiplas imagens na mesma mensagem viram NN, NN+1, ...). Criar diretorio se necessario.
-2. **Identificar tela** (prioridade):
-   a) Mencao explicita do usuario na mesma mensagem ("e a aba negocios", "/dashboard/projetos/123") -> matchar no figma-screen-map.md.
-   b) Heuristica visual: ler titulo/breadcrumb/URL visivel no print (use modelo multimodal pra extrair texto). Match por substring contra a coluna "Rota app" do mapa.
-   c) Ambiguo ou sem sinal: AskUserQuestion listando 5 candidatos top do mapa + opcao "outro" (usuario digita rota).
-3. **Resolver figma_node_id + URL** via lookup no mapa.
-4. **Pull do frame Figma** via Figma MCP get_image pelo node-id. Salvar em .gos-local/audit-images/NN.figma.png. Se Figma MCP indisponivel: registrar figma_image_path: null e seguir (comparacao fica baseada apenas no print + node-id).
-5. **Comparacao single-pass** (lenses 1-6 com ambas imagens em contexto AGORA):
-   - Aplicar lenses na ordem (layout -> tokens -> estados -> conteudo -> interacao -> a11y) — ver `libraries/visual-diff-lenses.md`.
-   - Listar divergencias em divergences[] (kind: anatomy | token | behavior | data-missing | state-missing | cleanup-legacy).
-   - **CADA divergencia DEVE ter** `where` (localizacao precisa), `expected` (do Figma), `actual` (do print). Sem qualquer um, NAO persistir — re-aplicar lens.
-   - **Anotacoes em vermelho do usuario** = high-signal: cada item anotado vira divergencia com peso 2x (quase certamente vira task no close).
-   - Comentarios livres do usuario (user_context) = high-signal igual.
-   - Validar self-contained: usuario que ler so o JSON (sem ver imagem) entende cada item? Se nao -> reescrever.
-6. **Persistir** entrada nova no audit-session.json (somente apos validar self-contained).
-7. **Output ao usuario** (curto):
+Para cada insumo (print colado OU rota a capturar):
 
-       [audit] +1 print (total: N) — tela: <rota> (node-id: NNNN-NNNNN)
-       divergencias detectadas: <K> (alta-confianca: <H>)
-       proximo: cole outro print, *audit-screenshots list, ou *audit-screenshots close
+1. **Identificar tela** (prioridade):
+   a) Mencao explicita do usuario ("aba negocios", "/dashboard/projetos/123") -> match no figma-screen-map.
+   b) Heuristica visual: ler titulo/breadcrumb/URL do print (multimodal) -> substring contra "Rota app".
+   c) Ambiguo: `AskUserQuestion` com 5 candidatos top do mapa + "outro".
+2. **Resolver figma_node_id + URL** via lookup no mapa.
+3. **Capturar ACTUAL**:
+   - Print colado pelo usuario -> salvar em `<audit_evidence>/NN.png`.
+   - Sem print -> **Playwright** captura a rota viva (`browser_navigate` + `browser_take_screenshot`,
+     headless) -> `<audit_evidence>/NN.png`. Casos interativos (hover/drawer aberto) -> browser-use.
+4. **Pull EXPECTED**: Figma MCP `get_image` pelo node-id -> `<audit_evidence>/NN.figma.png`. MCP
+   indisponivel: seguir so com actual + node-id (registrar `figma_image_path: null`).
+5. **Confrontar (single-pass)**: invocar `figma-print-diff <audit_evidence>/NN.png <figma-url>` -> JSON de
+   divergencias (lenses 1-6, cada uma com `where`/`expected`/`actual`/`kind`/`severity`/`fix`).
+6. **Gate de reuso de componente** (`libraries/component-reuse-gate.md`) por divergencia estrutural
+   (table/card/form/list/modal/toolbar):
+   - Mapear elemento -> componente DS candidato (indexar `dirs.components/` + `.stories.tsx`, estilo
+     `plan-blueprint` Fase 1.3).
+   - Rodar `component-dedup` (candidato vs biblioteca) -> decisao `reuse | create | merge` + score.
+   - Heuristica DataTable: divergencia de tabela -> `component_target` = primitiva existente (ex.:
+     `components/ui/data-table.tsx`); correcao e' nas `columns`/dados OU na primitiva — nunca `<table>` novo.
+7. **Escrever task(s) NA HORA** em `tasks/T-NN-<componente>-<fix-slug>.md` (1 task por divergencia,
+   agrupando triviais por componente), modelo **O QUE / ONDE / COMO / POR QUE**:
+   - Frontmatter: **`status: pendente`**, `priority` (high-signal/anotacao vermelha -> P0), `area`
+     (`ui-ux` token/anatomy | `frontend` behavior/data-missing), `audit_evidence: audit-evidence/NN.png`,
+     `figma_url:`, `component_decision: reuse|create|merge`, `component_target:`, e quando aplicavel
+     `interaction_target:` / `override_target:` / `depends_on_backend:`.
+   - `## Contexto` (por que: a divergencia), `## Objetivo`+`### Entrega` (o que), `## Arquivos` (onde: path
+     concreto criar/editar), `## Plano de execucao` (como). Task sem path concreto e' malformada.
+   - `create` gera task de criacao da primitiva ANTES da task de uso (`depends_on`).
+8. **Append no plano**: 1 linha em `## Componentes mapeados`, divergencia em `## Drift map`, behavior em
+   `## Interacoes & Estados`, token em `## Page-level overrides` (decisao a/b/c), data-missing em
+   `## Backend pendings`.
+9. **Output curto**:
+
+       [audit] +1 tela: <rota> (node-id NNNN-NNNNN) -> <T> task(s) escritas
+       divergencias: <K> (alta <H>) | reuso: <reuse>R <merge>M <create>C
+       proximo: cole outro print | *audit-screenshots validate <tipo> | list | finalize
+
+## Acao validate <tipo-tela|--all>
+
+Sweep sistematico Figma x implementado, alimentando o mesmo fluxo de `add`:
+
+1. Ler `figma-screen-map.md` e filtrar telas por `tipo-tela` (coluna de secao/categoria) ou todas (`--all`).
+2. Para cada tela: resolver rota + node-id; **Playwright** captura actual; Figma MCP pull expected;
+   `figma-print-diff` confronta; gate de reuso; **escrever task(s) na hora** (passos 5-8 do `add`).
+3. Telas sem node-id no mapa -> warning, pular (registrar em `## Notas` do plano).
+4. Output: tabela tela x divergencias x tasks geradas + total.
+
+Requer `open` previo (ou abre plano novo `PLAN-NNN-fix-validate-<tipo>`).
 
 ## Acao list
 
-Le audit-session.json e imprime tabela:
+Le `tasks/` do plano aberto (NAO re-le imagens) e imprime:
 
-    [audit-session <session_id>] iniciada <created_at>
+    [audit PLAN-NNN-fix-<SLUG>] status: aberto
 
-    #  print              tela                                     divergencias
-    1  audit-images/01    /dashboard/projetos/[id]?tab=negocios    3 (1 alta)
-    2  audit-images/02    /dashboard/projetos                      5 (3 alta)
-    3  audit-images/03    /dashboard/financiadores                 2
+    #  task                              tela                       decisao   priority
+    1  T-01-data-table-area-column       /dashboard/projetos        reuse     P1
+    2  T-02-stat-card-flat               /dashboard                 merge     P1
 
-    total: 10 divergencias em 3 telas
-    proximo: *audit-screenshots close [SLUG-opcional] -> emite PLAN-NNN-fix-audit-<SLUG>
+    total: N tasks em K telas | reuso: R reuse / M merge / C create
+    proximo: *audit-screenshots finalize <SLUG>  ->  roda check-plan.js
 
-Nao emite plano. Nao modifica estado.
+## Acao finalize [SLUG]
 
-## Acao close [SLUG]
+**REGRA**: `finalize` opera sobre os arquivos ja escritos (tasks + plan). NAO re-le imagens, NAO re-confronta.
 
-**REGRA CRITICA**: `close` opera SOMENTE sobre o JSON da sessao (texto). NUNCA re-le imagens. NUNCA re-aplica lenses. Se uma divergencia esta vazia/incompleta no JSON, abortar com mensagem ao usuario para re-rodar `add` daquele print especifico — close nao tenta consertar.
-
-1. **Resolver SLUG**: argumento explicito > <projeto-name>-<iso-date>. Sanitizar (lowercase, hifens).
-1.5. **Validar self-contained**: ler audit-session.json e verificar que cada divergencia tem `where`, `expected`, `actual`, `kind`, `fix`. Faltando -> abortar com lista de prints incompletos.
-2. **Calcular PLAN-NNN**: ler <dirs.planos>/ e pegar maior NNN existente + 1.
-3. **Agrupar divergencias por tela** (resolved_screen).
-4. **Emitir <dirs.planos>/PLAN-NNN-fix-audit-<SLUG>/plan.md** baseado em templates/planTemplate.md:
-   - Frontmatter: objetivo: correcao, audit_session: <session_id>, created_at: <iso>, status: pendente, figma_url: <primeiro figma_url da sessao>.
-   - Secao ## Contexto: lista os prints com user_context resumido.
-   - Secao ## Componentes mapeados: 1 linha por divergencia (Componente = inferir do where).
-   - Secao ## Interacoes & Estados: 1 bullet por divergencia tipo behavior ou state-missing.
-   - Secao ## Page-level overrides: 1 linha por divergencia tipo token (decisao default (a) className na pagina; usuario pode reclassificar depois).
-   - Secao ## Backend pendings: 1 linha por divergencia tipo data-missing.
-   - ## Drift map: copia das divergencias detectadas (usado por validate-plan no fechamento).
-   - ## Cleanup de starter legado: divergencias tipo cleanup-legacy se houver.
-5. **Emitir tasks/T-NN-<componente>-<fix-slug>.md** (1 task por divergencia, agrupando triviais por componente):
-   - Frontmatter: status: pendente, priority: P1 (high-signal -> P0), area: ui-ux (token/anatomy) ou area: frontend (behavior/data-missing).
-   - interaction_target: ou override_target: populado quando aplicavel.
-   - Campo novo: audit_evidence: audit-evidence/NN.png apontando pro print original.
-6. **Copiar evidencias** pra <dirs.planos>/PLAN-NNN-fix-audit-<SLUG>/audit-evidence/:
-   - Prints originais (NN.png).
-   - Figma frames capturados (NN.figma.png).
-   - Cada um nomeado igual ao indice da sessao.
-7. **Emitir context.md** padrao (template contextTemplate.md).
-8. **Atualizar progress.txt** via progress-tracker set-current apontando pro plano novo.
-9. **Rodar gate determistico** node <repo>/.gos/scripts/integrations/check-plan.js <plano>:
+1. **Resolver plano aberto** (progress.txt set-current) ou pelo SLUG.
+2. **Validar self-contained**: cada `T-NN*.md` tem `## Arquivos` com path concreto, `## Objetivo`,
+   `## Plano de execucao`, e frontmatter `status: pendente`. Faltando -> abortar listando tasks incompletas
+   (instruir re-rodar `add` daquele insumo). `finalize` nao conserta.
+3. **Flip do plano**: `plan.md` frontmatter `status: aberto` -> **`status: pendente`**. Preencher `## Contexto`
+   consolidado (lista de telas auditadas).
+4. **Disparar `ui-guardrails <plano>`** — trava task de UI sem estados/responsivo/a11y/tokens.
+5. **progress-tracker set** (status pendente).
+6. **Rodar gate deterministico** `node <repo>/.gos/scripts/integrations/check-plan.js <plano>`:
    - Exit 0 -> seguir.
-   - Exit != 0 -> abortar e devolver saida do check-plan.
-10. **Arquivar sessao**: mover audit-session.json pra .gos-local/audit-archive/<session_id>.json. NAO apagar imagens (ficam em audit-images/ pra historico).
-11. **Output final**:
+   - Exit != 0 -> abortar e devolver a saida literal do check-plan.
+7. Output final:
 
-        [audit-screenshots] PLAN-NNN-fix-audit-<SLUG> criado
+       [audit-screenshots] PLAN-NNN-fix-<SLUG> FINALIZADO (status: pendente)
 
-        prints processados: <N>
-        telas afetadas:     <K>
-        tasks criadas:      <T> (<P0> P0 / <P1> P1)
+       telas auditadas:  <K>
+       tasks:            <T> (<P0> P0 / <P1> P1) | reuso: <R>R <M>M <C>C
+       plano:    docs/plans/PLAN-NNN-fix-<SLUG>/plan.md
+       progress: atualizado (status=pendente)
 
-        plano:    docs/plans/PLAN-NNN-fix-audit-<SLUG>/plan.md
-        tasks:    docs/plans/PLAN-NNN-fix-audit-<SLUG>/tasks/ (T tasks)
-        progress: atualizado (status=pendente)
-
-        proximo passo: *execute-plan PLAN-NNN-fix-audit-<SLUG>  (Codex IDE)
+       proximo passo: *execute-plan PLAN-NNN-fix-<SLUG>
 
 ## Acao discard
 
-1. Confirmacao inline obrigatoria: AskUserQuestion com 2 opcoes (Sim, descartar tudo / Nao, manter sessao).
-2. Confirmado: apagar .gos-local/audit-session.json + diretorio .gos-local/audit-images/ (todos os prints + frames Figma da sessao corrente).
-3. Output: [audit] sessao descartada (N prints removidos).
+1. Confirmacao inline (`AskUserQuestion`: Sim, descartar / Nao, manter).
+2. Confirmado: remover `<dirs.planos>/PLAN-NNN-fix-<SLUG>/` (plano + tasks + audit-evidence) e limpar
+   progress set-current. Output: `[audit] plano aberto descartado (T tasks, N evidencias removidas)`.
 
 ## Resolver de tela (parser do figma-screen-map.md)
 
-figma-screen-map.md e markdown com tabelas | Tela | ... | Rota app | node-id | ... |.
+`figma-screen-map.md` e' markdown com tabelas `| Tela | ... | Rota app | node-id | ... |`.
 
-Algoritmo:
-1. Ler arquivo.
-2. Extrair todas tabelas via regex (linhas iniciando com |).
-3. Pra cada tabela, identificar coluna Rota app e node-id (case-insensitive, varia entre tabelas).
-4. Construir lookup {rota_normalizada: {node_id, secao, label}} (normalizar = lowercase, remover query strings opcionais).
-5. Match por:
-   - Equality exato: rota visivel no print bate com chave do lookup -> resolvido.
-   - Substring: rota do print contem chave do lookup -> resolvido com warning.
-   - Multiplos matches: AskUserQuestion listando candidatos.
-6. Suportar query strings (?tab=negocios) como parte da rota (mapas separam abas).
+1. Ler arquivo. Extrair todas as tabelas (linhas iniciando com `|`).
+2. Identificar colunas `Rota app` e `node-id` por tabela (case-insensitive).
+3. Construir lookup `{rota_normalizada: {node_id, secao, label}}` (lowercase, query strings opcionais).
+4. Match: equality exato > substring (warning) > multiplos (`AskUserQuestion`).
+5. Suportar query strings (`?tab=negocios`) como parte da rota.
 
 ## Acoplamento com pipeline
 
-- Plano gerado e input direto pra *execute-plan e *validate-plan — segue 100% o template padrao + frontmatter compativel.
-- Sub-fases 1.5 (drift map) e 1.6 (cleanup legado) do plan-blueprint NAO rodam aqui (audit JA e o drift map empirico). Mas se legacy_starter_dirs declarado em plan-paths.json, divergencias tipo cleanup-legacy sao detectadas durante add e viram tasks T-NN-cleanup-legacy-<slug>.
-- Schema gate (Fase 2.4) NAO roda aqui — divergencias tipo data-missing viram entrada em ## Backend pendings direto, sem confronto com Postman/Prisma (audit assume usuario sabe o que esta vendo).
-- progress-tracker segue identico — plano de audit aparece no progress.txt como qualquer outro.
+- Plano gerado e' input direto de `*execute-plan` e `*validate-plan` — segue o template padrao + frontmatter.
+- `figma-print-diff` e' a primitiva de confronto (single-pass) — esta skill nao reimplementa lenses.
+- `component-dedup` + `libraries/component-reuse-gate.md` resolvem reuse/create/merge — nao duplicar.
+- Sub-fases 1.5 (drift) e 1.6 (cleanup legado) do `plan-blueprint` NAO rodam aqui (o audit JA e' drift
+  empirico). Se `legacy_starter_dirs` em plan-paths.json, divergencias `cleanup-legacy` viram task.
+- Schema gate (Fase 2.4) NAO roda; divergencias `data-missing` viram `## Backend pendings` direto.
+- `plan-blueprint` e' "1 tela = 1 plano"; o audit e' "N telas -> 1 plano de fix" (orquestracao por cima).
 
 ## Regras criticas
 
-- **Sem execucao**: skill NUNCA modifica codigo da aplicacao. Ela cria plano + tasks (status: pendente). User roda *execute-plan separado se quiser.
-- **Sessao persistente**: state em .gos-local/audit-session.json permite acumular prints entre invocacoes ate close. Sessao orfa (nao fechada por dias) eh ok — discard limpa.
-- **Mapeamento canonico obrigatorio**: sem figma-screen-map.md, skill aborta. Esse arquivo eh o contrato tela<->Figma do projeto.
-- **Anotacoes em vermelho = high-signal**: peso 2x na decisao de virar task. Sem anotacao, ainda detecta automaticamente, mas com peso menor.
-- **Output e input do pipeline existente**: nao reinventa template, usa templates/planTemplate.md + taskTemplate.md.
+- **Sem execucao**: skill NUNCA modifica codigo da aplicacao. So cria plano + tasks (status: pendente).
+  User roda `*execute-plan` separado.
+- **Plano-primeiro**: `open` antes de qualquer insumo. O diretorio do plano E' o estado (sem audit-session.json).
+- **Eager + self-contained**: cada insumo vira task na hora, com evidencia textual completa. `finalize` so valida.
+- **Gate de reuso obrigatorio**: divergencia estrutural sempre passa por reuse/create/merge antes de virar task.
+- **check-plan.js so no finalize**: nunca na abertura. Nunca modificar o gate.
+- **Mapeamento canonico obrigatorio**: sem `figma-screen-map.md`, skill aborta.
+- **Anotacoes em vermelho = high-signal**: peso 2x (P0).
 
 ## Model guidance
 
 | Escopo | Modelo |
 |--------|--------|
 | add com 1-2 prints simples | sonnet |
-| add com print complexo (10+ divergencias visiveis) | opus |
-| close com 5+ telas / 20+ tasks geradas | opus |
+| add com print complexo (10+ divergencias) / gate de reuso denso | opus |
+| validate sweep (5+ telas) | opus |
 | list / discard | haiku |
 
 ## Instructions
 
-1. Ao receber imagem sem comando explicito, assumir *audit-screenshots add.
+1. Ao receber imagem sem comando: plano aberto existe -> `add`; senao -> `open` + `add`.
 2. NUNCA executar codigo da aplicacao — skill so planeja.
-3. Sessao persiste em .gos-local/ ate close ou discard.
-4. Plano gerado SEMPRE roda check-plan.js antes de devolver controle ao usuario.
-5. Ao final do close, instruir o usuario do proximo passo (*execute-plan PLAN-NNN-fix-audit-<SLUG>).
+3. Estado vive no diretorio do plano aberto (status: aberto) ate `finalize` ou `discard`.
+4. `add`/`validate` escrevem tasks `status: pendente` na hora; `finalize` flipa o plano e roda check-plan.js.
+5. Confronto visual delegado a `figma-print-diff`; reuso a `component-dedup` + `component-reuse-gate.md`.
+6. Ao final do `finalize`, instruir `*execute-plan PLAN-NNN-fix-<SLUG>`.

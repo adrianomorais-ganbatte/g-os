@@ -15,7 +15,13 @@ validated_at: null
 
 # <Título da tela>
 
-## Contexto
+> **Modelo O QUE / ONDE / COMO / POR QUE** — este plano (e cada task que ele gera) responde às 4 perguntas:
+> - **POR QUE** → `## Contexto` (motivação, PRD/ticket, problema).
+> - **O QUE** → `## Componentes mapeados` + `## Interações & Estados` + `## Checklist de aceite` (o entregável).
+> - **ONDE** → `context.md` (`## Arquivos relevantes`) + coluna de paths nas tasks (`## Arquivos`).
+> - **COMO** → `## Aderência à Stack` + `## Plano de execução` (abordagem técnica, fetching, composição).
+
+## Contexto (POR QUE)
 
 <Por que esta tela existe — referência ao PRD, ticket, decisão de produto.>
 
@@ -140,10 +146,11 @@ Decisões possíveis:
 > Gaps detectados confrontando Postman/regras-de-negocio com a necessidade da tela. Cada item vira task ClickUp atribuída ao Douglas (default) ou ao `ASSIGNEE` informado. Vazio = backend completo para esta tela.
 
 > Coluna `Bloqueia tasks` lista os T-IDs frontend cujo frontmatter declara `depends_on_backend:` apontando para a `gap-key` desta linha (ex.: `migration-20260501150000`).
+> Coluna `Bypass frontend` declara COMO o frontend entrega sem o backend pronto (fallback, mock, toast "em breve", cast + null-coalesce). Sem bypass declarado, a tarefa frontend fica `bloqueada-backend`. **Princípio: frontend nunca bloqueado por gap de backend — sempre há bypass OU a task é explicitamente bloqueada.**
 
-| gap-key | Gap | Endpoint/Coleção esperada | ClickUp ID | Status | Bloqueia tasks |
-|---------|-----|---------------------------|------------|--------|----------------|
-|         |     |                           |            |        |                |
+| gap-key | Gap | Bypass frontend | Endpoint/Coleção esperada | ClickUp ID | Status | Bloqueia tasks |
+|---------|-----|-----------------|---------------------------|------------|--------|----------------|
+|         |     |                 |                           |            |        |                |
 
 ## Mock strategy
 
@@ -156,6 +163,20 @@ Decisões possíveis:
 - **Regras de negócio**: `<lista de arquivos relevantes em docs/regras-de-negocio/>`
 - **Postman**: `<lista de coleções/endpoints relevantes em docs/postman/>`
 - **Stack ref**: `<sha de stack.md>`
+
+## Tabela de regressão
+
+> Fluxos/telas existentes que este plano NÃO pode quebrar. `validate-plan` confere que nenhum item regrediu. Vazio = plano greenfield sem superfície a preservar.
+
+- <rota/fluxo 1 — o que deve continuar funcionando (fetching + markup preservados)>
+- <rota/fluxo 2>
+
+## Anti-padrões
+
+> Proibições explícitas desta entrega. O executor recusa qualquer task que viole. Derivado das memórias do projeto + decisões deste plano.
+
+- ❌ <ação proibida 1 — ex.: criar primitiva nova quando componente X já cobre; estender via prop>
+- ❌ <ação proibida 2 — ex.: hardcode de RBAC inline em JSX; centralizar em helper>
 
 ## Riscos & Rollback
 

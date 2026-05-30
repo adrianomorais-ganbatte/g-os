@@ -84,7 +84,15 @@ Campos obrigatórios do frontmatter (do `taskTemplate.md`, presentes em CADA T-N
 - **`status: pendente`** — invariante. Sem isso o `progress-tracker` não consegue transicionar e o `*execute-plan`/`*validate-plan` quebram.
 - `valida_em`, `depends_on_backend: []`, `interaction_target: []`, `override_target: []`, `assignees: []`, `links: []`
 
-Body: copiar as seções do `taskTemplate.md` (`## Contexto`, `## Objetivo`, `## Plano de execução`, `## Critérios de aceitação (DoD)`, `## Riscos & Rollback`) — **NÃO** adicionar seção `## Status` no body. Status vive APENAS no frontmatter.
+Body: copiar as seções do `taskTemplate.md` — **NÃO** adicionar seção `## Status` no body. Status vive APENAS no frontmatter.
+
+**Modelo O QUE / ONDE / COMO / POR QUE (obrigatório)**: toda task gerada DEVE responder às 4 perguntas, sem placeholder:
+- **POR QUE** → `## Contexto` (gap/motivação, link ao plano pai).
+- **O QUE** → `## Objetivo` + `### Entrega` (entregável observável).
+- **ONDE** → `## Arquivos` (tabela com `criar`/`editar`/`deletar` + path exato — extraído do `context.md` `## Arquivos relevantes` e do `## Plano de execução` do plano pai).
+- **COMO** → `## Plano de execução` (passos acionáveis).
+
+Task com `## Arquivos` vazio ou genérico (sem path concreto) é malformada — o executor não pode adivinhar onde mexer. Regenerar.
 
 ### Phase 3.5 — Verificação pós-geração (gate)
 
