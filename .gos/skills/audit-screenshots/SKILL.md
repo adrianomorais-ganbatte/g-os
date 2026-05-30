@@ -11,6 +11,7 @@ sourceDocs:
   - libraries/visual-diff-lenses.md
   - templates/planTemplate.md
   - templates/taskTemplate.md
+  - playbooks/audit-streaming-playbook.md
 use-when:
   - usuario cola print + diz "isso aqui esta errado" (vira task na hora no plano aberto)
   - usuario pede "compara essa tela com Figma e abre a correcao"
