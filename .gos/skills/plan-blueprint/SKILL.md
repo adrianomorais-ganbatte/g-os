@@ -212,6 +212,9 @@ Para cada elemento mapeado:
 
 Regras de geração de tasks (cobertura de comportamento + overrides):
 
+- **Modelo O QUE / ONDE / COMO / POR QUE**: cada task nasce respondendo as 4 perguntas (Contexto=por que, Objetivo+Entrega=o que, Arquivos=onde, Plano de execução=como). O `plan-to-tasks` materializa isso a partir do `## Plano de execução` (como) + `context.md` `## Arquivos relevantes` (onde). Task sem path concreto em `## Arquivos` é malformada.
+- **Tabela de regressão + Anti-padrões**: o `plan.md` preenche `## Tabela de regressão` (fluxos a não quebrar) e `## Anti-padrões` (proibições, derivadas das memórias do projeto). `validate-plan` confere ambos no fechamento.
+
 - Toda interação em `## Interações & Estados` deve gerar **ao menos 1 task** com `interaction_target:` apontando pra ela. Se uma task cobre múltiplas interações, listar todos os slugs.
 - Toda linha de `## Page-level overrides` com decisão **(b)** gera task de variant na story (`area: ui-ux`, `agent:ux-design-expert`); decisões **(a)** e **(c)** geram tasks na página (`area: frontend`, `agent:dev`). Em ambos os casos, frontmatter da task declara `override_target:` apontando pro slug.
 - Tasks de seed data (quando aplicável — Tabela ou Form com fields no Figma) declaram fields obrigatórios e referenciam o checklist "Seed popula TODOS os campos exibidos".
@@ -224,6 +227,11 @@ Se a análise identificar mais de 3 seções autônomas (modais, drawers, sub-ro
 - Filhos: `PLAN-NNN.1-<slug>`, `PLAN-NNN.2-<slug>` (cada um com suas tasks)
 
 Frontmatter linka via `parent_plan` / `children_plans`.
+
+> **Quando NAO usar plan-blueprint**: `plan-blueprint` e' "1 tela = 1 plano" (implantacao do zero). Para
+> auditoria visual que acumula correcoes de **N telas em UM plano de fix** (confronto Figma x implementado,
+> task por insumo), use `audit-screenshots` (orquestrador streaming) — ele reusa esta Fase 1.3 (mapeamento +
+> reuso de componente) e `figma-print-diff` como primitivas.
 
 ## Saída
 

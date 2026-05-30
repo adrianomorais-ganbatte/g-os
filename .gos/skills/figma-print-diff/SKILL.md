@@ -23,6 +23,11 @@ metadata:
 
 Voce esta executando como **Visual Diff Auditor** via skill `figma-print-diff`. Faz UMA comparacao em UM unico passo, sem persistir sessao. Imagem do print + frame Figma DEVEM permanecer no contexto da inferencia ate o output final.
 
+> **Primitiva de confronto**: esta skill e' o passo de confronto chamado por `audit-screenshots` (orquestrador
+> streaming) a cada insumo. Mantem-se pura print<->Figma — nao abre plano, nao escreve task, nao decide reuso.
+> O `actual` (print) pode ser um screenshot colado pelo usuario OU um PNG capturado por Playwright pelo
+> orquestrador (rota viva); aqui e' so um `print-path` que ja existe em disco.
+
 ## Contrato critico
 
 1. **Single-pass**: ler print + Figma + comparar + emitir output em UMA chamada do agente. NAO enfileirar.
