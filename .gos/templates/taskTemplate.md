@@ -17,15 +17,39 @@ assignees: []
 links: []
 ---
 
-## Contexto
+<!--
+MODELO DE TASK: toda task DEVE responder às 4 perguntas, nesta ordem:
+  POR QUE → ## Contexto
+  O QUE   → ## Objetivo + ## Entrega
+  ONDE    → ## Arquivos
+  COMO    → ## Plano de execução
+Nenhuma seção pode ficar com placeholder. Se não há resposta para uma das 4, a task não está pronta para execução.
+-->
 
-<Por que esta task existe — referência direta ao plano pai e ao critério de aceite.>
+## Contexto (POR QUE)
 
-## Objetivo
+<Por que esta task existe — referência direta ao plano pai e ao critério de aceite. Qual problema/gap motiva.>
 
-<Resultado esperado em 1-2 frases.>
+## Objetivo (O QUE)
 
-## Plano de execução
+<Resultado esperado em 1-2 frases — o entregável concreto, observável.>
+
+### Entrega
+
+- <artefato 1 que esta task produz (componente, action, migration, story...)>
+- <artefato 2>
+
+## Arquivos (ONDE)
+
+> Caminhos exatos. Marque a operação. Sem isso o executor adivinha — proibido.
+
+| Operação | Path | Nota |
+|----------|------|------|
+| criar | `src/.../novo.tsx` | <o que é> |
+| editar | `src/.../existente.ts:NN` | <o que muda> |
+| deletar | `src/.../legado.tsx` | <só se `cleanup_target`> |
+
+## Plano de execução (COMO)
 
 - [ ] Passo 1
 - [ ] Passo 2
