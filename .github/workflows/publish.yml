@@ -59,8 +59,18 @@ jobs:
 
       - name: Verify registry metadata post-publish
         run: |
-          sleep 10
           VERSION=$(node -p "require('./package.json').version")
-          BIN=$(npm view ganbatte-os@$VERSION bin --json)
+          echo "Verifying registry metadata for ganbatte-os@$VERSION (registry propagation pode levar ate ~1min)..."
+          BIN=""
+          for i in $(seq 1 12); do
+            # if/&& isenta o comando do 'bash -e'; --prefer-online forca leitura fresca (ignora cache local)
+            if BIN=$(npm view "ganbatte-os@$VERSION" bin --json --prefer-online 2>/dev/null) && [ -n "$BIN" ]; then
+              echo "Tentativa $i: metadata disponivel no registro."
+              break
+            fi
+            echo "Tentativa $i/12: versao $VERSION ainda nao visivel no registro, aguardando 15s..."
+            sleep 15
+            BIN=""
+          done
           echo "Registry bin for $VERSION: $BIN"
-          echo "$BIN" | grep -q "gos-cli.js" || (echo "FAIL: bin field missing from registry metadata for $VERSION" && exit 1)
+          echo "$BIN" | grep -q "gos-cli.js" || (echo "FAIL: bin field ausente na metadata do registro para $VERSION apos as tentativas" && exit 1)
