@@ -1,6 +1,6 @@
 ---
 name: "gos-sm"
-description: "Agent para transformar design, ideia ou backlog solto em sprint executavel"
+description: "Agent para transformar design, ideia ou backlog solto em plano de desenvolvimento executavel"
 model: inherit
 tools:
   - Read
