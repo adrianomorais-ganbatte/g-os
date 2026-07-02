@@ -315,6 +315,22 @@ function cmdInit(root, args) {
   const gitignoreUpdated = mergeGitignore(root, manifest.gitignoreEntries || []);
   if (gitignoreUpdated) ok('.gitignore atualizado com entradas do manifest.');
 
+  // 8b. Config de modelo por etapa (Junior executa, Senior audita)
+  try {
+    const { writeLocalDefaults, resolveAll } = require(path.join(root, '.gos', 'scripts', 'tools', 'model-router.js'));
+    const res = writeLocalDefaults(root);
+    const map = resolveAll(root);
+    if (res.created) {
+      ok('Config de modelos por etapa criada em .gos-local/models.json');
+    } else {
+      info('Config de modelos por etapa ja existe (.gos-local/models.json).');
+    }
+    info(`  plan=${map.plan.model} | execute=${map.execute.model} | validate=${map.validate.model}`);
+    info('  Edite .gos-local/models.json para trocar modelo/provider por etapa.');
+  } catch (err) {
+    warn(`Nao foi possivel configurar models por etapa: ${err.message}`);
+  }
+
   // 9. Salvar install log
   writeJson(installLog, {
     version: VERSION,

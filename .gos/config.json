@@ -13,5 +13,24 @@
     "production": "main",
     "staging": "beta",
     "development": "dev"
+  },
+  "stageModels": {
+    "_doc": "Modelo/provider por etapa do pipeline. Regra: Junior executa, Senior audita. Override local em .gos-local/models.json. Etapas: plan (Senior cria plano+tasks+spec), execute (Junior implementa), validate (Senior audita e corrige gaps).",
+    "plan": {
+      "provider": "anthropic",
+      "model": "claude-opus-4-8",
+      "role": "senior"
+    },
+    "execute": {
+      "provider": "any",
+      "model": "claude-sonnet-5",
+      "role": "junior",
+      "allow": ["claude-sonnet-5", "codex", "claude-haiku-4-5", "cheapest-capable"]
+    },
+    "validate": {
+      "provider": "anthropic",
+      "model": "claude-opus-4-8",
+      "role": "senior"
+    }
   }
 }

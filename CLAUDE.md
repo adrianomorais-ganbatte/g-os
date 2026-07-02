@@ -52,9 +52,19 @@ design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage
 ### IDEs suportadas (npm run sync:ides gera adapters)
 Claude Code | Cursor | Gemini CLI | Qwen Code | Antigravity | Opencode | Kilo Code | **Codex IDE Extension** (ambiente de execucao, comando primario `*execute-plan`)
 
+## Model routing por etapa (Junior executa, Senior audita)
+
+Regra persistida: planos, tasks e spec sao criados pensando que um **Junior executa** e um **Senior audita**. O modelo/provider de cada etapa e **configuravel** e resolvido por `.gos/scripts/tools/model-router.js`:
+
+- **plan** (Senior): cria plano + tasks + spec. Default `claude-opus-4-8`.
+- **execute** (Junior): analisa plano/tasks/spec e implementa. Default `claude-sonnet-5` (aceita Codex e modelos mais baratos adequados).
+- **validate** (Senior): audita a execucao e corrige qualquer GAP deixado pelo Junior. Default `claude-opus-4-8`.
+
+Precedencia: `.gos-local/models.json` (override local por dev/projeto) → `.gos/config.json` campo `stageModels` (default versionado). `gos init` gera o `.gos-local/models.json`. Consulta: `node .gos/scripts/tools/model-router.js get <plan|execute|validate>`.
+
 ## Plan Pipeline (stack-aware)
 
-Pipeline padronizado para criacao de planos por tela. Toda tela = 1 plano. Stack-of-record (`docs/stack.md`) e contrato — alteracoes de stack exigem ADR. Divisao de trabalho: **Opus 4.7 planeja, Codex IDE executa**.
+Pipeline padronizado para criacao de planos por tela. Toda tela = 1 plano. Stack-of-record (`docs/stack.md`) e contrato — alteracoes de stack exigem ADR. Divisao de trabalho: **Senior (etapa plan) planeja, Junior (etapa execute) implementa, Senior (etapa validate) audita** — modelos definidos em `stageModels` (ver acima).
 
 | Comando | Skill | IDE / Modelo | Funcao |
 |---------|-------|--------------|--------|
