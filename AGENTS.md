@@ -27,6 +27,16 @@ O master delega a especialistas via Task tool: `architect`, `dev`, `devops`, `po
 - **Qualidade**: `security-review`, `perf-review`, `simplify-review`
 - **Produto/texto/utilitarios**: `idea-intake`, `prd-from-intake`, `adr-tech-decisions`, `humanizer`, `gos-caveman`, `gos-compress`, `agent-teams`, `git-ssh-setup`
 
+## Arquitetura & Stack (regra sempre-ativa)
+
+Decisao de arquitetura vem antes do codigo — policy: `.gos/libraries/architecture-stack-policy.md`.
+
+- **Referencia != decisao**: codigo de Figma Make/Stitch/outro projeto e triagem; avaliar objetivo/contexto/hosting/servicos/alternativa-mais-simples antes de copiar.
+- **Stack-first**: nada relevante comeca sem `docs/stack.md` definido (contrato; mudar exige ADR em `docs/adr/`). Falta info => decisao pendente com opcoes.
+- **Own-vs-managed**: auth/deploy/DB avaliados por contexto, nunca defaultados por habito.
+- **Mermaid**: diagramas de fluxo (auth, dados, jornada, arquitetura) no `plan.md` e em `dirs.fluxos`.
+- **Master explicavel**: cada acao vem com explicacao de produto/negocio (o que/por que/impacto) em linguagem simples; detalhe tecnico sob demanda.
+
 ## Plan Pipeline
 
 Toda tela = 1 plano. Stack-of-record (`docs/stack.md`) e contrato — alteracoes exigem ADR. Divisao: **Senior planeja (plan), Junior implementa (execute), Senior audita (validate)** — modelo por etapa em `.gos-local/models.json`.

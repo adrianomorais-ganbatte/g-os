@@ -7,6 +7,7 @@ sourceDocs:
   - templates/planTemplate.md
   - templates/contextTemplate.md
   - playbooks/plan-creation-playbook.md
+  - libraries/architecture-stack-policy.md
 use-when:
   - criar plano de implementação para uma tela específica
   - input começa com URL Figma (auto-detectado)
@@ -173,6 +174,19 @@ Saída desta fase é uma seção **"Aderência à Stack"** no plano — não red
 
 **Modo `--allow-arch-change`**: pode propor alteração. Gerar ADR em `dirs.adr` (template `templates/adr-tmpl.yaml`) ANTES de prosseguir. Plano referencia o ADR e marca `arch_change: true` no frontmatter.
 
+### 2.3 Avaliar referência antes de copiar (preventivo)
+
+Base: `libraries/architecture-stack-policy.md`. Quando a tela deriva de uma **referência** (Figma Make, Stitch, outro projeto, componente colado), o código é triagem — nunca cópia obrigatória. Antes de reproduzir componente/estrutura/tecnologia, confrontar com o `stack.md`:
+
+a) **Objetivo/contexto**: a funcionalidade e o destino (onde roda, hosting, serviços já existentes) justificam a tech da referência? Ou há alternativa mais simples/coerente com a stack registrada (compõe com `libraries/lazy-dev-policy.md`)?
+b) **Own-vs-managed** (auth/deploy/DB/e-mail): não herdar Supabase/Firebase/etc. da referência por hábito — só se o `stack.md` já os declara ou se a avaliação apontar.
+c) **Divergência que implica mudança de stack** → não copiar direto: rodar em modo `--allow-arch-change` (gera ADR) ou registrar decisão **pendente** em `## Backend pendings`/`spec.md` com as opções. Nunca cravar arbitrário.
+d) Referência 100% aderente ao `stack.md` → seguir; registrar em 1 linha no plano que a referência foi avaliada e aderente.
+
+É a versão **preventiva** da Fase 1.6 (que limpa starter legado depois): aqui avalia-se antes de trazer para dentro.
+
+**Diagramas Mermaid**: quando esta tela envolve **auth, fluxo de dados relevante ou jornada do usuário**, emitir o(s) diagrama(s) Mermaid correspondente(s) direto no `plan.md` (seções `## Fluxo de auth` / `## Fluxo de dados` / navegação do `planTemplate.md`). A jornada sai da Fase 1.4 (`## Interações & Estados`); auth/dados saem daqui (Fase 2). Ajuda técnico e não-técnico a entender o produto.
+
 ### 2.4 Schema/contrato gate (executa antes de Fase 3)
 
 Quando a tela exibe ou consome dados, validar contrato backend ANTES de emitir tasks frontend dependentes — evita o padrão PLAN-012/013 (schema descoberto incompleto durante execução).
@@ -244,6 +258,7 @@ Para cada plano (incluindo filhos), os 4 passos abaixo são **obrigatórios e at
 - `<dirs.planos>/PLAN-NNN-<slug>/spec.md` existe (não-vazio, sem placeholders nos critérios de aceite globais).
 - `<dirs.planos>/PLAN-NNN-<slug>/tasks/` existe e contém ≥1 `T-NN*.md`.
 - Para CADA `T-NN*.md`: `head -1` = `---` E grep `^status: pendente$` retorna match. Cada task tem `## Critérios de aceite (DoD)` não-vazio. Use o gate da Phase 3.5 do `plan-to-tasks`. Falha → regerar tasks; se persistir, abortar com erro explícito ao usuário citando os arquivos malformados.
+- Quando a tela tem **auth ou fluxo de dados relevante**: `plan.md` contém ≥1 bloco ` ```mermaid ` dos fluxos (Fase 2.3). `check-plan.js` **avisa** (não bloqueia) se faltar.
 - `progress.txt` aponta para o plano novo.
 
 ### Gate determinístico — ÚLTIMA ação obrigatória do `*plan`

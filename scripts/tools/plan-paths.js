@@ -34,7 +34,7 @@ const DEFAULTS = {
     postman: null,
     regras_negocio: null,
     api_contracts: null,
-    fluxos: null,
+    fluxos: 'docs/fluxos/',
     docs: 'docs/',
     app: 'src/app/',
     figma_screen_map: 'docs/figma-screen-map.md',

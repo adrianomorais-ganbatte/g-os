@@ -70,3 +70,4 @@ read_only_backend: <true|false>
 - README: <path>
 - CLAUDE.md: <path>
 - ADRs ativas: <lista>
+- Diagramas de fluxo (Mermaid): <dirs.fluxos, default docs/fluxos/ — auth, dados, jornada, arquitetura>

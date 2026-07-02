@@ -11,6 +11,7 @@ sourceDocs:
   - libraries/cloudflare-stack-kb.md
   - libraries/supabase-stack-kb.md
   - templates/adr-tmpl.yaml
+  - libraries/architecture-stack-policy.md
 use-when:
   - tem-se PRD pronto e precisa decidir arquitetura
   - antes de plan-blueprint quando o projeto e novo
