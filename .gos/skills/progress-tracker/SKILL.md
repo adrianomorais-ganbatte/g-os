@@ -39,16 +39,16 @@ Formato denso, sem prosa, otimizado para tokens. Inspirado em `caveman-main` e `
 pendente → em-andamento → validacao → concluido
               ↓               ↑
         bloqueada-backend ────┘
-        (ClickUp aberto)
+        (backend pending local aberto)
 ```
 
-Estado lateral `bloqueada-backend` é introduzido pelo `*execute-plan` quando a task tem `depends_on_backend:` que aponta para `## Backend pendings` ainda em aberto no ClickUp. Mantém memória do bloqueio sem regredir para `pendente`.
+Estado lateral `bloqueada-backend` é introduzido pelo `*execute-plan` quando a task tem `depends_on_backend:` que aponta para `## Backend pendings` ainda em aberto no tracking local (pending local ou plano-irmao `PLAN-NNN-backend-<slug>`). Mantém memória do bloqueio sem regredir para `pendente`.
 
 Transições válidas:
 - `pendente → em-andamento`: livre
 - `pendente → bloqueada-backend`: livre (gate detectou no pré-flight do execute-plan)
 - `em-andamento → bloqueada-backend`: livre (executor detectou gap em runtime)
-- `bloqueada-backend → em-andamento`: requer ClickUp `concluido`/`closed` (skill checa via `mcp__clickup__clickup_get_task`)
+- `bloqueada-backend → em-andamento`: requer o backend pending local `concluido` (skill checa o `Status` da linha em `## Backend pendings` / o `progress.txt` do plano-irmao de backend)
 - `em-andamento → validacao`: requer commit preparado (não pushado)
 - `validacao → concluido`: marcado automaticamente por `*validate-plan` quando passa em checklist + visual gate curto + diff. Manual via `*progress status T-NNN-NN concluido` aceito também.
 - `* → pendente`: rollback (libera a transição via flag `--rollback`)
