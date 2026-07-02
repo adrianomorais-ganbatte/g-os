@@ -1,0 +1,32 @@
+name: code-quality
+version: "1.0.0"
+short-title: "Code Quality Squad"
+description: "Squad de qualidade de codigo em nivel de desenvolvimento: seguranca, performance e anti-over-engineering. Nao e org-health/DORA — e review de codigo."
+slashPrefix: "code-quality"
+
+components:
+  agents:
+    - security-auditor.md
+    - perf-optimizer.md
+    - qa.md
+  skills:
+    - security-review
+    - perf-review
+    - simplify-review
+  workflows:
+    - wf-code-quality.yaml
+
+routing_matrix:
+  seguranca:
+    primary: security-auditor
+    triggers: ["seguranca", "vulnerabilidade", "rls", "auth", "secret", "*security-review"]
+  performance:
+    primary: perf-optimizer
+    triggers: ["performance", "otimizar", "lento", "n+1", "cache", "paginacao", "*perf-review"]
+  over_engineering:
+    primary: qa
+    triggers: ["over-engineering", "simplificar", "o que deletar", "*simplify-review"]
+
+notes: >
+  Acionada no fechamento de plano (validate-plan delega security-review + perf-review)
+  e sob demanda. Foco CODIGO (React/Next/TS/Node/Deno/Supabase/D1), nao metricas de org.

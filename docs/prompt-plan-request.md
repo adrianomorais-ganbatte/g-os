@@ -53,7 +53,7 @@ Declare em `.gos-local/plan-paths.json` o campo `legacy_starter_dirs: ["src/figm
 
 ## Schema/contrato gate (Fase 2.4)
 
-Declare em `.gos-local/plan-paths.json` o campo `backend_schema_files: ["packages/api/prisma/schema.prisma"]` (e mantenha `docs/postman/`). `*plan` valida que cada campo da tela existe no schema/Postman ANTES de emitir tasks frontend. Gaps viram task ClickUp + entrada em `## Backend pendings` automaticamente.
+Declare em `.gos-local/plan-paths.json` o campo `backend_schema_files: ["packages/api/prisma/schema.prisma"]` (e mantenha `docs/postman/`). `*plan` valida que cada campo da tela existe no schema/Postman ANTES de emitir tasks frontend. Gaps viram entrada local em `## Backend pendings` (e, se grandes, um plano-irmão `PLAN-NNN-backend-<slug>`) automaticamente.
 
 ## Auditoria por screenshot (skill `audit-screenshots`) — fluxo de correção a partir de imagens
 
@@ -117,11 +117,11 @@ Use quando você QA a aplicação rodando, encontra divergências, e quer transf
 
 ---
 
-## Backend gaps → ClickUp automático
+## Backend gaps → tracking local
 
-Postman é o contrato: endpoint inexistente / shape divergente vira task ClickUp pro Douglas (`assignee=112010775`, override via `ASSIGNEE`). IDs registrados em `## Backend pendings` do `plan.md` + `progress.txt`. `--skip-clickup` desliga.
+Postman é o contrato: endpoint inexistente / shape divergente vira entrada local em `## Backend pendings` do `plan.md` + `progress.txt`. Gap grande gera um plano-irmão `PLAN-NNN-backend-<slug>` (executado antes do frontend). `--skip-backend-tracking` desliga.
 
-`*execute-plan` é **non-blocking**: tasks frontend com `depends_on_backend:` apontando pra gap aberto viram `bloqueada-backend`; demais seguem.
+`*execute-plan` é **non-blocking**: tasks frontend com `depends_on_backend:` apontando pra gap aberto viram `bloqueada-backend`; demais seguem. Execução prioriza backend para destravar o frontend.
 
 ---
 
@@ -172,7 +172,7 @@ Plano filho: adicionar `--parent PLAN-NNN-<slug>` ao comando.
 
 ## Referência
 
-- Flags adicionais (`--from-figma-mcp`, `--allow-arch-change`, `--no-progress`, `--skip-storybook-sync`, `--skip-visual-gate`, `--skip-clickup`): ver `.gos/skills/plan-blueprint/SKILL.md` e `.gos/skills/execute-plan/SKILL.md`.
+- Flags adicionais (`--from-figma-mcp`, `--allow-arch-change`, `--no-progress`, `--skip-storybook-sync`, `--skip-visual-gate`, `--skip-backend-tracking`): ver `.gos/skills/plan-blueprint/SKILL.md` e `.gos/skills/execute-plan/SKILL.md`.
 - Visual gate (5 dimensões: anatomia, tokens, variants, densidade, comportamentos): ver `.gos/skills/execute-plan/SKILL.md`.
 - State machine + comandos `*progress`: ver `.gos/skills/progress-tracker/SKILL.md`.
 - Pipeline completo end-to-end: ver `.gos/playbooks/plan-creation-playbook.md`.

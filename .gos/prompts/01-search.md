@@ -14,5 +14,5 @@ Use este prompt quando a tarefa for descobrir contexto antes de construir.
 - Screenshot ou referencia visual: `design-to-code`
 - Figma Make bruto: `figma-make-analyzer`
 - Codigo do Stitch ou outro gerador: `make-code-triage`
-- Planejamento de entrega: `sprint-planner`
-- Sincronizacao operacional: `clickup`
+- Planejamento por tela: `plan-blueprint`
+- Auditoria de seguranca/performance: `security-review`, `perf-review`

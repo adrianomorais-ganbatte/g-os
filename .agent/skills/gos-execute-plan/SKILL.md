@@ -1,6 +1,6 @@
 ---
 name: "gos-execute-plan"
-description: "Executa um plano (PLAN-NNN-<slug>) task-a-task aplicando state machine + visual gate contra Storybook canonico antes de marcar validacao. Non-blocking em backend gaps (abre tasks ClickUp + segue). Com"
+description: "Executa um plano (PLAN-NNN-<slug>) task-a-task aplicando state machine + visual gate + verificacao de criterios de aceite (com loop de correcao) antes de marcar validacao. Backend-first e non-blocking"
 ---
 
 # gos-execute-plan

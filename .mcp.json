@@ -3,10 +3,6 @@
     "figma-mcp": {
       "type": "http",
       "url": "https://mcp.figma.com/mcp"
-    },
-    "clickup": {
-      "type": "http",
-      "url": "https://mcp.clickup.com/mcp"
     }
   }
 }

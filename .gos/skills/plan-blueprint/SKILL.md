@@ -1,7 +1,7 @@
 ---
 name: plan-blueprint
 description: Cria um plano padronizado para uma tela (1 plano = 1 tela) seguindo a stack-of-record do projeto. Produz {plano, tasks, contexto, entrada-progress.txt} em três fases (Mapeamento → Aderência à stack → Execução). Pré-requisito duro: docs/stack.md existir. Subdivide automaticamente telas com seções autônomas múltiplas.
-argument-hint: "<tela> OBJETIVO=<implantacao|correcao|refactor> FIGMA=<url> [FIGMA+=...] [--from-figma-mcp] [--allow-arch-change] [--skip-clickup]"
+argument-hint: "<tela> OBJETIVO=<implantacao|correcao|refactor> FIGMA=<url> [FIGMA+=...] [--from-figma-mcp] [--allow-arch-change] [--skip-backend-tracking]"
 allowedTools: [Read, Glob, Grep, Bash, Write, Edit, Agent, AskUserQuestion]
 sourceDocs:
   - templates/planTemplate.md
@@ -23,10 +23,10 @@ Você está executando como **Tech Lead Frontend / Arquiteto Sênior** via skill
 
 ## Contrato inviolável
 
-`*plan` é uma operação **atômica** que entrega `{plan.md + context.md + TODAS as T-NN*.md no tasks/ + progress.txt atualizado}`. NUNCA termine sem todos os 4 artefatos. A sequência obrigatória ao final é:
+`*plan` é uma operação **atômica** que entrega `{plan.md + context.md + spec.md + TODAS as T-NN*.md no tasks/ + progress.txt atualizado}`. NUNCA termine sem todos os 5 artefatos. A sequência obrigatória ao final é:
 
-1. Escrever `plan.md` + `context.md`.
-2. **Invocar `plan-to-tasks`** apontando para o `plan.md` recém-criado — gera os `T-NN*.md` em `tasks/`.
+1. Escrever `plan.md` + `context.md` + **`spec.md`** (de `templates/specTemplate.md` — spec completa: O QUE/ONDE/COMO/POR QUE + contrato backend/frontend + critérios de aceite globais).
+2. **Invocar `plan-to-tasks`** apontando para o `plan.md` recém-criado — gera os `T-NN*.md` em `tasks/` (cada task herda critérios de aceite verificáveis do `spec.md`).
 3. **Invocar `ui-guardrails <plan-dir>`** — bloqueia se faltar estado/responsivo/a11y/tokens em qualquer task de UI. Skip permitido se `descartavel: true` no frontmatter (passa a warning).
 4. Atualizar `progress.txt` (skill `progress-tracker set`).
 5. **Rodar `node <repo>/.gos/scripts/integrations/check-plan.js <plan-dir>`** — gate determinístico.
@@ -52,7 +52,6 @@ Campos obrigatórios no prompt:
 Opcionais:
 - `FIGMA+` — lista de URLs de componentes
 - `NOTAS` — prosa livre (invioláveis, edge cases, contexto adicional)
-- `ASSIGNEE` — override do user_id ClickUp para tasks de backend (default: 112010775)
 
 Auto-resolvido pelo `gos-master` (comprehension gate, NÃO pedir ao usuário):
 - `PROJETO` — `cwd`; ambíguo → `~/.claude/.gos-state/last-project.json`
@@ -73,7 +72,7 @@ OBJETIVO muda postura:
 Flags:
 - `--from-figma-mcp` — força leitura via Figma MCP (default quando `FIGMA=` é Figma URL)
 - `--allow-arch-change` — libera Fase 2 propositiva (gera ADR); implícito em `OBJETIVO=refactor`
-- `--skip-clickup` — não cria tasks de backend automaticamente
+- `--skip-backend-tracking` — não registra pendings/plano-irmão de backend automaticamente
 
 ## Pré-requisitos (gate)
 
@@ -181,25 +180,22 @@ Quando a tela exibe ou consome dados, validar contrato backend ANTES de emitir t
 a) Para cada campo exibido na tela (extraído de "Componentes mapeados" + "Interações & Estados"):
    - **Postman**: `grep` do endpoint esperado em `<dirs.postman>`. Endpoint ausente → entrada em `## Backend pendings` tipo `endpoint-missing`, gap-key formato `endpoint-<rota>-missing`.
    - **Prisma/SQL**: ler arquivos declarados em `plan-paths.json` campo `backend_schema_files: []` (ex.: `["packages/api/prisma/schema.prisma"]`). Campo ausente → entrada `field-missing: <table>.<field>`, gap-key formato `field-<table>-<field>-missing`.
-b) Cada entrada gerada cria task ClickUp via `mcp__clickup__clickup_create_task` (assignee `112010775` ou override `ASSIGNEE`, list `clickup.backend_list_id`) ANTES da Fase 3 emitir tasks frontend dependentes. ClickUp ID grava em `## Backend pendings`.
-c) Tasks frontend que dependem do campo recebem frontmatter `depends_on_backend: [<gap-key>]` automaticamente — `*execute-plan` já trata como `bloqueada-backend`.
+b) Cada entrada gerada é registrada LOCALMENTE em `## Backend pendings` do `plan.md` (status `aberto`) ANTES da Fase 3 emitir tasks frontend dependentes.
+c) Tasks frontend que dependem do campo recebem frontmatter `depends_on_backend: [<gap-key>]` automaticamente — `*execute-plan` já trata como `bloqueada-backend` (salvo bypass declarado).
 d) Nenhum dos arquivos declarados existe (sem Postman E sem `backend_schema_files`) → warning único, NÃO bloqueia. Plano segue sem schema gate.
 
-### 2.5 Backend gaps → ClickUp automático
+### 2.5 Backend gaps → decisão backend-first (tracking local)
 
-Postman é o **contrato backend**. Para cada dado/ação da tela:
+Postman é o **contrato backend**. Para cada dado/ação da tela, decidir se o **backend pronto atende** (item 9):
 
-1. Confrontar com `<PROJETO>/docs/postman/` (já indexado no comprehension gate).
-2. Se o endpoint não existir, ou existir com shape divergente, ou faltar RLS/migration para suportar a tela → registrar como **backend pending**.
-3. Para cada pending, criar task ClickUp via `mcp__clickup__clickup_create_task`:
-   - **Assignee**: `ASSIGNEE` do prompt OU default `112010775` (Douglas Oliveira).
-   - **List**: `clickup.backend_list_id` de `plan-paths.json`. Ausente → registrar pending no plano com `clickup: pending` e seguir.
-   - **Título**: `[Backend] PLAN-NNN: <gap em uma linha>`
-   - **Descrição**: o que a tela precisa, qual coleção/endpoint do Postman cobre (ou não), referência ao plano (`docs/plans/PLAN-NNN/plan.md`), shape esperado.
-4. Registrar IDs criados em:
-   - `plan.md` → seção `## Backend pendings` (lista com `clickup_id`, status, link).
-   - `progress.txt` → bloco `## Backend pendings — PLAN-NNN`.
-5. Flag `--skip-clickup` desliga a criação (pending fica registrado apenas no plano).
+1. Confrontar com `<PROJETO>/docs/postman/` + regras-de-negócio (já indexado no comprehension gate).
+2. **Backend atende** → documentar em `spec.md` (`## Contrato backend / frontend`) e no `plan.md` o que usar, por quê, onde e como consumir. Segue para Fase 3 (frontend).
+3. **Backend NÃO atende** (endpoint inexistente, shape divergente, RLS/migration ausente) → registrar como **backend pending** LOCAL:
+   - **Gap pequeno** (ajuste pontual): entrada em `## Backend pendings` com `gap-key`, `Status: aberto`, `Backend plan: -`.
+   - **Gap grande** (novo endpoint/tabela/fluxo): gerar **plano-irmão** `PLAN-NNN-backend-<slug>` (mesmos artefatos: plan+context+spec+tasks), referenciado na coluna `Backend plan`. Registrar a relação em `progress.txt` (`## Backend pendings — PLAN-NNN`) com ordem **backend antes do frontend**.
+4. `--skip-backend-tracking` desliga o registro automático (só warning; pending fica no plano se manualmente adicionado).
+
+**Princípio**: execução prioriza backend-first para destravar o frontend; nenhum serviço externo é usado — tudo local em `plan.md` + `progress.txt` + planos-irmãos.
 
 ## Fase 3 — Plano de Execução
 
@@ -239,13 +235,15 @@ Para cada plano (incluindo filhos), os 4 passos abaixo são **obrigatórios e at
 
 1. `<dirs.planos>/PLAN-NNN-<slug>/plan.md` — gerado a partir de `templates/planTemplate.md`. Frontmatter inclui `stack_ref: <dirs.stack>@<sha-curto>` para travar a versão da stack.
 2. `<dirs.planos>/PLAN-NNN-<slug>/context.md` — gerado a partir de `templates/contextTemplate.md`. Denso, indexado.
-3. **Disparar `plan-to-tasks`** apontando para o `plan.md` recém-criado → produz tasks em `<dirs.tasks>` (resolvido com `{plan}` substituído). Esta chamada é **vinculante** — `*plan` é uma operação `{plano + tasks + context + progress}`, nunca só plano. Se `plan-to-tasks` falhar (gate de Phase 3.5), abortar `*plan` inteiro (não deixar plano órfão).
-4. Disparar `progress-tracker set-current` apontando o plano novo → atualiza `progress.txt`.
+3. `<dirs.planos>/PLAN-NNN-<slug>/spec.md` — gerado a partir de `templates/specTemplate.md`. Spec completa (O QUE/ONDE/COMO/POR QUE + contrato backend/frontend + critérios de aceite globais). É o contrato que o Junior executa e o Senior audita.
+4. **Disparar `plan-to-tasks`** apontando para o `plan.md` recém-criado → produz tasks em `<dirs.tasks>` (resolvido com `{plan}` substituído). Esta chamada é **vinculante** — `*plan` é uma operação `{plano + context + spec + tasks + progress}`, nunca só plano. Se `plan-to-tasks` falhar (gate de Phase 3.5), abortar `*plan` inteiro (não deixar plano órfão).
+5. Disparar `progress-tracker set-current` apontando o plano novo → atualiza `progress.txt`.
 
 **Pós-condições obrigatórias** (verificar antes de devolver controle ao usuário):
 
+- `<dirs.planos>/PLAN-NNN-<slug>/spec.md` existe (não-vazio, sem placeholders nos critérios de aceite globais).
 - `<dirs.planos>/PLAN-NNN-<slug>/tasks/` existe e contém ≥1 `T-NN*.md`.
-- Para CADA `T-NN*.md`: `head -1` = `---` E grep `^status: pendente$` retorna match. Use o gate da Phase 3.5 do `plan-to-tasks`. Falha → regerar tasks; se persistir, abortar com erro explícito ao usuário citando os arquivos malformados.
+- Para CADA `T-NN*.md`: `head -1` = `---` E grep `^status: pendente$` retorna match. Cada task tem `## Critérios de aceite (DoD)` não-vazio. Use o gate da Phase 3.5 do `plan-to-tasks`. Falha → regerar tasks; se persistir, abortar com erro explícito ao usuário citando os arquivos malformados.
 - `progress.txt` aponta para o plano novo.
 
 ### Gate determinístico — ÚLTIMA ação obrigatória do `*plan`
@@ -270,7 +268,8 @@ Resumo final:
 
 - plan.md:    docs/plans/PLAN-042-checkout/plan.md
 - context.md: docs/plans/PLAN-042-checkout/context.md
-- tasks/:     docs/plans/PLAN-042-checkout/tasks/ (5 tasks)
+- spec.md:    docs/plans/PLAN-042-checkout/spec.md
+- tasks/:     docs/plans/PLAN-042-checkout/tasks/ (5 tasks, com critérios de aceite)
 - progress:   atualizado (status=pendente)
 - stack_ref:  docs/stack.md@a1b2c3d
 
@@ -303,4 +302,5 @@ Próximos passos:
 2. Resolver TODOS os paths via `plan-paths.json`. PROJETO/WORK_BRANCH são auto-resolvidos pelo `gos-master` — não perguntar ao usuário.
 3. Status inicial do plano e tasks: `pendente`.
 4. Não pushar nada — apenas escrever arquivos locais.
-5. Backend pendings só criam tasks ClickUp se o `mcp__clickup__*` estiver disponível na sessão E `--skip-clickup` não for passado. Caso contrário, registrar apenas no plano.
+5. Backend pendings são registrados LOCALMENTE (`## Backend pendings` + plano-irmão `PLAN-NNN-backend-<slug>` quando grande). Sem serviço externo. `--skip-backend-tracking` desliga o registro automático.
+6. Etapa **plan** (Senior). Resolver o modelo com `node .gos/scripts/tools/model-router.js get plan` (default `claude-opus-4-8`) — o Senior planeja; o Junior executa depois.

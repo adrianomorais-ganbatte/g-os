@@ -143,14 +143,23 @@ Decisões possíveis:
 
 ## Backend pendings
 
-> Gaps detectados confrontando Postman/regras-de-negocio com a necessidade da tela. Cada item vira task ClickUp atribuída ao Douglas (default) ou ao `ASSIGNEE` informado. Vazio = backend completo para esta tela.
+> Gaps detectados confrontando Postman/regras-de-negocio com a necessidade da tela. Tracking **local** (sem serviço externo). Vazio = backend completo para esta tela.
 
+> Coluna `Backend plan` referencia o plano-irmão `PLAN-NNN-backend-<slug>` quando o gap é grande o bastante para virar plano próprio; senão fica `-` (gap resolvido inline). Coluna `Status` é local: `aberto` / `em-andamento` / `concluido`.
 > Coluna `Bloqueia tasks` lista os T-IDs frontend cujo frontmatter declara `depends_on_backend:` apontando para a `gap-key` desta linha (ex.: `migration-20260501150000`).
-> Coluna `Bypass frontend` declara COMO o frontend entrega sem o backend pronto (fallback, mock, toast "em breve", cast + null-coalesce). Sem bypass declarado, a tarefa frontend fica `bloqueada-backend`. **Princípio: frontend nunca bloqueado por gap de backend — sempre há bypass OU a task é explicitamente bloqueada.**
+> Coluna `Bypass frontend` declara COMO o frontend entrega sem o backend pronto (fallback, mock, toast "em breve", cast + null-coalesce). Sem bypass declarado, a tarefa frontend fica `bloqueada-backend`. **Princípio: frontend nunca bloqueado por gap de backend — sempre há bypass OU a task é explicitamente bloqueada. Execução prioriza backend-first para destravar.**
 
-| gap-key | Gap | Bypass frontend | Endpoint/Coleção esperada | ClickUp ID | Status | Bloqueia tasks |
-|---------|-----|-----------------|---------------------------|------------|--------|----------------|
-|         |     |                 |                           |            |        |                |
+| gap-key | Gap | Bypass frontend | Endpoint/Coleção esperada | Backend plan | Status | Bloqueia tasks |
+|---------|-----|-----------------|---------------------------|--------------|--------|----------------|
+|         |     |                 |                           |              |        |                |
+
+## Impacto documental
+
+> Item 2 / `libraries/doc-sync-policy.md`. Docs que MUDAM com esta entrega (regras de negócio, fluxos, permissões, auditorias, seeds, ADRs, guias, contratos de API). `validate-plan` bloqueia o fechamento se um item aqui não foi atualizado no diff. Vazio = entrega não toca regra de negócio nem documentação.
+
+| Doc impactada | O que atualizar | Motivo (regra criada/alterada/removida) |
+|---------------|-----------------|------------------------------------------|
+|               |                 |                                          |
 
 ## Mock strategy
 

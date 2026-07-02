@@ -46,7 +46,6 @@ FIGMA      = <url-frame>
 FIGMA+     = [<url-comp>, ...]                   # opcional
 INTERACOES = """<lista estruturada — obrigatório quando tela tem table-clicável/drawer/modal/popup>"""
 NOTAS      = """<prosa livre>"""                 # opcional
-ASSIGNEE   = <user-id>                           # opcional, default 112010775 (Douglas)
 ```
 
 `gos-master` resolve no comprehension gate (não pedir ao usuário):
@@ -59,7 +58,7 @@ ASSIGNEE   = <user-id>                           # opcional, default 112010775 (
 1. Fase 1 — Mapeamento Visual & Componentização
    1.4 Comportamentos & Overrides — `## Interações & Estados` + `## Page-level overrides` no plano
 2. Fase 2 — Aderência à Stack (sem redefinir arquitetura)
-2.5 Fase 2.5 — Backend gaps → criar tasks ClickUp pro Douglas (`--skip-clickup` desliga)
+2.5 Fase 2.5 — Backend gaps → registro local em `## Backend pendings` + plano-irmão `PLAN-NNN-backend-<slug>` quando grande (`--skip-backend-tracking` desliga)
 3. Fase 3 — Plano de Execução (gera tasks com `interaction_target` e `override_target` para cobrir comportamentos e overrides)
 
 Saídas:
@@ -117,7 +116,7 @@ NOTAS = """<opcional — desvios conhecidos, contexto de QA>"""
 
 Skill `validate-plan` (Opus, revisor):
 - Para cada task em `validacao`: re-roda visual gate curto (anatomia + tokens + comportamentos), confronta `git diff --staged` vs Componentes mapeados, confere checklist da task e `interaction_target`/`override_target`. Tudo bate → auto-marca `concluido`. Falha → mantém `validacao` com nota.
-- Para o plano: cobertura de comportamento (`## Interações & Estados`) + cobertura de overrides (`## Page-level overrides`) + checklist do plano + backend pendings ClickUp todos `concluido` → marca `validated_at:` no plan.md + `*progress status PLAN-NNN-<slug> concluido`. Senão → mantém em `validacao`.
+- Para o plano: cobertura de comportamento (`## Interações & Estados`) + cobertura de overrides (`## Page-level overrides`) + checklist do plano + backend pendings locais todos `concluido` → marca `validated_at:` no plan.md + `*progress status PLAN-NNN-<slug> concluido`. Senão → mantém em `validacao`.
 - Tasks `bloqueada-backend` ficam intocadas — backend tem que fechar primeiro.
 
 ### 5. Push manual e fechamento
@@ -128,7 +127,7 @@ Skill `validate-plan` (Opus, revisor):
 git push
 ```
 
-Push é ato consciente do humano. Tasks `bloqueada-backend` aguardam ClickUp fechar — quando isso acontece, rodar `*progress status T-NNN-NN em-andamento` (state machine valida ClickUp via MCP) e voltar pra etapa 4.
+Push é ato consciente do humano. Tasks `bloqueada-backend` aguardam o pending local de backend fechar — quando isso acontece, rodar `*progress status T-NNN-NN em-andamento` (state machine valida o status local) e voltar pra etapa 4.
 
 ### 6. Commit & resumo
 
@@ -159,4 +158,3 @@ Push é ato consciente do humano. Tasks `bloqueada-backend` aguardam ClickUp fec
 - `execute-plan` — executa plano com visual gate, non-blocking em backend gaps (Codex IDE, execução)
 - `validate-plan` — valida plano pós-execute, auto-marca concluido (Opus, revisor)
 - `progress-tracker` — gerencia `progress.txt` + state machine (incluindo `bloqueada-backend`)
-- `clickup` — sync opcional para tracking externo (não obrigatório)

@@ -1,6 +1,6 @@
 ---
 name: "gos-validate-plan"
-description: "Valida implementacao pos-execute. Para cada task em validacao, re-roda visual gate curto (anatomia + tokens), confronta diff staged contra Componentes mapeados, confere checklist do plano. Auto-marca "
+description: "Valida implementacao pos-execute (etapa validate/Senior). Para cada task em validacao, re-roda visual gate curto + verifica criterios de aceite, e CORRIGE gaps deixados pelo Junior antes de concluir. "
 ---
 
 # gos-validate-plan

@@ -175,7 +175,6 @@ Remover `"private": true`, adicionar `bin` entry, scripts `gos:*`, e metadata pu
      "gos:update": "node scripts/cli/gos-cli.js update",
      "gos:doctor": "node scripts/cli/gos-cli.js doctor",
      "gos:version": "node scripts/cli/gos-cli.js version",
-     "clickup": "node scripts/tools/clickup.js",
      "sync:ides": "node scripts/integrations/setup-ide-adapters.js",
      "check:ides": "node scripts/integrations/check-ide-compat.js",
      "doctor": "node scripts/cli/gos-cli.js doctor"
@@ -302,7 +301,7 @@ rm -f links.txt instrucoes.txt stacks.txt requirements.txt
 
 **Auditar segredos:**
 ```bash
-grep -rn "CLICKUP_TOKEN\|API_KEY\|SECRET\|PASSWORD\|sk-\|ghp_" . --include="*.js" --include="*.json" --include="*.yaml"
+grep -rn "API_KEY\|SECRET\|PASSWORD\|SUPABASE_SERVICE_ROLE\|sk-\|ghp_" . --include="*.js" --include="*.json" --include="*.yaml"
 git ls-files | grep -i env
 ```
 
@@ -355,6 +354,6 @@ Total: 10 tasks, 25 story points
 node scripts/cli/gos-cli.js doctor
 node scripts/cli/gos-cli.js version
 npm run check:ides
-grep -rn "CLICKUP_TOKEN\|API_KEY\|SECRET\|sk-\|ghp_" . --include="*.js" --include="*.json"
+grep -rn "API_KEY\|SECRET\|SUPABASE_SERVICE_ROLE\|sk-\|ghp_" . --include="*.js" --include="*.json"
 diff -rq . e:/Github/.a8z-framework/.G-OS/ --exclude=node_modules --exclude=.git --exclude=packages
 ```
