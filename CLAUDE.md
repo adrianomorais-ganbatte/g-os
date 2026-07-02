@@ -30,6 +30,13 @@ Todo texto gerado deve passar por correcao ortografica e remocao de padroes de I
 - **Humanizacao**: Skill `/humanizer` remove padroes de escrita artificial (26 patterns)
 - **Referencia**: `libraries/content/ai-writing-patterns.md` (taxonomia de padroes)
 
+## Qualidade de Codigo (seguranca, performance, docs)
+
+- **Seguranca**: `security-review` audita vulnerabilidades conhecidas (React/Next/TS/Node/Deno/Supabase RLS+edge/D1). Roda no fechamento do `validate-plan` e sob demanda (`*security-review`). CRITICAL/HIGH bloqueiam o fechamento do plano. Catalogo: `libraries/security-audit-playbook.md`.
+- **Performance**: `perf-review` audita cache, filas, background, cron, N+1, views/materialized, paginacao, over-fetch (Supabase e D1). Roda no fechamento e sob demanda (`*perf-review`). Catalogo: `libraries/performance-audit-playbook.md`.
+- **Documentacao sempre sincronizada** (`libraries/doc-sync-policy.md`): regra de negocio criada/alterada/removida => atualizar docs impactadas (regras-de-negocio, fluxos, permissoes, ADR, seeds, contratos) no mesmo PR. `plan.md` `## Impacto documental` declara; `validate-plan` bloqueia o fechamento se algo ficou dessincronizado.
+- **Anti-over-engineering** (`libraries/lazy-dev-policy.md`): escrever so o necessario — reuso > stdlib > native > dep > 1 linha > minimo. Nunca cortar validacao/seguranca/a11y.
+
 ## Comandos do Workspace
 
 | Comando | O que faz |

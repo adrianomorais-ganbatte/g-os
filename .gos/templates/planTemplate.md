@@ -153,6 +153,14 @@ Decisões possíveis:
 |---------|-----|-----------------|---------------------------|--------------|--------|----------------|
 |         |     |                 |                           |              |        |                |
 
+## Impacto documental
+
+> Item 2 / `libraries/doc-sync-policy.md`. Docs que MUDAM com esta entrega (regras de negócio, fluxos, permissões, auditorias, seeds, ADRs, guias, contratos de API). `validate-plan` bloqueia o fechamento se um item aqui não foi atualizado no diff. Vazio = entrega não toca regra de negócio nem documentação.
+
+| Doc impactada | O que atualizar | Motivo (regra criada/alterada/removida) |
+|---------------|-----------------|------------------------------------------|
+|               |                 |                                          |
+
 ## Mock strategy
 
 > Opcional. Quando o frontend opta por mock enquanto o backend não atende, descreva aqui (ex.: fixture em `src/__mocks__/projetos.json`, MSW handler, etc.). Tasks que usam mock NÃO declaram `depends_on_backend:` — apenas referenciam esta seção.

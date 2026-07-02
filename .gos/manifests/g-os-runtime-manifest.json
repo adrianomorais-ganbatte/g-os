@@ -12,7 +12,9 @@
       "po",
       "qa",
       "devops",
-      "squad-creator"
+      "squad-creator",
+      "security-auditor",
+      "perf-optimizer"
     ],
     "skills": [
       "design-to-code",
@@ -45,7 +47,9 @@
       "ui-guardrails",
       "cloudflare-pages-setup",
       "typeform-form-pattern",
-      "timer-component-pattern"
+      "timer-component-pattern",
+      "security-review",
+      "perf-review"
     ],
     "squads": [
       "design-delivery",

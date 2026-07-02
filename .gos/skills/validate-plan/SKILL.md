@@ -77,11 +77,14 @@ Apos o loop:
 2.1. **Cobertura de drift map**: ler `## Drift map` (e `<plano>/drift-map.md` se existir). Cada linha tem override implementado OU task `concluido` cobrindo? Linha sem encaminhamento -> plano permanece em `validacao` (registrar em `T-NNN-NN.notes.md` da task mais proxima).
 2.2. **Cleanup legado**: para cada task com frontmatter `cleanup_target: <path>`, confirmar que o arquivo foi removido. Comando: `git log --diff-filter=D --name-only --since=<plan.created_at> -- <path>` deve retornar match OU `git diff --staged --name-only --diff-filter=D` contem `<path>`. Falha -> task volta a `validacao` (nao auto-conclui).
 3. **Checklist do plano**: ler `## Checklist de aceite` em `plan.md`. Itens nao marcados -> plano permanece em `validacao` mesmo se todas as tasks fecharam.
+3.1. **Auditoria de seguranca**: invocar `security-review PLAN-NNN-<slug>` (ou `--staged`). Findings `CRITICAL`/`HIGH` -> viram task de correcao; o Senior corrige (loop) OU plano permanece em `validacao` ate resolver. `MEDIUM`/`LOW` registrados, nao bloqueiam.
+3.2. **Auditoria de performance**: invocar `perf-review PLAN-NNN-<slug>`. Findings de alto impacto -> task de otimizacao (nao bloqueia o fechamento salvo se for regressao clara introduzida pelo plano). Registrar os demais.
+3.3. **Doc-sync gate** (`libraries/doc-sync-policy.md`): ler `## Impacto documental` do `plan.md`/`spec.md`. Cada doc listada tem alteracao correspondente no diff (regra de negocio/RLS/permissao/seed/contrato tocada => doc atualizada)? Item nao resolvido -> plano permanece em `validacao`.
 4. **Backend pendings (local)**: ler `## Backend pendings`. Para cada linha:
    - Se tem plano-irmao `PLAN-NNN-backend-<slug>`: ler o status dele no `progress.txt`.
    - Atualizar a coluna `Status` local (`aberto`/`em-andamento`/`concluido`).
 5. **Decisao**:
-   - Todas tasks `concluido` + cobertura de comportamento + cobertura de overrides + checklist do plano marcado + backend pendings locais todos `concluido` -> marcar `plan.md` frontmatter `validated_at: <iso>` + `*progress status PLAN-NNN-<slug> concluido`.
+   - Todas tasks `concluido` + cobertura de comportamento + cobertura de overrides + checklist do plano marcado + **seguranca sem CRITICAL/HIGH aberto** + **doc-sync resolvido** + backend pendings locais todos `concluido` -> marcar `plan.md` frontmatter `validated_at: <iso>` + `*progress status PLAN-NNN-<slug> concluido`.
    - Caso contrario -> manter `validacao`, listar bloqueios.
 6. **Push**: NAO. Commit ja foi preparado por `*execute-plan`. Push e ato consciente humano (`git push`).
 
