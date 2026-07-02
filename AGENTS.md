@@ -2,52 +2,44 @@
 
 ## Objetivo
 
-Este repo existe para acelerar design-to-code e entrega de sprint.
+Kit de desenvolvimento com IA: design-to-code, implementacao, otimizacao e seguranca.
 
-## Agentes
+## Entrypoints (2 slash commands)
 
-| ID | Slash Command | Foco |
-|----|--------------|------|
-| **gos-master** | `/gos:agents:gos-master` | Orquestrador master — routing, skills, squads, workflows |
-| **architect** | `/gos:agents:architect` | Stack, padroes tecnicos, revisoes de arquitetura |
-| **dev** | `/gos:agents:dev` | Implementacao de features, hooks, refinamentos |
-| **devops** | `/gos:agents:devops` | Git, branches, CI/CD, automacoes de entrega |
-| **po** | `/gos:agents:po` | Backlog, scope, priorizacao |
-| **qa** | `/gos:agents:qa` | Testes, quality gates, revisao de codigo |
-| **sm** | `/gos:agents:sm` | Sprint, planning, sync com stakeholders |
-| **squad-creator** | `/gos:agents:squad-creator` | Orquestracao de times multi-agentes |
-| **ux-design-expert** | `/gos:agents:ux-design-expert` | Design de interfaces, tokens, design systems |
+A superficie user-facing sao **dois** comandos. As skills e os demais agentes NAO sao digitados — o `gos-master` os invoca a partir da sua intencao.
 
-## Skills
+| Entrypoint | Foco |
+|------------|------|
+| `/gos:agents:gos-master` | Orquestrador — decide skills/agentes/subagents/squads e executa |
+| `/gos:agents:ux-design-expert` | Design de interfaces, tokens, design systems |
 
-| Skill | Slash Command | Funcao |
-|-------|--------------|--------|
-| **design-to-code** | `/gos:skills:design-to-code` | Converte Figma/screenshot em componentes React |
-| **figma-implement-design** | `/gos:skills:figma-implement-design` | Implementa design Figma com fidelidade 1:1 |
-| **figma-make-analyzer** | `/gos:skills:figma-make-analyzer` | Analisa output do Figma Make |
-| **make-code-triage** | `/gos:skills:make-code-triage` | Classifica codigo do Figma Make por categoria |
-| **make-version-diff** | `/gos:skills:make-version-diff` | Compara versoes de output Figma Make |
-| **component-dedup** | `/gos:skills:component-dedup` | Detecta componentes duplicados |
-| **frontend-dev** | `/gos:skills:frontend-dev` | Build componentes, pages, hooks (React/Next.js) |
-| **interface-design** | `/gos:skills:interface-design` | Design de interface com metodologia intent-first |
-| **react-best-practices** | `/gos:skills:react-best-practices` | Otimizacao de performance React/Next.js |
-| **react-doctor** | `/gos:skills:react-doctor` | Diagnostico de saude de componentes React |
-| **plan-to-tasks** | `/gos:skills:plan-to-tasks` | Converte plano em tasks acionaveis |
-| **agent-teams** | `/gos:skills:agent-teams` | Coordena multiplos agentes em time |
-| **git-ssh-setup** | `/gos:skills:git-ssh-setup` | Configura identidade SSH para o workspace |
-| **stack-profiler** | `/gos:skills:stack-profiler` | Mantem `docs/stack.md` (stack-of-record canonica) |
-| **plan-blueprint** | `/gos:skills:plan-blueprint` | Cria plano por tela (1 tela = 1 plano) |
-| **progress-tracker** | `/gos:skills:progress-tracker` | Memoria L1 (`progress.txt`) + state machine |
+## Agentes internos (delegacao, nao-slash)
+
+O master delega a especialistas via Task tool: `architect`, `dev`, `devops`, `po`, `qa`, `sm` (facilitador de planejamento de dev), `squad-creator`, `security-auditor`, `perf-optimizer`. Fonte: `.gos/agents/profiles/`.
+
+## Skills (auto-discoveraveis, invocadas pelo master)
+
+34 skills, agrupadas por capacidade. Catalogo completo em `.gos/skills/registry.json`.
+
+- **Design → codigo**: `design-to-code`, `figma-implement-design`, `figma-make-analyzer`, `make-code-triage`, `make-version-diff`, `figma-print-diff`, `interface-design`, `ui-guardrails`, `prototype-orchestrator`
+- **Frontend/React**: `frontend-dev`, `react-best-practices`, `react-doctor`, `component-dedup`, `cloudflare-pages-setup`, `typeform-form-pattern`, `timer-component-pattern`
+- **Pipeline de planos**: `stack-profiler`, `plan-blueprint`, `plan-to-tasks`, `execute-plan`, `validate-plan`, `progress-tracker`, `audit-screenshots`
+- **Qualidade**: `security-review`, `perf-review`, `simplify-review`
+- **Produto/texto/utilitarios**: `idea-intake`, `prd-from-intake`, `adr-tech-decisions`, `humanizer`, `gos-caveman`, `gos-compress`, `agent-teams`, `git-ssh-setup`
 
 ## Plan Pipeline
 
-Pipeline padronizado para criacao de planos por tela. Stack-of-record (`docs/stack.md`) e contrato — alteracoes exigem ADR.
+Toda tela = 1 plano. Stack-of-record (`docs/stack.md`) e contrato — alteracoes exigem ADR. Divisao: **Senior planeja (plan), Junior implementa (execute), Senior audita (validate)** — modelo por etapa em `.gos-local/models.json`.
 
 | Comando | Skill | Funcao |
 |---------|-------|--------|
 | `*stack [refresh\|show\|drift]` | `stack-profiler` | Mantem `docs/stack.md` |
-| `*plan <tela>` | `plan-blueprint` | Cria plano + tasks + context + atualiza `progress.txt` |
+| `*plan <tela>` | `plan-blueprint` | Cria `plan.md` + `context.md` + `spec.md` + `tasks/` (com criterios de aceite) |
+| `*execute-plan <PLAN-NNN>` | `execute-plan` | Implementa task-a-task com visual gate + loop de correcao |
+| `*validate-plan <PLAN-NNN>` | `validate-plan` | Audita, corrige gaps, roda seguranca + performance + doc-sync |
 | `*progress [show\|set\|status]` | `progress-tracker` | State machine `pendente -> em-andamento -> validacao -> concluido` |
+
+Auditorias sob demanda: `*security-review`, `*perf-review`, `*simplify-review`.
 
 Paths do projeto-cliente sao resolvidos via `.gos-local/plan-paths.json` (incluindo `knowledge_sources` como Postman, regras-de-negocio, ADRs). Playbook: `.gos/playbooks/plan-creation-playbook.md`.
 

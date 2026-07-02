@@ -50,14 +50,20 @@ Todo texto gerado deve passar por correcao ortografica e remocao de padroes de I
 
 ## Slash Commands
 
-### Agents (invoke via /gos:agents:{id})
-gos-master | architect | dev | devops | po | qa | sm | squad-creator | ux-design-expert
+Superficie user-facing = **2 entrypoints**. As skills e demais agentes NAO sao digitados; o `gos-master` os invoca a partir da intencao (o usuario guia com `*comandos` no chat, ex.: `*plan`, `*security-review`).
 
-### Skills (invoke via /gos:skills:{slug})
-design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | plan-to-tasks | agent-teams | git-ssh-setup | humanizer | stack-profiler | plan-blueprint | progress-tracker | execute-plan | validate-plan | audit-screenshots | security-review | perf-review | simplify-review
+### Entrypoints (slash)
+- `/gos:agents:gos-master` — orquestrador; decide skills/agentes/subagents/squads e executa.
+- `/gos:agents:ux-design-expert` — design de interface, tokens, design systems.
 
-### IDEs suportadas (npm run sync:ides gera adapters)
-Claude Code | Cursor | Gemini CLI | Qwen Code | Antigravity | Opencode | Kilo Code | **Codex IDE Extension** (ambiente de execucao, comando primario `*execute-plan`)
+### Agentes internos (delegacao, nao-slash)
+architect | dev | devops | po | qa | sm | squad-creator | security-auditor | perf-optimizer
+
+### Skills (auto-discoveraveis, invocadas pelo master — 34, ver `.gos/skills/registry.json`)
+design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | plan-to-tasks | agent-teams | git-ssh-setup | humanizer | stack-profiler | plan-blueprint | progress-tracker | execute-plan | validate-plan | audit-screenshots | security-review | perf-review | simplify-review | idea-intake | prd-from-intake | adr-tech-decisions | prototype-orchestrator | gos-caveman | gos-compress | figma-print-diff | ui-guardrails | cloudflare-pages-setup | typeform-form-pattern | timer-component-pattern
+
+### IDEs suportadas (npm run sync:ides gera adapters p/ 6)
+Claude Code | **Codex IDE Extension** (executor, comando primario `*execute-plan`) | Qwen Code | Opencode | Gemini CLI | Antigravity. Cursor e Kilo Code consomem regras via arquivo (`.cursor/`, `.kilocode/`), sem adapters gerados.
 
 ## Model routing por etapa (Junior executa, Senior audita)
 
