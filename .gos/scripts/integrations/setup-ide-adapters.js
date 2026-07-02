@@ -143,6 +143,11 @@ function main() {
     const codexCmd = path.join(root, '.codex', 'commands', 'gos', 'agents', `${agent.id}.md`);
     writeFile(codexCmd, claudeCommandWrapper(aSlug, agentDesc, relativeTarget(codexCmd, agentProfilePath), '', 'Codex'));
 
+    // Codex popula o picker a partir de .codex/skills/<slug>/SKILL.md (nao de commands/).
+    // Emitir o entrypoint tambem como skill garante que aparece no picker do Codex.
+    const codexAgentSkill = path.join(root, '.codex', 'skills', aSlug, 'SKILL.md');
+    writeFile(codexAgentSkill, skillWrapper(agent.id, relativeTarget(codexAgentSkill, agentProfilePath), agentDesc));
+
     // Opencode expoe o entrypoint como skill no picker.
     const opencodeAgent = path.join(root, '.opencode', 'skills', aSlug, 'SKILL.md');
     writeFile(opencodeAgent, skillWrapper(agent.id, relativeTarget(opencodeAgent, agentProfilePath), agentDesc));
