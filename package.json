@@ -1,6 +1,6 @@
 {
   "name": "ganbatte-os",
-  "version": "0.2.3",
+  "version": "0.2.41",
   "description": "Framework operacional de desenvolvimento: prototipacao, design-to-code, implementacao, otimizacao e seguranca.",
   "bin": {
     "gos": ".gos/scripts/cli/gos-cli.js"
