@@ -26,23 +26,24 @@ function agentSlug(id) {
   return id.startsWith('gos-') ? id : `gos-${id}`;
 }
 
-// IDEs alvo do G-OS (adapters gerados apenas para estas). Item 10.
-const TARGET_IDES = ['.claude', '.codex', '.qwen', '.opencode'];
-// Entrypoints user-facing (slash commands). O master roteia o resto internamente.
+// IDEs alvo do G-OS (adapters gerados para estas).
+// Claude Code, Codex, Qwen, Opencode, Gemini CLI, Antigravity (.agent).
+const TARGET_IDES = ['.claude', '.codex', '.qwen', '.opencode', '.gemini', '.agent'];
+// Entrypoints user-facing (slash/workflow). O master roteia o resto internamente (item 10).
 const CMD_WHITELIST = new Set(['gos-master', 'ux-design-expert']);
 
-function cleanupStaleAdapters() {
-  // Remove APENAS entradas G-OS (prefixo gos-) das IDEs alvo, para que a whitelist
-  // encolha a superficie sem deixar orfaos — e SEM tocar em skills/agents proprios
-  // do usuario, que coexistem no mesmo diretorio (contrato do prefixo gos-).
-  const removeGosPrefixed = (dir) => {
-    if (!fs.existsSync(dir)) return;
-    for (const entry of fs.readdirSync(dir)) {
-      if (/^gos-/.test(entry)) {
-        fs.rmSync(path.join(dir, entry), { recursive: true, force: true });
-      }
+function removeGosPrefixed(dir) {
+  // Remove apenas entradas G-OS (prefixo gos-), preservando skills/agents/workflows
+  // proprios do usuario que coexistem no mesmo diretorio (contrato do prefixo gos-).
+  if (!fs.existsSync(dir)) return;
+  for (const entry of fs.readdirSync(dir)) {
+    if (/^gos-/.test(entry)) {
+      fs.rmSync(path.join(dir, entry), { recursive: true, force: true });
     }
-  };
+  }
+}
+
+function cleanupStaleAdapters() {
   for (const ide of TARGET_IDES) {
     removeGosPrefixed(path.join(root, ide, 'skills'));   // gos-<slug>/
     removeGosPrefixed(path.join(root, ide, 'agents'));   // gos-<id>.md
@@ -50,12 +51,11 @@ function cleanupStaleAdapters() {
     const cmdGos = path.join(root, ide, 'commands', 'gos');
     if (fs.existsSync(cmdGos)) fs.rmSync(cmdGos, { recursive: true, force: true });
   }
-  // IDEs nao mais suportadas pelo gerador (Antigravity/.agent, Gemini) + legado.
-  // Removidas por completo pois eram 100% geradas pelo G-OS.
-  for (const legacy of ['.agent', '.gemini', '.antigravity']) {
-    const full = path.join(root, legacy);
-    if (fs.existsSync(full)) fs.rmSync(full, { recursive: true, force: true });
-  }
+  // Antigravity: workflows dos entrypoints (gos-*) — limpar apenas os do G-OS.
+  removeGosPrefixed(path.join(root, '.agent', 'workflows'));
+  // .antigravity/ e o diretorio errado (Antigravity usa .agent/) — remover legado.
+  const legacyAntigravity = path.join(root, '.antigravity');
+  if (fs.existsSync(legacyAntigravity)) fs.rmSync(legacyAntigravity, { recursive: true, force: true });
 }
 
 function agentWrapper(agentId, target) {
@@ -154,14 +154,20 @@ function main() {
     const codexCmd = path.join(root, '.codex', 'commands', 'gos', 'agents', `${agent.id}.md`);
     writeFile(codexCmd, claudeCommandWrapper(aSlug, agentDesc, relativeTarget(codexCmd, agentProfilePath), '', 'Codex'));
 
-    // Codex popula o picker a partir de .codex/skills/<slug>/SKILL.md (nao de commands/).
-    // Emitir o entrypoint tambem como skill garante que aparece no picker do Codex.
-    const codexAgentSkill = path.join(root, '.codex', 'skills', aSlug, 'SKILL.md');
-    writeFile(codexAgentSkill, skillWrapper(agent.id, relativeTarget(codexAgentSkill, agentProfilePath), agentDesc));
+    // Codex/Opencode/Gemini/Antigravity populam o picker a partir de <ide>/skills/<slug>/SKILL.md.
+    // Emitir o entrypoint tambem como skill garante que aparece no picker de cada uma.
+    for (const ide of ['.codex', '.opencode', '.gemini', '.agent']) {
+      const ideAgentSkill = path.join(root, ide, 'skills', aSlug, 'SKILL.md');
+      writeFile(ideAgentSkill, skillWrapper(agent.id, relativeTarget(ideAgentSkill, agentProfilePath), agentDesc));
+    }
 
-    // Opencode expoe o entrypoint como skill no picker.
-    const opencodeAgent = path.join(root, '.opencode', 'skills', aSlug, 'SKILL.md');
-    writeFile(opencodeAgent, skillWrapper(agent.id, relativeTarget(opencodeAgent, agentProfilePath), agentDesc));
+    // Antigravity: workflow (slash command no picker) — nome prefixado gos- p/ coexistencia.
+    const antigravityWorkflow = path.join(root, '.agent', 'workflows', `${aSlug}.md`);
+    const workflowTarget = relativeTarget(antigravityWorkflow, agentProfilePath);
+    writeFile(
+      antigravityWorkflow,
+      `---\ndescription: "${safeDesc}"\n---\n\n# /${aSlug} (Antigravity Workflow)\n\nFonte canonica: \`${workflowTarget}\`\n\nLeia o arquivo canonico apontado em CANONICAL-SOURCE e execute as instrucoes como fonte primaria.\n\nCANONICAL-SOURCE: ${workflowTarget}\n\nArgumentos do usuario seguem o prompt do agente.`
+    );
   }
 
   // Skills: auto-discoveraveis (o master as invoca internamente), NAO slash commands.
@@ -171,13 +177,8 @@ function main() {
     const skillFm = parseFrontmatter(canonicalPath);
     const skillDesc = skillFm.description || skill.description || skill.name || skill.slug;
 
-    const targets = [
-      path.join(root, '.claude', 'skills', `gos-${skill.slug}`, 'SKILL.md'),
-      path.join(root, '.codex', 'skills', `gos-${skill.slug}`, 'SKILL.md'),
-      path.join(root, '.qwen', 'skills', `gos-${skill.slug}`, 'SKILL.md'),
-      path.join(root, '.opencode', 'skills', `gos-${skill.slug}`, 'SKILL.md'),
-    ];
-    for (const t of targets) {
+    for (const ide of TARGET_IDES) {
+      const t = path.join(root, ide, 'skills', `gos-${skill.slug}`, 'SKILL.md');
       writeFile(t, skillWrapper(skill.slug, relativeTarget(t, canonicalPath), skillDesc));
     }
   }
