@@ -6,6 +6,7 @@ allowedTools: [Read, Glob, Grep, Bash, Write, Edit, AskUserQuestion]
 sourceDocs:
   - templates/stackTemplate.md
   - playbooks/plan-creation-playbook.md
+  - libraries/architecture-stack-policy.md
 use-when:
   - primeiro setup do projeto no fluxo de planos do G-OS
   - stack mudou (libs, framework, ORM, auth, hosting)

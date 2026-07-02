@@ -37,6 +37,16 @@ Todo texto gerado deve passar por correcao ortografica e remocao de padroes de I
 - **Documentacao sempre sincronizada** (`libraries/doc-sync-policy.md`): regra de negocio criada/alterada/removida => atualizar docs impactadas (regras-de-negocio, fluxos, permissoes, ADR, seeds, contratos) no mesmo PR. `plan.md` `## Impacto documental` declara; `validate-plan` bloqueia o fechamento se algo ficou dessincronizado.
 - **Anti-over-engineering** (`libraries/lazy-dev-policy.md`): escrever so o necessario — reuso > stdlib > native > dep > 1 linha > minimo. Nunca cortar validacao/seguranca/a11y.
 
+## Arquitetura & Stack (decisao antes de codigo)
+
+Regra sempre-ativa: `libraries/architecture-stack-policy.md`. Decisao de arquitetura vem antes do codigo.
+
+- **Referencia != decisao**: codigo de Figma Make/Stitch/outro projeto e triagem — avaliar objetivo, contexto, hosting, servicos (DB/auth/storage/e-mail) e alternativa mais simples ANTES de copiar. Nunca cravar a tech da referencia por habito.
+- **Stack-first**: nenhuma implementacao relevante comeca sem stack definida. `stack-do-projeto` = `docs/stack.md` (contrato via `stack_ref`; mudar exige ADR), `decisoes-arquiteturais` = `docs/adr/`. Falta info => registrar decisao pendente com opcoes, nunca escolher arbitrario.
+- **Auth/servicos own-vs-managed**: nao defaultar Supabase/Firebase por aparecer na referencia — avaliar Better Auth/fluxo proprio/SMTP/DB proprio por contexto (custo, controle, lock-in, infra).
+- **Diagramas Mermaid**: gerar Mermaid para fluxos que ajudam a entender o produto (auth, dados, jornada, permissoes, integracoes, arquitetura). Vivem no `plan.md` e em `dirs.fluxos` (default `docs/fluxos/`).
+- **Master explicavel**: toda acao/decisao relevante vem com explicacao em nivel de produto/negocio (o que, por que, impacto) em linguagem simples — tecnico e nao-tecnico entendem; detalhe tecnico e camada opcional.
+
 ## Comandos do Workspace
 
 | Comando | O que faz |
