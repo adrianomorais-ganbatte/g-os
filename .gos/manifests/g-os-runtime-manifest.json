@@ -1,7 +1,7 @@
 {
-  "runtime": "ganbatte-os-design-delivery",
+  "runtime": "ganbatte-os-development",
   "version": "0.1.0",
-  "description": "Runtime curado do ganbatte-os para design-to-code, sprint planning e ClickUp delivery.",
+  "description": "Runtime curado do ganbatte-os para desenvolvimento: prototipacao, design-to-code, implementacao, otimizacao e seguranca.",
   "modules": {
     "agents": [
       "ganbatte-os-master",
@@ -10,6 +10,7 @@
       "dev",
       "sm",
       "po",
+      "qa",
       "devops",
       "squad-creator"
     ],
@@ -21,20 +22,34 @@
       "make-version-diff",
       "component-dedup",
       "frontend-dev",
+      "interface-design",
       "react-best-practices",
       "react-doctor",
-      "sprint-planner",
-      "clickup",
       "plan-to-tasks",
       "agent-teams",
       "git-ssh-setup",
       "humanizer",
-      "weekly-update"
+      "stack-profiler",
+      "plan-blueprint",
+      "progress-tracker",
+      "execute-plan",
+      "validate-plan",
+      "audit-screenshots",
+      "idea-intake",
+      "prd-from-intake",
+      "adr-tech-decisions",
+      "prototype-orchestrator",
+      "gos-caveman",
+      "gos-compress",
+      "figma-print-diff",
+      "ui-guardrails",
+      "cloudflare-pages-setup",
+      "typeform-form-pattern",
+      "timer-component-pattern"
     ],
     "squads": [
       "design-delivery",
       "design-squad",
-      "sprint-planning",
       "git-operations"
     ]
   }

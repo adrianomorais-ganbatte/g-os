@@ -1,6 +1,6 @@
 # ganbatte-os
 
-Framework operacional para design-to-code, squads de entrega e sprint sync com ClickUp.
+Framework operacional de desenvolvimento: prototipacao, design-to-code, implementacao, otimizacao e seguranca.
 
 ---
 
@@ -8,7 +8,7 @@ Framework operacional para design-to-code, squads de entrega e sprint sync com C
 [![NPM Home](https://img.shields.io/badge/NPM-Registry-red)](https://www.npmjs.com/package/ganbatte-os)
 ![Node >= 18](https://img.shields.io/badge/Node.js-%3E%3D18-green)
 
-O **ganbatte-os** organiza agentes de IA, skills e squads num workspace pronto para uso. Ele orquestra o ciclo completo de desenvolvimento conectando Figma, ClickUp e as principais IDEs de IA (Claude Code, Gemini, Cursor, etc). Baseado nos padrões do framework `.a8z-OS`.
+O **ganbatte-os** organiza agentes de IA, skills e squads num workspace pronto para uso. Ele orquestra o ciclo completo de desenvolvimento — da prototipacao à implementação, otimização e segurança — conectando Figma e as principais IDEs de IA (Claude Code, Gemini, Cursor, etc). Baseado nos padrões do framework `.a8z-OS`.
 
 ## Quick Start
 
@@ -52,7 +52,6 @@ Após rodar o install, o framework criará uma estrutura limpa na sua raiz:
 | `npm run gos:rescue` | `gos rescue` | Lista/recupera stashes acumulados de updates falhos |
 | `npm run sync:ides` | — | Regenera apenas os IDE adapters (`.claude/`, `.qwen/`, `.gemini/`, `.cursor/`, `.agents/`) |
 | `npm run check:ides` | — | Valida que adapters estão consistentes com `.gos/skills/registry.json` |
-| `npm run clickup` | — | CLI ClickUp |
 
 ## Atualizar o ganbatte-os
 
@@ -210,8 +209,8 @@ O `ganbatte-os` utiliza uma estrutura **encapsulada** para manter seu projeto li
 ## Funcionalidades Principais
 
 - **Design-to-Code**: Pipeline automatizado para converter frames do Figma em componentes React/Next.js de alta fidelidade.
-- **Squads de Entrega**: Agentes especializados (SM, PO, Dev, QA) que trabalham de forma coordenada.
-- **Sincronização ClickUp**: Conecta seu workspace diretamente ao ClickUp para automação de status e tarefas.
+- **Pipeline de Planos**: Plano por tela com `spec.md`, tasks com critérios de aceite e loop de correção automática (Opus planeja, modelo barato executa, Opus valida).
+- **Auditoria de Segurança e Performance**: Verificação sistemática de vulnerabilidades (RLS, authz, secrets) e otimização (cache, filas, N+1, paginação) em Supabase e D1.
 - **Multi-IDE Multi-Tenant**: Configurações automáticas para as melhores ferramentas de IA do mercado.
 
 ## Agentes Disponíveis
@@ -242,13 +241,12 @@ O `ganbatte-os` utiliza uma estrutura **encapsulada** para manter seu projeto li
 | **interface-design** | `/gos:skills:interface-design` | Design de interface com metodologia intent-first |
 | **react-best-practices** | `/gos:skills:react-best-practices` | Otimizacao de performance React/Next.js |
 | **react-doctor** | `/gos:skills:react-doctor` | Diagnostico de saude de componentes React |
-| **sprint-planner** | `/gos:skills:sprint-planner` | Planejamento completo de sprint |
-| **clickup** | `/gos:skills:clickup` | Gestao de tarefas e sprints no ClickUp |
 | **plan-to-tasks** | `/gos:skills:plan-to-tasks` | Converte plano em tasks acionaveis |
 | **agent-teams** | `/gos:skills:agent-teams` | Coordena multiplos agentes em time |
 | **git-ssh-setup** | `/gos:skills:git-ssh-setup` | Configura identidade SSH para o workspace |
 | **humanizer** | `/gos:skills:humanizer` | Remove padroes de IA do texto (two-pass audit + soul injection) |
-| **weekly-update** | `/gos:skills:weekly-update` | Resumo semanal de tasks ClickUp → humaniza → posta no Slack (requer aprovacao) |
+| **security-review** | `/gos:skills:security-review` | Auditoria de seguranca (RLS, authz, secrets, injection) |
+| **perf-review** | `/gos:skills:perf-review` | Auditoria de performance (cache, filas, N+1, paginacao) |
 | **stack-profiler** | `/gos:skills:stack-profiler` | Mantem `docs/stack.md` como stack-of-record canonica do projeto |
 | **plan-blueprint** | `/gos:skills:plan-blueprint` | Cria plano por tela (1 tela = 1 plano) seguindo a stack |
 | **progress-tracker** | `/gos:skills:progress-tracker` | Memoria L1 (`progress.txt`) + state machine de status |

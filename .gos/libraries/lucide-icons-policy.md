@@ -160,7 +160,7 @@ import { AlertTriangle, RotateCw } from "lucide-react";
 
 - Output em terminal/Bash que sera lido por humano (ex: `npm run doctor`).
 - Documentacao README.md (estilo).
-- Slack messages, ClickUp comments (texto plano fora de codigo de UI).
+- Mensagens de chat e comentarios em tickets (texto plano fora de codigo de UI).
 - Mensagens em chat enquanto agente conversa com usuario (regra global do agente — nao em codigo gerado).
 - Usuario pede explicitamente: "use emoji aqui".
 

@@ -2,6 +2,6 @@
 
 Use para:
 
-- montar squads focados em design delivery
+- montar squads focados em desenvolvimento (prototipacao, codigo, otimizacao, seguranca)
 - escolher agentes, skills e workflows por etapa
-- ajustar squads para Figma, Make, Stitch, React e ClickUp
+- ajustar squads para Figma, Make, Stitch e React

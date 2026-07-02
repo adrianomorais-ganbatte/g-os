@@ -1,11 +1,11 @@
 # ganbatte-os Context
 
-ganbatte-os e uma distribuicao enxuta do framework operacional ganbatte-os para:
+ganbatte-os e uma distribuicao enxuta do framework operacional ganbatte-os, focada em DESENVOLVIMENTO:
 
+- prototipacao de ideias
 - converter design em codigo
-- organizar squads de entrega
-- planejar sprint
-- sincronizar backlog no ClickUp
+- implementacao, otimizacao e seguranca
+- organizar squads de desenvolvimento
 
 Priorize React e Next.js. Quando houver input vindo de Figma Make ou Stitch, trate o codigo como material de triagem antes de integrar ao projeto final.
 
@@ -40,7 +40,6 @@ Todo texto gerado deve passar por correcao ortografica e remocao de padroes de I
 | `npm run gos:version` | Versao e atualizacoes |
 | `npm run sync:ides` | Regenera IDE adapters |
 | `npm run check:ides` | Valida IDE adapters |
-| `npm run clickup` | CLI ClickUp |
 
 ## Slash Commands
 
@@ -48,7 +47,7 @@ Todo texto gerado deve passar por correcao ortografica e remocao de padroes de I
 gos-master | architect | dev | devops | po | qa | sm | squad-creator | ux-design-expert
 
 ### Skills (invoke via /gos:skills:{slug})
-design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | sprint-planner | clickup | plan-to-tasks | agent-teams | git-ssh-setup | humanizer | weekly-update | slack-review | stack-profiler | plan-blueprint | progress-tracker | execute-plan | validate-plan | audit-screenshots
+design-to-code | figma-implement-design | figma-make-analyzer | make-code-triage | make-version-diff | component-dedup | frontend-dev | interface-design | react-best-practices | react-doctor | plan-to-tasks | agent-teams | git-ssh-setup | humanizer | stack-profiler | plan-blueprint | progress-tracker | execute-plan | validate-plan | audit-screenshots | security-review | perf-review | simplify-review
 
 ### IDEs suportadas (npm run sync:ides gera adapters)
 Claude Code | Cursor | Gemini CLI | Qwen Code | Antigravity | Opencode | Kilo Code | **Codex IDE Extension** (ambiente de execucao, comando primario `*execute-plan`)
@@ -65,7 +64,7 @@ Pipeline padronizado para criacao de planos por tela. Toda tela = 1 plano. Stack
 | `*validate-plan <PLAN-NNN>` | `validate-plan` | Opus 4.7 (revisor) | Valida pos-execute; auto-marca concluido tasks que passam em checklist + visual gate curto + diff |
 | `*progress [show|set|status]` | `progress-tracker` | qualquer | Memoria L1 + state machine de status |
 
-State machine: `pendente -> em-andamento -> validacao -> concluido`. Estado lateral `bloqueada-backend` (introduzido pelo `*execute-plan` quando task tem `depends_on_backend:` em aberto no ClickUp; libera quando ClickUp fecha). `concluido` marcado automaticamente pelo `*validate-plan` quando passa em checklist + visual gate curto + diff + cobertura de `interaction_target`/`override_target`.
+State machine: `pendente -> em-andamento -> validacao -> concluido`. Estado lateral `bloqueada-backend` (introduzido pelo `*execute-plan` quando task tem `depends_on_backend:` com gap de backend ainda em aberto no tracking local; libera quando o pending local fecha). `concluido` marcado automaticamente pelo `*validate-plan` quando passa em checklist + visual gate curto + diff + cobertura de `interaction_target`/`override_target`.
 
 **Politica Figma vs Storybook**: story define API/anatomia do componente; em conflito visual cosmetico (bg, border, padding, radius), Figma da pagina vence — divergencia e registrada em `## Page-level overrides` do plano com decisao a/b/c (a=className, b=variant nova, c=excecao documentada). Sem essa disciplina, refinamentos da pagina viram retrabalho no fim (caso PLAN-005: 54 deltas em 26 rodadas).
 
@@ -73,7 +72,7 @@ State machine: `pendente -> em-andamento -> validacao -> concluido`. Estado late
 
 **Cleanup de starter legado (Fase 1.6)**: `.gos-local/plan-paths.json` campo `legacy_starter_dirs: ["src/figma-make/", ...]` faz `*plan` emitir tasks `T-NN-cleanup-legacy-<slug>` automaticamente para arquivos do starter. Sem o campo, comportamento atual preservado.
 
-**Schema/contrato gate (Fase 2.4)**: `.gos-local/plan-paths.json` campo `backend_schema_files: [...]` (Postman + Prisma) faz `*plan` validar contrato antes de emitir tasks frontend; gaps viram task ClickUp + entrada em `## Backend pendings`.
+**Schema/contrato gate (Fase 2.4)**: `.gos-local/plan-paths.json` campo `backend_schema_files: [...]` (Postman + Prisma) faz `*plan` validar contrato antes de emitir tasks frontend; gaps viram entrada local em `## Backend pendings` (e plano-irmao `PLAN-NNN-backend-<slug>` quando grandes).
 
 **Skill `*audit-screenshots`**: conversacional. Recebe N prints anotados em uma sessao, resolve cada print -> tela -> Figma frame via `docs/figma-screen-map.md`, compara, e ao fechar emite UM plano de correcao com tasks pendentes (sem executar). Acoplado ao mesmo template — output e input valido para `*execute-plan`/`*validate-plan`.
 

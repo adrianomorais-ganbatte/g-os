@@ -1,11 +1,13 @@
 {
   "name": "g-os",
   "focus": [
+    "prototyping",
     "figma-to-code",
     "figma-make-triage",
     "google-stitch-to-react",
-    "sprint-planning",
-    "clickup-delivery"
+    "implementation",
+    "optimization",
+    "security"
   ],
   "defaultBranches": {
     "production": "main",

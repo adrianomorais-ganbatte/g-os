@@ -7,4 +7,4 @@ Squad para sair de design ou codigo bruto gerado por IA ate backlog pronto para 
 - Figma frame -> React/Next.js
 - Figma Make -> triagem -> integracao
 - Google Stitch -> triagem -> refactor -> hardening
-- backlog -> sprint -> ClickUp
+- plano por tela -> tasks com criterios de aceite -> validacao

@@ -8,4 +8,4 @@ Revise a entrega com foco em regressao, fidelidade ao design e prontidao para sp
 - aderencia ao design/tokens
 - acessibilidade
 - riscos de dados mockados ou codigo Make misturado com UI final
-- importacao/sincronizacao correta para ClickUp quando fizer parte do fluxo
+- seguranca (RLS, authz, secrets) e performance (N+1, cache, paginacao) quando fizer parte do fluxo
