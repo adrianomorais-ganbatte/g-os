@@ -1,6 +1,6 @@
 # Atualizacao do G-OS — Julho/2026
 
-Registro do que mudou nesta rodada. Branch: `dev` (10 commits, `97bd713`..`8c7f2b8`). Fonte da demanda: `tmp/update-g-os.md` (10 itens) + adendo de foco. Design detalhado: `tmp/update-g-os-RELATORIO.md`. Plano de execucao: `~/.claude/plans/resilient-humming-hummingbird.md`.
+Registro do que mudou nesta rodada. Branch: `dev`. Fonte da demanda: `tmp/update-g-os.md` (10 itens) + adendo de foco. Design detalhado: `tmp/update-g-os-RELATORIO.md`. Plano de execucao: `~/.claude/plans/resilient-humming-hummingbird.md`. O bloco principal (10 itens) foi `97bd713`..`8c7f2b8`; o follow-up de release/docs esta na secao final.
 
 ## Resumo em uma linha
 
@@ -103,3 +103,30 @@ Conceitos adaptados ao idioma do G-OS (skill + config + scripts curtos), sem por
 | `de366dd` | github do autor no LICENSE + limpa permissoes de sessao |
 | `82ea678` | cleanup de adapters escopado ao prefixo gos- |
 | `8c7f2b8` | mantem adapters p/ Gemini + Antigravity (6 IDEs alvo) |
+
+## Follow-up: release beta→main + simplificacao dos docs do NPM
+
+### Resolucao do PR beta→main
+
+A promocao `beta → main` conflitava: a `main` (linha publicada no npm) ainda carregava os arquivos ClickUp/Slack/weekly-update que `dev`/`beta` removeram — dai 5 conflitos `modify/delete` + 2 de conteudo.
+
+- **5 arquivos** (`gos-slack-review`, `gos-weekly-update` em `.agents`, `slack-notify.js`, `weekly-update/CHANGELOG.md`, `weekly-update/SKILL.md`): **deletados** (aceita a remocao do beta).
+- **`.env-example`**: versao nova do beta (dev-focused, sem tokens).
+- **`package.json`**: merge manual — mantida a `version` da main (nao regredir a linha publicada) + description nova + sem script `clickup`.
+- Merge commit `58ba2ba` em `beta`; `merge-tree` confirma `beta→main` limpo. `doctor` OK (63 checks).
+
+### Simplificacao dos docs que vao para o NPM
+
+Os 4 arquivos que o pacote npm envia (`files[]`) foram alinhados ao modelo de **2 entrypoints** (antes apresentavam skills como slash `/gos:skills:` — que nao resolvem — e tabelas de 9 agentes-comando):
+
+- **`README.md`** (pagina do npm): instalacao **global** como caminho primario; 2 portas de entrada; skills reagrupadas por capacidade (invocadas pelo master); secao de update enxugada (tri-nivel → tabela) e dump de `plan-paths.json` removido; `doctor` 42+ → 63; licenca alinhada ao `LICENSE` (MIT/Douglas Oliveira).
+- **`CLAUDE.md` / `AGENTS.md` / `GEMINI.md`**: mesma correcao — 2 entrypoints slash, agentes internos nao-slash (`+security-auditor`/`perf-optimizer`), 34 skills auto-discoveraveis, pipeline com `spec.md`/`execute-plan`/`validate-plan`; removidos "entrega de sprint"/"sync com stakeholders"; paths corrigidos.
+
+### Commits do follow-up (dev)
+
+| Commit | Descricao |
+|--------|-----------|
+| `5209c0a` | simplifica README do NPM p/ modelo de 2 entrypoints |
+| `147f690` | alinha CLAUDE/AGENTS/GEMINI ao modelo de 2 entrypoints |
+
+> Os docs so aparecem na pagina do npm apos o fluxo `dev → beta → main → publish` (o merge do PR beta→main dispara `publish.yml`, bump `0.2.41 → 0.2.42`).
