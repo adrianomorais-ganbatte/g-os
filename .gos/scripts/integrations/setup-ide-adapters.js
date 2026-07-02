@@ -32,15 +32,26 @@ const TARGET_IDES = ['.claude', '.codex', '.qwen', '.opencode'];
 const CMD_WHITELIST = new Set(['gos-master', 'ux-design-expert']);
 
 function cleanupStaleAdapters() {
-  // Remove geracoes anteriores (skills por-slug, agents, commands) das IDEs alvo,
-  // para que a whitelist encolha a superficie sem deixar orfaos.
-  for (const ide of TARGET_IDES) {
-    for (const sub of ['skills', 'agents', 'commands']) {
-      const dir = path.join(root, ide, sub, ...(sub === 'commands' ? ['gos'] : []));
-      if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
+  // Remove APENAS entradas G-OS (prefixo gos-) das IDEs alvo, para que a whitelist
+  // encolha a superficie sem deixar orfaos — e SEM tocar em skills/agents proprios
+  // do usuario, que coexistem no mesmo diretorio (contrato do prefixo gos-).
+  const removeGosPrefixed = (dir) => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir)) {
+      if (/^gos-/.test(entry)) {
+        fs.rmSync(path.join(dir, entry), { recursive: true, force: true });
+      }
     }
+  };
+  for (const ide of TARGET_IDES) {
+    removeGosPrefixed(path.join(root, ide, 'skills'));   // gos-<slug>/
+    removeGosPrefixed(path.join(root, ide, 'agents'));   // gos-<id>.md
+    // Commands sao namespaced sob gos/ — seguro remover o namespace inteiro.
+    const cmdGos = path.join(root, ide, 'commands', 'gos');
+    if (fs.existsSync(cmdGos)) fs.rmSync(cmdGos, { recursive: true, force: true });
   }
   // IDEs nao mais suportadas pelo gerador (Antigravity/.agent, Gemini) + legado.
+  // Removidas por completo pois eram 100% geradas pelo G-OS.
   for (const legacy of ['.agent', '.gemini', '.antigravity']) {
     const full = path.join(root, legacy);
     if (fs.existsSync(full)) fs.rmSync(full, { recursive: true, force: true });
