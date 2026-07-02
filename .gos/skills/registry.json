@@ -24,6 +24,7 @@
     { "slug": "audit-screenshots", "path": "skills/audit-screenshots/SKILL.md" },
     { "slug": "security-review", "path": "skills/security-review/SKILL.md" },
     { "slug": "perf-review", "path": "skills/perf-review/SKILL.md" },
+    { "slug": "simplify-review", "path": "skills/simplify-review/SKILL.md" },
     { "slug": "idea-intake", "path": "skills/idea-intake/SKILL.md" },
     { "slug": "prd-from-intake", "path": "skills/prd-from-intake/SKILL.md" },
     { "slug": "adr-tech-decisions", "path": "skills/adr-tech-decisions/SKILL.md" },

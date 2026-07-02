@@ -49,12 +49,14 @@
       "typeform-form-pattern",
       "timer-component-pattern",
       "security-review",
-      "perf-review"
+      "perf-review",
+      "simplify-review"
     ],
     "squads": [
       "design-delivery",
       "design-squad",
-      "git-operations"
+      "git-operations",
+      "code-quality"
     ]
   }
 }
