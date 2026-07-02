@@ -104,10 +104,33 @@ Decisões possíveis:
 - Entrada: <de onde vem>
 - Saída: <para onde vai>
 
+```mermaid
+flowchart LR
+  Origem[<de onde vem>] --> Tela[<esta tela>]
+  Tela --> Destino[<para onde vai>]
+```
+
 ## Fluxo de dados
 
+```mermaid
+flowchart TD
+  Tela[<tela>] --> Fetch[<fetch/server action>]
+  Fetch --> Fonte[<endpoint/tabela>]
+  Fonte --> Componente[<componente>] --> Render[render]
 ```
-<diagrama textual: tela → fetch → componente → render>
+
+## Fluxo de auth
+
+> Preencher SÓ quando a tela exige autenticação/autorização (senão remover a seção). Diagrama em linguagem que técnico e não-técnico entendam.
+
+```mermaid
+flowchart TD
+  Usuario[Usuário] --> Acao[<login / signup / acesso protegido>]
+  Acao --> Verifica{Autenticado?}
+  Verifica -- não --> Redireciona[<redireciona p/ login>]
+  Verifica -- sim --> Autoriza{Tem permissão?}
+  Autoriza -- não --> Nega[<403 / sem acesso>]
+  Autoriza -- sim --> Acessa[<acessa a tela>]
 ```
 
 ## Plano de execução

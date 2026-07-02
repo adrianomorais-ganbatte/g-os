@@ -18,6 +18,8 @@
  * 5. Cada T-NN*.md: head -1 == "---" E frontmatter contem `status: pendente`
  *    E `id:`, `plan_id:`, `seq:`, `title:`, E body tem `## Critérios de aceite`.
  * 6. Nenhum T-NN*.md tem secao `## Status` no body (formato bugado legado).
+ * 7. (warn, nao bloqueia) plan.md com "## Fluxo de auth/dados" deveria trazer
+ *    bloco ```mermaid (architecture-stack-policy.md).
  *
  * Exit code:
  *   0 = plano valido, usavel pelo pipeline
@@ -53,6 +55,13 @@ if (!fs.existsSync(planFile)) {
   const plan = fs.readFileSync(planFile, 'utf8');
   if (!plan.startsWith('---\n')) {
     errors.push(`plan.md sem frontmatter YAML (head -1 != "---")`);
+  }
+  // Mermaid (nao bloqueia): plano com fluxo de auth/dados deveria trazer diagrama.
+  // Regra: libraries/architecture-stack-policy.md.
+  const declaresFlow = /^## Fluxo de (auth|dados)/m.test(plan);
+  const hasMermaid = /```mermaid/.test(plan);
+  if (declaresFlow && !hasMermaid) {
+    warnings.push('plan.md tem "## Fluxo de auth/dados" sem bloco ```mermaid — architecture-stack-policy sugere diagrama de fluxo (auth/dados/jornada) p/ tecnico e nao-tecnico entenderem. Nao bloqueia.');
   }
 }
 

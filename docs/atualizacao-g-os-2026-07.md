@@ -130,3 +130,23 @@ Os 4 arquivos que o pacote npm envia (`files[]`) foram alinhados ao modelo de **
 | `147f690` | alinha CLAUDE/AGENTS/GEMINI ao modelo de 2 entrypoints |
 
 > Os docs so aparecem na pagina do npm apos o fluxo `dev → beta → main → publish` (o merge do PR beta→main dispara `publish.yml`, bump `0.2.41 → 0.2.42`).
+
+## Rodada 2 — Arquitetura antes de codigo + master explicavel
+
+Diretriz do usuario absorvida como **regra de operacao sempre-ativa** (nao skill nova): decidir arquitetura antes de codigo, avaliar referencia antes de copiar, nao defaultar auth/deploy/DB por habito, gerar diagramas Mermaid de fluxo, e um `gos-master` que explica cada acao em nivel de produto/negocio para tecnico e nao-tecnico.
+
+Decisoes travadas com o usuario: **reaproveitar o que ja existe** (`docs/stack.md`=stack-do-projeto, `docs/adr/`=decisoes, `dirs.fluxos`=fluxos) em vez de criar `docs/arquitetura/` paralela — o contrato/`stack_ref`/sha-lock do pipeline fica intacto; e **tom hibrido** (commanding em decisao, didatico/produto em explicacao).
+
+### O que mudou
+
+- **Policy canonica** `.gos/libraries/architecture-stack-policy.md` (nova): referencia != decisao; stack-first; auth/servicos own-vs-managed; Mermaid como padrao; comunicacao explicavel. Molde de `lazy-dev-policy.md`, com secao `## Aplicacao no G-OS`.
+- **Ligacao aos docs do npm**: nova secao `## Arquitetura & Stack` no `CLAUDE.md`; blocos equivalentes no `AGENTS.md` e `GEMINI.md`.
+- **Master explicavel** (`ganbatte-os-master.md`): novo `core_principle` "arquitetura antes de codigo"; nova regra `output_policy.explicabilidade_produto` (toda acao relevante vem com explicacao de produto/negocio, tecnico como camada opcional); `communication.tone_hibrido`; `proactive_suggestions.decisao_arquitetural` enriquecido com "avaliar referencia antes de copiar + own-vs-managed". Cleanup: `complementary_rules` apontava 3 arquivos inexistentes (`research-discipline`/`think-before-act`/`context-first-antes-acao`) → trocados pelos 2 reais (`demand-elegance.md`, `plan-mode.md`).
+- **Pipeline**: `plan-blueprint` ganhou **Fase 2.3 "Avaliar referencia antes de copiar"** (preventiva, antes do schema gate) + emissao de Mermaid quando ha auth/dados/jornada; `sourceDocs` da policy em `plan-blueprint`/`stack-profiler`/`adr-tech-decisions`.
+- **Templates**: `planTemplate.md` — `## Fluxo de navegacao`/`## Fluxo de dados` viram blocos ```mermaid e ganha `## Fluxo de auth` (condicional). `stackTemplate.md` — secao 10 linka os diagramas em `dirs.fluxos`.
+- **Gate**: `check-plan.js` — aviso **nao bloqueante** quando um plano com `## Fluxo de auth/dados` nao traz bloco ```mermaid.
+- **Config**: `scripts/tools/plan-paths.js` — `dirs.fluxos` ganhou default `docs/fluxos/` (antes `null`; chave nao consumida, mudanca segura).
+
+### Validacao
+
+`sync:ides` OK (2 entrypoints, 11 subagents, 34 skills — sem regressao); `check:ides` OK; `gos doctor` 63 checks saudavel. Nenhuma pasta `docs/arquitetura/` criada; `stack_ref`/gates de drift inalterados. Adapters `.codex`/`.gemini`/`.opencode`/`.claude/skills` sao gitignored; `.qwen`/`.agent` regeneraram identicos (nao embutem o corpo do profile).
