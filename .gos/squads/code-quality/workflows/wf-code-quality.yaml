@@ -1,0 +1,19 @@
+workflow:
+  id: wf-code-quality
+  name: "Code Quality Pipeline"
+  entry_agent: security-auditor
+  type: sequential
+
+phases:
+  - id: security
+    name: "Security Audit"
+    owner: security-auditor
+    goal: "Auditar vulnerabilidades (RLS/edge/D1/secrets/injection/authz) contra security-audit-playbook. CRITICAL/HIGH viram task de correcao."
+  - id: performance
+    name: "Performance Audit"
+    owner: perf-optimizer
+    goal: "Auditar cache/filas/cron/N+1/views/paginacao/over-fetch contra performance-audit-playbook. Alto impacto vira task de otimizacao."
+  - id: simplify
+    name: "Simplify Review"
+    owner: qa
+    goal: "Review de over-engineering (lazy-dev-policy): o que deletar. net: -N linhas possiveis."

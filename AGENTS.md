@@ -32,8 +32,6 @@ Este repo existe para acelerar design-to-code e entrega de sprint.
 | **interface-design** | `/gos:skills:interface-design` | Design de interface com metodologia intent-first |
 | **react-best-practices** | `/gos:skills:react-best-practices` | Otimizacao de performance React/Next.js |
 | **react-doctor** | `/gos:skills:react-doctor` | Diagnostico de saude de componentes React |
-| **sprint-planner** | `/gos:skills:sprint-planner` | Planejamento completo de sprint |
-| **clickup** | `/gos:skills:clickup` | Gestao de tarefas e sprints no ClickUp |
 | **plan-to-tasks** | `/gos:skills:plan-to-tasks` | Converte plano em tasks acionaveis |
 | **agent-teams** | `/gos:skills:agent-teams` | Coordena multiplos agentes em time |
 | **git-ssh-setup** | `/gos:skills:git-ssh-setup` | Configura identidade SSH para o workspace |

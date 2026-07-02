@@ -55,16 +55,19 @@ Nenhuma seção pode ficar com placeholder. Se não há resposta para uma das 4,
 - [ ] Passo 2
 - [ ] Passo 3
 
-## Critérios de aceitação (DoD)
+## Critérios de aceite (DoD)
 
-- [ ] Implementação atende `valida_em` do plano
+> Cada critério é **machine-checkable** (comando + resultado esperado) OU verificável por evidência no diff. `execute-plan` roda estes critérios ao concluir a task (loop de correção: OK → segue; inconclusivo → bypass + alerta; falha → corrige até passar, teto 3). `validate-plan` (Senior) re-verifica e corrige gaps. Derivados do `spec.md` (critérios globais) + `valida_em` do plano.
+
+- [ ] Implementação atende `valida_em` do plano e o critério correspondente do `spec.md`
 - [ ] **Visual gate aprovado** (relatório em `T-NNN-NN.notes.md` com 5 seções: anatomia, tokens, variants, densidade, comportamentos)
 - [ ] **Comportamentos**: cada `interaction_target` declarado tem handler/estado implementado e observável no diff
 - [ ] **Overrides**: cada `override_target` declarado foi aplicado conforme decisão (a/b/c) registrada em `## Page-level overrides`
 - [ ] **Cleanup**: quando `cleanup_target:` declarado, arquivo foi removido (`git diff --staged` mostra deleção)
-- [ ] Tests/CI verdes
-- [ ] Sem regressões
-- [ ] <métrica específica>
+- [ ] `tsc --noEmit` exit 0 (ou comando de typecheck da stack)
+- [ ] Tests/CI verdes: `<comando de teste da stack>` → passa
+- [ ] Sem regressões nos fluxos de `## Tabela de regressão` do plano
+- [ ] <critério específico da task — comando + resultado esperado>
 
 ## Riscos & Rollback
 

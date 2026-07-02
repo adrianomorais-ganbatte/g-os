@@ -18,10 +18,10 @@ phases:
     owner: dev
     goal: "Transformar o material em codigo reutilizavel para React ou Next.js."
   - id: planning
-    name: "Sprint Planning"
+    name: "Plan Pipeline"
     owner: sm
-    goal: "Gerar backlog, prioridades e entregaveis de sprint."
-  - id: sync
-    name: "ClickUp Sync"
-    owner: devops
-    goal: "Criar ou atualizar sprint no ClickUp."
+    goal: "Gerar plano por tela, tasks com criterios de aceite e ordem backend-first."
+  - id: quality
+    name: "Quality Gate"
+    owner: qa
+    goal: "Auditar seguranca e performance; validar criterios de aceite antes de fechar."

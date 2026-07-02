@@ -13,10 +13,11 @@
  * Verificacoes:
  * 1. plan.md existe e tem frontmatter YAML.
  * 2. context.md existe.
- * 3. tasks/ existe e contem >= 1 T-NN*.md.
- * 4. Cada T-NN*.md: head -1 == "---" E frontmatter contem `status: pendente`
- *    E `id:`, `plan_id:`, `seq:`, `title:`.
- * 5. Nenhum T-NN*.md tem secao `## Status` no body (formato bugado legado).
+ * 3. spec.md existe (spec completa de desenvolvimento).
+ * 4. tasks/ existe e contem >= 1 T-NN*.md.
+ * 5. Cada T-NN*.md: head -1 == "---" E frontmatter contem `status: pendente`
+ *    E `id:`, `plan_id:`, `seq:`, `title:`, E body tem `## Critérios de aceite`.
+ * 6. Nenhum T-NN*.md tem secao `## Status` no body (formato bugado legado).
  *
  * Exit code:
  *   0 = plano valido, usavel pelo pipeline
@@ -43,6 +44,7 @@ const warnings = [];
 
 const planFile = path.join(planDir, 'plan.md');
 const contextFile = path.join(planDir, 'context.md');
+const specFile = path.join(planDir, 'spec.md');
 const tasksDir = path.join(planDir, 'tasks');
 
 if (!fs.existsSync(planFile)) {
@@ -56,6 +58,10 @@ if (!fs.existsSync(planFile)) {
 
 if (!fs.existsSync(contextFile)) {
   warnings.push(`context.md ausente — recomendado, nao bloqueia`);
+}
+
+if (!fs.existsSync(specFile)) {
+  errors.push(`spec.md ausente em ${planDir} — *plan deve emitir spec.md (templates/specTemplate.md)`);
 }
 
 if (!fs.existsSync(tasksDir)) {
@@ -100,6 +106,10 @@ if (!fs.existsSync(tasksDir)) {
     if (/^## Status\s*$/m.test(body)) {
       errors.push(`${rel}: contem secao "## Status" no body (formato legado bugado) — rodar migrate-task-status.js`);
     }
+
+    if (!/^## Crit[eé]rios de aceite/m.test(body)) {
+      errors.push(`${rel}: sem secao "## Critérios de aceite" no body — task precisa de criterios verificaveis`);
+    }
   }
 }
 
@@ -116,5 +126,5 @@ if (errors.length) {
 
 const taskCount = fs.readdirSync(tasksDir)
   .filter((f) => /^T-\d+.*\.md$/.test(f)).length;
-console.log(`[check-plan] OK — ${planDir}: plan.md + context.md + ${taskCount} tasks (todas com frontmatter status: pendente).`);
+console.log(`[check-plan] OK — ${planDir}: plan.md + context.md + spec.md + ${taskCount} tasks (frontmatter status: pendente + criterios de aceite).`);
 process.exit(0);

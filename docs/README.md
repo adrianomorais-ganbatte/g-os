@@ -26,7 +26,6 @@ Este diretório contém documentação distribuída para projetos que instalam
 - [guides/guia-agents.md](./guides/guia-agents.md): sistema de agentes — 12 personas, hierarquia de delegação, quando usar cada um.
 - [guides/guia-fluxo-frontend.md](./guides/guia-fluxo-frontend.md): fluxo de desenvolvimento frontend (5 cenários, 14 gaps, 13 regras).
 - [guides/guia-plans-tasks-specs.md](./guides/guia-plans-tasks-specs.md): convenção `docs/{plans,tasks,specs,progress}/` para rastreio cross-tool.
-- [guides/guia-clickup-dual-transport.md](./guides/guia-clickup-dual-transport.md): uso do ClickUp com dual-transport (`auto`, `mcp`, `api`) e preprocessamento de texto.
 
 ## Documentos do repositório-fonte (não instalados no runtime)
 

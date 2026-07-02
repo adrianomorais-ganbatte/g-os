@@ -14,5 +14,5 @@
 - Figma Make bruto: `figma-make-analyzer` -> `make-code-triage` -> `component-dedup`
 - diff entre export antigo e novo do Make: `make-version-diff`
 - Stitch ou codigo gerado por IA: `make-code-triage` -> `frontend-dev` -> `react-doctor`
-- Descoberta e backlog: `sprint-planner`
-- Subida para ClickUp: `clickup`
+- Planejamento por tela: `plan-blueprint` -> `execute-plan` -> `validate-plan`
+- Auditoria de seguranca e performance: `security-review`, `perf-review`

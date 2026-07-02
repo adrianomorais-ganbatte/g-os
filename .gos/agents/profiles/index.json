@@ -9,6 +9,8 @@
     { "id": "po", "path": "po.md" },
     { "id": "qa", "path": "qa.md" },
     { "id": "devops", "path": "devops.md" },
-    { "id": "squad-creator", "path": "squad-creator.md" }
+    { "id": "squad-creator", "path": "squad-creator.md" },
+    { "id": "security-auditor", "path": "security-auditor.md" },
+    { "id": "perf-optimizer", "path": "perf-optimizer.md" }
   ]
 }

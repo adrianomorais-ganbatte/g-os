@@ -94,14 +94,17 @@ Body: copiar as seções do `taskTemplate.md` — **NÃO** adicionar seção `##
 
 Task com `## Arquivos` vazio ou genérico (sem path concreto) é malformada — o executor não pode adivinhar onde mexer. Regenerar.
 
+**Critérios de aceite (obrigatório)**: toda task gerada DEVE ter `## Critérios de aceite (DoD)` não-vazio, com critérios **verificáveis** (comando + resultado esperado, ou evidência no diff), derivados do `spec.md` (critérios globais) + `valida_em`. Sem critério de aceite verificável, o loop de correção do `*execute-plan` e a auditoria do `*validate-plan` não têm âncora — task malformada, regenerar.
+
 ### Phase 3.5 — Verificação pós-geração (gate)
 
-Para cada `T-NN*.md` gerado: confirmar que `head -1` retorna `---` E o frontmatter contém literalmente `status: pendente`. Se qualquer task falhar, regerar (não prosseguir com tasks malformadas — silenciar aqui é o bug original).
+Para cada `T-NN*.md` gerado: confirmar que `head -1` retorna `---`, o frontmatter contém literalmente `status: pendente`, E o body contém a seção `## Critérios de aceite`. Se qualquer task falhar, regerar (não prosseguir com tasks malformadas — silenciar aqui é o bug original).
 
 ```bash
 for f in <dirs.tasks>/T-*.md; do
   head -1 "$f" | grep -q '^---$' || { echo "FALHA frontmatter: $f"; exit 1; }
   grep -q '^status: pendente$' "$f" || { echo "FALHA status: $f"; exit 1; }
+  grep -q '^## Critérios de aceite' "$f" || { echo "FALHA criterios-de-aceite: $f"; exit 1; }
 done
 ```
 

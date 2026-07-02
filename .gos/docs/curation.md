@@ -8,13 +8,12 @@ O `G-OS` foi montado como uma distribuicao enxuta para cobrir apenas:
 - Figma MCP
 - Figma Make import/update
 - React e Next.js
-- sprint planning
-- ClickUp import e acompanhamento
+- prototipacao a implementacao
+- otimizacao e seguranca
 - branch ops para entrega
 
 ## Skills incluidas
 
-- `clickup`
 - `component-dedup`
 - `design-to-code`
 - `figma-implement-design`
@@ -24,7 +23,8 @@ O `G-OS` foi montado como uma distribuicao enxuta para cobrir apenas:
 - `make-version-diff`
 - `react-best-practices`
 - `react-doctor`
-- `sprint-planner`
+- `security-review`
+- `perf-review`
 
 ## Agentes incluidos
 
@@ -40,7 +40,9 @@ O `G-OS` foi montado como uma distribuicao enxuta para cobrir apenas:
 ## Squads incluidas
 
 - `design-squad`
-- `sprint-planning`
+- `design-delivery`
+- `git-operations`
+- `code-quality`
 
 ## Camada `.G-OS`
 
@@ -49,7 +51,7 @@ Foram mantidos apenas os suportes exigidos pelas skills copiadas:
 - rules de arquitetura e especificacao
 - libraries frontend e SSH multi-account
 - system prompts base usados pelo `frontend-dev`
-- playbook e template de ADR do sprint planner
+- playbook e template de ADR do pipeline de planos
 
 ## Fora do escopo
 

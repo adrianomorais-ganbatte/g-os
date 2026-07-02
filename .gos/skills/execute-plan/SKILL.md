@@ -1,7 +1,7 @@
 ---
 name: execute-plan
-description: Executa um plano (PLAN-NNN-<slug>) task-a-task aplicando state machine + visual gate contra Storybook canonico antes de marcar validacao. Non-blocking em backend gaps (abre tasks ClickUp + segue). Comando primario do ambiente Codex IDE.
-argument-hint: "<PLAN-NNN-slug> [--task T-NNN-NN] [--skip-visual-gate] [--skip-clickup]"
+description: Executa um plano (PLAN-NNN-<slug>) task-a-task aplicando state machine + visual gate + verificacao de criterios de aceite (com loop de correcao) antes de marcar validacao. Backend-first e non-blocking em backend gaps (tracking local). Etapa execute do pipeline (Junior).
+argument-hint: "<PLAN-NNN-slug> [--task T-NNN-NN] [--skip-visual-gate] [--skip-backend-tracking]"
 allowedTools: [Read, Glob, Grep, Bash, Write, Edit, Agent, AskUserQuestion]
 sourceDocs:
   - templates/taskTemplate.md
@@ -39,21 +39,26 @@ Formato esperado:
 - `<PLAN-NNN-slug>` — id do plano (ex.: `PLAN-001-pagina-projetos-inicial`)
 - `--task T-NNN-NN` — opcional, executa apenas a task especifica
 - `--skip-visual-gate` — opcional, pula visual gate (raro, registra warning)
+- `--skip-backend-tracking` — opcional, nao registra/atualiza pendings de backend
+
+**Modelo desta etapa**: resolver via `node .gos/scripts/tools/model-router.js get execute` (Junior — modelo mais barato adequado; Codex aceito). O executor analisa plano + tasks + `spec.md` antes de implementar.
 
 ## Pre-requisitos (gate)
 
 1. Resolver paths via `.gos-local/plan-paths.json`. Se ausente, abortar e instruir o usuario a rodar `*plan` primeiro.
 2. Localizar `<dirs.planos>/<PLAN-NNN-slug>/plan.md`. Se ausente, abortar.
-3. Ler `plan.md` por completo: frontmatter + Componentes mapeados + Componentes ausentes + Aderencia a stack + Plano de execucao + Checklist de aceite + **Backend pendings**.
+3. Ler `plan.md` por completo: frontmatter + Componentes mapeados + Componentes ausentes + Aderencia a stack + Plano de execucao + Checklist de aceite + **Backend pendings**. Ler tambem `context.md` e **`spec.md`** (spec completa: o que/onde/como/por que + criterios de aceite globais) — sao o contrato que o Junior executa.
 4. Validar `stack_ref` do frontmatter contra `<dirs.stack>` (`docs/stack.md`):
    - Calcular sha-curto atual e comparar.
    - Drift detectado: ABORTAR e instruir `*stack drift` + replanejar com `*stack refresh`.
 5. Ler `<dirs.progress>` (progress.txt). Se aponta para outro plano ativo, perguntar se troca o foco antes de prosseguir.
-6. **Backend pendings (non-blocking)**: ler tabela `## Backend pendings` do `plan.md`. Para cada linha:
-   - Sem `ClickUp ID` -> criar task via `mcp__clickup__clickup_create_task` (assignee `112010775` salvo override `ASSIGNEE` no plano, list de `clickup.backend_list_id` em `plan-paths.json`, titulo `[Backend] PLAN-NNN: <gap>`). Gravar ID retornado de volta na coluna `ClickUp ID` do `plan.md`.
-   - Com `ClickUp ID` -> consultar `mcp__clickup__clickup_get_task <ID>`. Atualizar coluna `Status`. Se ainda aberta, registrar em `progress.txt` como `blockers=<T-IDs>:<ClickUp-ID>:<gap-curto>` (uma linha por bloqueio ativo).
-   - `--skip-clickup` desliga MCP; nesse caso so registra warning visivel mantendo o que ja esta no plano.
-   - **Importante**: backend gap aberto NAO aborta o execute-plan. Tasks frontend que dependem do gap serao classificadas como `bloqueada-backend` no loop abaixo; tasks sem dependencia seguem normal.
+6. **Backend pendings (tracking LOCAL, non-blocking)**: ler tabela `## Backend pendings` do `plan.md`. Para cada linha:
+   - Cada pending tem `gap-key`, `Status` local (`aberto`/`em-andamento`/`concluido`) e, quando grande, um plano-irmao `PLAN-NNN-backend-<slug>`.
+   - Se existe plano-irmao de backend: seu estado (via `progress.txt`) e a fonte da verdade do `Status`. Atualizar a coluna `Status` do pending a partir dele.
+   - **Backend-first**: se ha pendings `aberto`/`em-andamento` que bloqueiam tasks frontend (via `depends_on_backend:`), o executor prioriza as tasks/planos de backend correspondentes ANTES das tasks frontend dependentes, para destravar.
+   - Pending ainda aberto: registrar em `progress.txt` como `blockers=<T-IDs>:<gap-key>:<gap-curto>` (uma linha por bloqueio ativo).
+   - `--skip-backend-tracking` desliga a atualizacao; nesse caso so registra warning mantendo o que ja esta no plano.
+   - **Importante**: backend gap aberto NAO aborta o execute-plan. Tasks frontend que dependem do gap E sem bypass declarado viram `bloqueada-backend` no loop abaixo; tasks sem dependencia (ou com `Bypass frontend` declarado) seguem normal.
 
 ## Pre-flight visual
 
@@ -93,14 +98,16 @@ Pre-flight smoke nao substitui o visual gate por task — ele captura gaps grand
 
 ## Loop por task
 
+**Ordem backend-first**: dentro do `seq`, tasks e planos-irmaos de backend correm ANTES das tasks frontend que deles dependem — o objetivo e destravar o frontend o quanto antes.
+
 Iterar tasks em ordem de `seq`. Antes de executar cada task, **classificar**:
 
 - Ler frontmatter `depends_on_backend:` da task (campo opcional, default `[]`). Cada item referencia uma `gap-key` da tabela `## Backend pendings` do plano (ex.: `migration-20260501150000`, `endpoint-projetos-fields`).
-- Se a task referencia gap em aberto (status no ClickUp != `concluido`/`closed`):
+- Se a task referencia gap com `Status` local != `concluido` E sem `Bypass frontend` declarado:
   - `*progress status T-NNN-NN bloqueada-backend` (transicao livre desde `pendente` ou `em-andamento`).
-  - Anotar em `tasks/T-NNN-NN.notes.md` linha `## Bloqueada backend <iso>` com ClickUp IDs.
+  - Anotar em `tasks/T-NNN-NN.notes.md` linha `## Bloqueada backend <iso>` com as `gap-key`.
   - **PULAR** task — NAO falha o loop, segue pra proxima.
-- Se a task tem `depends_on_backend: []` ou todas as dependencias estao `concluido` no ClickUp -> seguir fluxo normal abaixo.
+- Se a task tem `depends_on_backend: []`, ou todas as dependencias estao `concluido` localmente, ou ha `Bypass frontend` declarado -> seguir fluxo normal abaixo.
 
 Para cada task **executavel**:
 
@@ -127,9 +134,17 @@ Para cada task **executavel**:
    d) Output: relatorio curto em `tasks/T-NNN-NN.notes.md` (5 secoes: anatomia, tokens, variants, densidade, comportamentos + secao "Arvore vs Figma").
    e) Divergencia >= 1 item critico (anatomia, tokens nao-overrideados, ou comportamento mapeado sem implementacao) -> falha o gate.
 
-5. **Resultado do gate**:
-   - Sucesso -> invocar `*progress status T-NNN-NN validacao`. **Pos-condicao obrigatoria**: ler T-NNN-NN.md, confirmar `^status: validacao$` no frontmatter. Se nao mudou: ABORTAR a task com erro `progress-tracker-falhou: T-NNN-NN`. Preparar arquivos staged (sem commit) somente apos confirmacao.
-   - Falha -> manter em `em-andamento`, gravar diff em `T-NNN-NN.notes.md`, retornar pra etapa 3.
+5. **Verificacao de criterios de aceite (AC)** — apos o visual gate passar:
+
+   Ler a secao `## Critérios de aceite` da task. Cada criterio e machine-checkable (comando + resultado esperado) OU verificavel por evidencia no diff. Rodar cada um e classificar o conjunto:
+   - **Todos OK** (cada AC atendido com evidencia) -> `ac=ok`.
+   - **Algum AC nao atendido** (comando falha / evidencia ausente) -> `ac=falha`.
+   - **AC inconclusivo** (nao da pra verificar de forma determinista — ex.: depende de ambiente externo indisponivel, dado que so existe em runtime real, backend em `bypass`) -> `ac=inconclusivo`.
+
+6. **Resultado do gate + loop de correcao (Ralph)**:
+   - **Visual gate OK + `ac=ok`** -> invocar `*progress status T-NNN-NN validacao`. **Pos-condicao obrigatoria**: ler T-NNN-NN.md, confirmar `^status: validacao$`. Se nao mudou: ABORTAR a task com erro `progress-tracker-falhou: T-NNN-NN`. Preparar arquivos staged (sem commit) apos confirmacao. Segue para a proxima task.
+   - **Visual gate falha OU `ac=falha`** -> manter em `em-andamento`, gravar o gap especifico em `T-NNN-NN.notes.md`, e **entrar em loop de correcao**: voltar pra etapa 3 (implementacao) e corrigir. Teto de `max_correcao_iteracoes = 3` por task. Anti-falso-positivo: a verificacao e **re-executada** a cada rodada (nunca auto-declarada "corrigido"). Se estourar o teto sem passar: manter `em-andamento`, registrar `ac=falha-persistente` e seguir pra proxima task (reportado no fechamento; NAO trava o loop).
+   - **`ac=inconclusivo`** -> **bypass com alerta**: marcar `*progress status T-NNN-NN validacao` com nota `ac=inconclusivo:<motivo>` em `T-NNN-NN.notes.md`, e adicionar a task a lista de **alertas ao usuario** do fechamento (o Senior no `*validate-plan` reavalia). Nao entra em loop.
 
 **Invariante por task**: ao terminar a iteracao, T-NNN-NN.md DEVE ter status diferente de `pendente`. Se ainda for `pendente` apos a iteracao, registrar como bug do executor em `progress.txt` (`notes=executor-skipped-progress: T-NNN-NN`) — mas **NAO abortar o loop**: continuar para a proxima task. O abort vai acontecer no fechamento (verificacao global).
 
@@ -154,13 +169,15 @@ Quando o loop terminar (toda task processada — em `validacao`, `concluido`, ou
    [execute-plan] PLAN-NNN-<slug>
 
    tasks validacao:    <N>  (T-..., T-...)
-   bloqueada-backend:  <K>  (T-...:CU-..., ...)
-   backend pendings:   <X>  abertas no ClickUp / <Y> concluidas
+   bloqueada-backend:  <K>  (T-...:<gap-key>, ...)
+   backend pendings:   <X>  abertas (local) / <Y> concluidas
    visual gate:        passou / falhou em (T-...)
+   criterios de aceite: OK <N> / falha-persistente <M> / inconclusivo <P>
+   ALERTAS (AC inconclusivo, reavaliar no validate): (T-..., ...)
 
    proximo passo: *validate-plan PLAN-NNN-<slug>
    ```
-4. Indicar que o turn seguinte e `*validate-plan PLAN-NNN-<slug>` (skill `validate-plan`, ambiente Opus 4.7). NAO marcar `concluido` automaticamente — `validate-plan` cuida disso.
+4. Indicar que o turn seguinte e `*validate-plan PLAN-NNN-<slug>` (skill `validate-plan`, etapa validate/Senior). NAO marcar `concluido` automaticamente — `validate-plan` cuida disso.
 
 ## Ambiente Codex IDE — observacoes
 
@@ -173,17 +190,14 @@ Quando o loop terminar (toda task processada — em `validacao`, `concluido`, ou
 - **Visual gate nao e opcional** salvo `--skip-visual-gate` explicito. Skill nao silencia o gate.
 - **Sem push automatico**: commit fica preparado. Push e responsabilidade do humano.
 - **State machine inviolavel**: transicao `concluido` ocorre via `*validate-plan` (auto-marca quando passa). Rollback humano: `*progress status T-NNN-NN pendente --rollback`.
-- **Non-blocking em backend gaps**: gap aberto no ClickUp NAO aborta. Tasks dependentes viram `bloqueada-backend`, demais seguem.
+- **Backend-first + non-blocking**: gap de backend aberto (tracking local) NAO aborta. Backend corre antes do frontend dependente para destravar; tasks dependentes sem bypass viram `bloqueada-backend`, demais seguem.
+- **Criterios de aceite sao vinculantes**: cada task so vai para `validacao` com AC OK (ou `inconclusivo` com alerta). AC `falha` entra em loop de correcao (teto 3, verificacao re-executada, sem falso-positivo).
 - **Storybook como contrato base; Figma da pagina vence em conflito cosmetico**: componente sem `.stories.tsx` em `<dirs.storybook>` bloqueia a task ate ser criado. Divergencia cosmetica entre story e Figma da pagina que ESTA registrada em `## Page-level overrides` do plano: gate confirma aplicacao do override (decisao a/b/c). Divergencia NAO registrada no plano: gate falha — voltar pra `*plan` (ou registrar override no plan.md antes de prosseguir).
 - **Comportamento mapeado e vinculante**: `interaction_target:` declarado na task DEVE ter handler/estado implementado e observavel no diff. Caso contrario, gate falha mesmo se anatomia + tokens passarem.
 
 ## Model guidance
 
-| Escopo | Modelo |
-|--------|--------|
-| Task simples (1 componente, sem novo padrao) | `sonnet` |
-| Task que toca multiplos componentes ou logica de fetching | `opus` |
-| Visual gate / comparacao com Figma | inherit (modelo do agent) |
+Etapa **execute** (Junior). Resolver o modelo com `node .gos/scripts/tools/model-router.js get execute` (default `claude-sonnet-5`; Codex e modelos mais baratos adequados aceitos). O Junior le plano+tasks+spec e implementa; o Senior audita depois no `*validate-plan`. Se uma task especifica exigir julgamento acima do modelo da etapa, escalar pontualmente para o modelo de `validate` apenas naquela decisao.
 
 ## Instructions
 

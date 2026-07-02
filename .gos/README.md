@@ -1,6 +1,6 @@
 # ganbatte-os
 
-Framework operacional para workflows design-to-code, gestão de squads e sincronização de sprints com ClickUp. Orquestra agents, skills e squads ao longo do ciclo de desenvolvimento conectando Figma, ClickUp e IDEs de IA.
+Framework operacional de desenvolvimento: prototipação, design-to-code, implementação, otimização e segurança. Orquestra agents, skills e squads ao longo do ciclo de desenvolvimento conectando Figma e IDEs de IA.
 
 Este diretório (`.gos/`) é o **core** do framework. Tratar como read-only em projetos que consomem — mudanças aqui afetam todos os workspaces instalados.
 
@@ -9,7 +9,7 @@ Este diretório (`.gos/`) é o **core** do framework. Tratar como read-only em p
 | Diretório | Conteúdo |
 |---|---|
 | `agents/` | Definições de agents (ganbatte-os-master, architect, dev, sm, po, devops, squad-creator, ux-design-expert) |
-| `skills/` | Skills executáveis (design-to-code, humanizer, slack-review, clickup, sprint-planner, react-doctor, etc.) |
+| `skills/` | Skills executáveis (design-to-code, humanizer, react-doctor, plan-blueprint, execute-plan, security-review, perf-review, etc.) |
 | `scripts/` | Scripts Node zero-dep (hooks/, tools/, integrations/) |
 | `libraries/` | Referências e catálogos (ai-writing-patterns, design tokens, style guides) |
 | `rules/` | Regras de comportamento por contexto (frontend, backend, design) |
@@ -36,7 +36,6 @@ npm run gos:deploy-storybook  # Build + deploy Storybook no Vercel
 
 | Pipeline | Doc |
 |---|---|
-| Notificações Slack (commit → fila → aprovação → envio) | [`docs/slack-notifications.md`](docs/slack-notifications.md) |
 | Instalação do framework | [`docs/gos_installation_guide.md`](docs/gos_installation_guide.md) |
 | Mapa de toolchain (IDEs, APIs, MCPs) | [`docs/toolchain-map.md`](docs/toolchain-map.md) |
 | Compatibilidade entre IDEs | [`docs/ide-compatibility.md`](docs/ide-compatibility.md) |
@@ -49,7 +48,6 @@ npm run gos:deploy-storybook  # Build + deploy Storybook no Vercel
 - **Branch**: commit + push direto na branch (sem PR). `dev → beta` auto-merge via GitHub Actions.
 - **SSH**: usar o alias configurado em `.gos-local/ssh-identity.json`, nunca `git@github.com` direto.
 - **Texto pt-BR**: sanitização determinística nos hooks (`text-sanitize.js`); `/humanizer` skill para textos longos.
-- **Notificações**: hooks enfileiram em `.gos/slack-queue/` — nada vai ao Slack sem `/slack-review` aprovar.
 - **Plan mode**: tarefas com >3 passos seguem protocolo RESEARCH → PLAN → APPROVE → EXECUTE.
 
 ## Tiers de orquestração
@@ -60,8 +58,6 @@ npm run gos:deploy-storybook  # Build + deploy Storybook no Vercel
 
 ## Links rápidos
 
-- CLI de fila Slack: [`scripts/tools/slack-queue.js`](scripts/tools/slack-queue.js)
 - Sanitizador de texto: [`scripts/tools/text-sanitize.js`](scripts/tools/text-sanitize.js)
 - Catálogo de padrões IA: [`libraries/content/ai-writing-patterns.md`](libraries/content/ai-writing-patterns.md)
 - Hook pre-commit (validação TypeScript): [`scripts/hooks/pre-commit-validate.js`](scripts/hooks/pre-commit-validate.js)
-- Hook post-commit (sync registry + Slack queue): [`../scripts/hooks/post-commit-sync.js`](../scripts/hooks/post-commit-sync.js)

@@ -76,3 +76,5 @@ pids
 
 # G-OS managed entries
 .env.*.local
+tmp/*
+temp/*

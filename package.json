@@ -1,7 +1,7 @@
 {
   "name": "ganbatte-os",
   "version": "0.2.41",
-  "description": "Framework operacional para design-to-code, squads de entrega e sprint sync com ClickUp.",
+  "description": "Framework operacional de desenvolvimento: prototipacao, design-to-code, implementacao, otimizacao e seguranca.",
   "bin": {
     "gos": ".gos/scripts/cli/gos-cli.js"
   },
@@ -11,7 +11,6 @@
     "gos:doctor": "node .gos/scripts/cli/gos-cli.js doctor",
     "gos:version": "node .gos/scripts/cli/gos-cli.js version",
     "gos:rescue": "node .gos/scripts/cli/gos-cli.js rescue",
-    "clickup": "node .gos/scripts/tools/clickup.js",
     "sync:ides": "node .gos/scripts/integrations/setup-ide-adapters.js",
     "check:ides": "node .gos/scripts/integrations/check-ide-compat.js",
     "doctor": "node .gos/scripts/cli/gos-cli.js doctor"

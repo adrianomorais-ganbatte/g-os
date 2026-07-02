@@ -1,6 +1,6 @@
 # ganbatte-os — CLI Installation Guide
 
-ganbatte-os is a modern operational framework designed for **design-to-code**, delivery squads, and automated sprint synchronization with ClickUp. Built upon the `.a8z-OS` architecture, it integrates Figma, ClickUp, and 7 primary IDEs (Claude Code, Cursor, Gemini, etc.) into a seamless workspace.
+ganbatte-os is a modern operational **development** framework spanning prototyping, design-to-code, implementation, optimization, and security. Built upon the `.a8z-OS` architecture, it integrates Figma and 7 primary IDEs (Claude Code, Cursor, Gemini, etc.) into a seamless workspace.
 
 ---
 

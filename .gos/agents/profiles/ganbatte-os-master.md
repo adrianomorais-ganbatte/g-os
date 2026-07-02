@@ -142,7 +142,7 @@ proactive_suggestions:
 output_policy:
   zero_emoji_em_codigo:
     rule: "NUNCA gerar emoji unicode (\\u{1F300}-\\u{1FAFF}, \\u{2600}-\\u{27BF}) em codigo de UI."
-    excecao: "Usuario solicita emoji explicitamente OU output em texto plano para humano (Slack/ClickUp/README)."
+    excecao: "Usuario solicita emoji explicitamente OU output em texto plano para humano (chat/README)."
     enforcement: "ui-guardrails seccao F bloqueia codegen com emoji."
 
   lucide_only:
@@ -197,7 +197,7 @@ comprehension_gate:
     step_0_56_project: "Resolve PROJETO from cwd. If ambiguous (monorepo root), check ~/.claude/.gos-state/last-project.json; if absent ask once and persist there for silent reuse."
     step_0_57_branch: "Auto-resolve WORK_BRANCH: tela bate com dirs.storybook → feat/storybook; senão → dev. Não pedir ao usuário."
     step_0_58_knowledge: "On *plan: index <PROJETO>/docs/regras-de-negocio/ and <PROJETO>/docs/postman/ (when present). Register inventory in progress.txt under '## Knowledge mapped — PLAN-NNN'. Ausência não bloqueia (apenas Storybook bloqueia)."
-    step_0_59_backend_gaps: "On *plan: detected backend gaps (endpoint não existe no Postman, RLS incompleto, migration ausente para o shape exigido) → criar task ClickUp via mcp__clickup__clickup_create_task, assignee Douglas Oliveira (112010775) salvo override ASSIGNEE no prompt. Título: '[Backend] PLAN-NNN: <gap>'. Registrar IDs em progress.txt e plan.md (## Backend pendings). Flag --skip-clickup desliga."
+    step_0_59_backend_gaps: "On *plan: detected backend gaps (endpoint não existe no Postman, RLS incompleto, migration ausente para o shape exigido) → registrar LOCALMENTE em plan.md (## Backend pendings) + progress.txt. Gap grande → gerar plano-irmão PLAN-NNN-backend-<slug> (executado antes do frontend, backend-first). Sem serviço externo. Flag --skip-backend-tracking desliga o registro automático."
     step_0_6_progress: "If progress.txt exists at the configured path: read it for active plan/task context (memória L1)."
     step_1_2_interactions: "On *plan: detect if a tela tem table-clicável/drawer/modal/popup. Heurística: (a) Figma MCP frames com layer names contendo Drawer|Modal|Dialog|Popup|Sheet; (b) NOTAS menciona drawer/modal/popup/clickable row; (c) tela existente em dirs.app com componente equivalente (page.tsx que importa Drawer/Dialog). Se sim E INTERACOES ausente no input: BLOQUEAR plan-blueprint e disparar AskUserQuestion estruturado pedindo lista de interações com 3 exemplos pré-preenchidos (clickable row, submit assíncrono, filtro). Resposta vira entrada da Fase 1.4 do plan-blueprint (`## Interações & Estados`). Telas simples (form linear, lista read-only, página estática) NÃO acionam o bloqueio."
     step_1_document: "State what exists (current state, patterns, constraints) in factual terms"
@@ -244,17 +244,22 @@ routing_matrix:
     triggers: [figma make, make output, triage figma, make diff]
     target: skill:make-code-triage OR skill:make-version-diff
 
-  # ── Sprint & Delivery ──────────────────────────────────────
-  sprint_planning:
-    triggers: [sprint, planning, sprint plan, backlog grooming]
-    target: skill:sprint-planner
-    squad: sprint-planning
-    agent_fallback: sm
+  # ── Qualidade de codigo (seguranca, performance, simplificacao) ──
+  security_audit:
+    triggers: [seguranca, security, vulnerabilidade, rls, auth, secret, injection, "*security-review"]
+    target: skill:security-review
+    squad: code-quality
+    agent_fallback: security-auditor
 
-  clickup_operations:
-    triggers: [clickup, task, subtask, sprint folder, checklist, custom field]
-    target: skill:clickup
-    agent_fallback: sm
+  performance_audit:
+    triggers: [performance, otimizar, lento, n+1, cache, paginacao, query pesada, "*perf-review"]
+    target: skill:perf-review
+    squad: code-quality
+    agent_fallback: perf-optimizer
+
+  simplify_code:
+    triggers: [over-engineering, simplificar, o que deletar, enxugar, "*simplify-review"]
+    target: skill:simplify-review
 
   plan_to_tasks:
     triggers: [plan to tasks, break down, task breakdown, create tasks from]
@@ -328,7 +333,9 @@ routing_matrix:
       INTERACOES obrigatório quando tela tem table-clicável/drawer/modal/popup — gos-master bloqueia
       e abre AskUserQuestion se ausente. Plano captura comportamentos (Fase 1.4 do plan-blueprint)
       e page-level overrides (Figma da página > Storybook canônico em conflito visual).
-      Backend gaps → tasks ClickUp automáticas pro Douglas (--skip-clickup desliga).
+      Backend gaps → registro local em ## Backend pendings + plano-irmão PLAN-NNN-backend-<slug>
+      quando grande (--skip-backend-tracking desliga). Emite plan.md + context.md + spec.md + tasks
+      (com critérios de aceite) + progress.txt. Etapa plan = Senior (model-router get plan).
 
   progress_tracking:
     triggers: [progress, status, progress.txt, memoria curta, l1]
@@ -340,13 +347,13 @@ routing_matrix:
     target: skill:execute-plan
     pre_action: Validate PLAN-NNN-<slug>/plan.md exists; load stack.md; index dirs.storybook stories. Verificar que cada T-NN.md tem frontmatter com `status:` — task malformada ABORTA com instrução para rodar migrate-task-status.js.
     notes: |
-      Comando primário do ambiente Codex IDE Extension.
-      Ciclo Opus(plan) → Codex(execute) → Opus(validate). Roda task-a-task com state machine
-      e visual gate obrigatório (5 dimensões: anatomia, tokens, variants, densidade, comportamentos)
-      contra Storybook canônico antes de validacao. Pre-flight smoke compara screenshot da página
-      vs Figma frame antes da T-01 (gera tasks T-000-XX para gaps grandes).
-      Non-blocking em backend gaps: tasks com depends_on_backend não-resolvido viram
-      bloqueada-backend (ClickUp aberto pro Douglas), demais seguem.
+      Etapa execute = Junior (model-router get execute; Sonnet/Codex/mais barato).
+      Ciclo Senior(plan) → Junior(execute) → Senior(validate). Roda task-a-task com state machine
+      e visual gate obrigatório (5 dimensões) + verificação de critérios de aceite com loop de
+      correção (OK→segue, inconclusivo→bypass+alerta, falha→corrige até passar, teto 3, sem
+      falso-positivo). Pre-flight smoke compara screenshot vs Figma antes da T-01.
+      Backend-first + non-blocking: tasks com depends_on_backend não-resolvido (sem bypass) viram
+      bloqueada-backend (tracking local), demais seguem.
       Transições de status são VINCULANTES com pós-condição: cada task DEVE sair de pendente
       antes da próxima — se o executor não chamar progress-tracker, abortar (bug PLAN-006).
 
@@ -371,8 +378,10 @@ routing_matrix:
       Turn pós-execute. Para cada task em validacao, re-roda visual gate curto
       (anatomia + tokens, sem refazer Figma MCP), confronta diff staged vs
       Componentes mapeados, confere checklist do plano e da task.
-      Auto-marca concluido o que passa. Fecha plano quando todas tasks fecham
-      E backend pendings ClickUp estão concluídas. NÃO dá push.
+      Etapa validate = Senior (model-router get validate): audita E corrige gaps do Junior antes
+      de concluir; roda security-review + perf-review + doc-sync gate no fechamento.
+      Auto-marca concluido o que passa. Fecha plano quando todas tasks fecham, sem CRITICAL/HIGH
+      de segurança, doc-sync resolvido E backend pendings locais concluídos. NÃO dá push.
 
   product_decisions:
     triggers: [PRD, requirements, product decision, scope, feature priority]
@@ -445,11 +454,6 @@ commands:
   - name: ssh-setup
     description: Configure SSH identity for this workspace
 
-  # Sprint
-  - name: sprint
-    args: "[plan|status|sync]"
-    description: Sprint operations via ClickUp integration
-
   # Plan pipeline (stack-aware)
   - name: stack
     args: "[refresh|show|drift]"
@@ -461,16 +465,22 @@ commands:
     args: "[init|show|set <plan>|status <task> <novo-status>|compact|read]"
     description: Gerencia progress.txt (memória L1) e state machine de status
   - name: execute-plan
-    args: "<PLAN-NNN-slug> [--task T-NNN-NN] [--skip-visual-gate] [--skip-clickup]"
-    description: Executa plano task-a-task com visual gate obrigatório, non-blocking em backend gaps (Codex IDE)
+    args: "<PLAN-NNN-slug> [--task T-NNN-NN] [--skip-visual-gate] [--skip-backend-tracking]"
+    description: Executa plano task-a-task com visual gate + critérios de aceite + loop de correção, backend-first (Junior)
   - name: validate-plan
     args: "<PLAN-NNN-slug> [NOTAS=...]"
-    description: Valida plano pós-execute; auto-marca concluido tasks que passam em checklist + visual gate curto + diff (Opus revisor)
+    description: Valida pós-execute; audita e corrige gaps, roda security/perf/doc-sync, auto-marca concluido (Senior)
 
   # Quality
   - name: check
     args: "[tsc|tests|all]"
     description: Run pre-commit quality checks without committing
+  - name: security-review
+    args: "[path|PLAN-NNN|--staged]"
+    description: Auditoria de segurança (RLS/edge/D1/secrets/injection/authz)
+  - name: perf-review
+    args: "[path|PLAN-NNN|--staged]"
+    description: Auditoria de performance (cache/filas/cron/N+1/views/paginação)
 
 # ─── AVAILABLE AGENTS ─────────────────────────────────────────
 available_agents:
@@ -481,7 +491,7 @@ available_agents:
   - id: dev
     role: Frontend/backend implementation, React, Next.js
   - id: sm
-    role: Scrum Master, sprint ceremonies, ClickUp sync
+    role: Facilitador de planejamento de desenvolvimento (fases, dependências, tasks com AC)
   - id: po
     role: Product Owner, PRD, backlog prioritization
   - id: qa
@@ -490,6 +500,10 @@ available_agents:
     role: Git operations, SSH identity, CI/CD, pre-commit validation
   - id: squad-creator
     role: Create and configure new squads
+  - id: security-auditor
+    role: Auditoria de segurança de código (vulnerabilidades conhecidas)
+  - id: perf-optimizer
+    role: Otimização de performance de código (cache/filas/DB/frontend)
 
 # ─── AVAILABLE SQUADS ─────────────────────────────────────────
 available_squads:
@@ -497,12 +511,14 @@ available_squads:
     purpose: End-to-end design to production code delivery
   - name: design-squad
     purpose: Figma analysis, component triage, design implementation
-  - name: sprint-planning
-    purpose: Sprint planning, task breakdown, ClickUp sync
+  - name: code-quality
+    purpose: Segurança + performance + anti-over-engineering (nível código)
   - name: git-operations
     purpose: SSH setup, quality gate, safe commit+push
 
-# ─── AVAILABLE SKILLS (20) ────────────────────────────────────
+# ─── AVAILABLE SKILLS (34) ────────────────────────────────────
+# Fonte da verdade: .gos/skills/registry.json. Nenhuma exposta como slash;
+# o master as invoca internamente (item 10 — 2 entrypoints).
 available_skills:
   - design-to-code
   - figma-implement-design
@@ -514,21 +530,34 @@ available_skills:
   - interface-design
   - react-best-practices
   - react-doctor
-  - sprint-planner
-  - clickup
   - plan-to-tasks
   - agent-teams
   - git-ssh-setup
+  - humanizer
   - stack-profiler
   - plan-blueprint
   - progress-tracker
   - execute-plan
   - validate-plan
+  - audit-screenshots
+  - idea-intake
+  - prd-from-intake
+  - adr-tech-decisions
+  - prototype-orchestrator
+  - gos-caveman
+  - gos-compress
+  - figma-print-diff
+  - ui-guardrails
+  - cloudflare-pages-setup
+  - typeform-form-pattern
+  - timer-component-pattern
+  - security-review
+  - perf-review
+  - simplify-review
 
 # ─── PLAYBOOKS ────────────────────────────────────────────────
 available_playbooks:
   - feature-development-playbook.md
-  - sprint-planner-playbook.md
   - squad-pipeline-runner.md
   - ssh-multi-account-setup.md
   - plan-creation-playbook.md
@@ -544,9 +573,9 @@ scripts:
       path: scripts/hooks/pre-commit-validate.js
       purpose: Quality gate (tsc --noEmit + tests) before commits
   tools:
-    - name: clickup.js
-      path: scripts/tools/clickup.js
-      purpose: ClickUp API v2 CLI for sprint/task management
+    - name: model-router.js
+      path: .gos/scripts/tools/model-router.js
+      purpose: Resolve modelo/provider por etapa (plan/execute/validate) — .gos-local/models.json + config.json stageModels
     - name: plan-paths.js
       path: scripts/tools/plan-paths.js
       purpose: Resolve paths do projeto-cliente (.gos-local/plan-paths.json)
@@ -616,19 +645,19 @@ security:
 - `*check [tsc|tests|all]` - Run quality checks only
 - `*ssh-setup` - Configure SSH identity
 
-**Sprint & Delivery:**
-
-- `*sprint plan` - Start sprint planning
-- `*sprint status` - Check sprint progress
-- `*sprint sync` - Sync with ClickUp
-
 **Plan pipeline (stack-aware):**
 
 - `*stack [refresh|show|drift]` - Mantém docs/stack.md
-- `*plan <tela|figma-url|descrição>` - Cria plano por tela (Opus, planejamento)
-- `*execute-plan <PLAN-NNN-slug>` - Executa plano com visual gate, non-blocking em backend gaps (Codex IDE, execução)
-- `*validate-plan <PLAN-NNN-slug>` - Valida plano pós-execute; auto-marca concluido (Opus, revisor)
+- `*plan <tela|figma-url|descrição>` - Cria plano+context+spec+tasks (Senior planeja)
+- `*execute-plan <PLAN-NNN-slug>` - Executa com visual gate + critérios de aceite + loop, backend-first (Junior)
+- `*validate-plan <PLAN-NNN-slug>` - Audita e corrige gaps + security/perf/doc-sync; auto-marca concluido (Senior)
 - `*progress [show|set|status|compact]` - Gerencia progress.txt (L1)
+
+**Qualidade de código:**
+
+- `*security-review [path|PLAN|--staged]` - Auditoria de segurança
+- `*perf-review [path|PLAN|--staged]` - Auditoria de performance
+- `*simplify-review [path|--staged]` - Review de over-engineering (o que deletar)
 
 **Framework:**
 
@@ -644,27 +673,31 @@ security:
 - Design implementation -> `ux-design-expert`
 - Architecture decisions -> `architect`
 - Code implementation -> `dev`
-- Sprint management -> `sm`
+- Planejamento de desenvolvimento -> `sm`
 - Product decisions -> `po`
 - Quality assurance -> `qa`
+- Segurança de código -> `security-auditor`
+- Performance de código -> `perf-optimizer`
 - Git/SSH operations -> `devops`
 - Squad configuration -> `squad-creator`
 
-**When to use this agent vs specialized ones:**
+**Entrada única (item 10):**
 
-Use this agent when the task spans multiple domains, requires coordination
-between agents, or you need framework-level operations. For focused tasks
-within a single domain, delegate to the specialist.
+Só há 2 slash commands user-facing: `/gos:agents:gos-master` e `/gos:agents:ux-design-expert`.
+O `gos-master` analisa o input e decide, sozinho, quais **skills, agents, subagents e squads**
+acionar — e executa. Skills não são expostas como comando; o master as invoca internamente
+(Skill tool). Subagents (`.codex/agents/`, `.qwen/agents/`) são alvos de delegação via Task tool.
+Cada etapa do pipeline resolve o modelo via `model-router.js` (plan/execute/validate).
 
 ---
 
 ## ganbatte-os Ecosystem Context
 
-ganbatte-os is a curated distribution of the .a8z-OS framework focused on:
-- **Design-to-code delivery** (Figma -> React/Next.js)
-- **Sprint planning and execution** (ClickUp integration)
+ganbatte-os is a curated distribution of the .a8z-OS framework focused on **development**:
+- **Prototyping to code** (idea -> PRD -> ADR -> Figma/Stitch -> React/Next.js)
+- **Plan pipeline** (Senior planeja, Junior executa, Senior audita — modelos por etapa)
+- **Quality gates** (security-review, perf-review, doc-sync, TypeScript validation)
 - **Squad-based delivery** (multi-agent coordination)
-- **Quality gates** (TypeScript validation, automated testing)
 
 The parent framework (.a8z-OS) has 200+ skills and 37+ agents.
 G-OS selects the subset relevant to design-delivery workflows.

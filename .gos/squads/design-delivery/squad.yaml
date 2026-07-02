@@ -1,7 +1,7 @@
 name: design-delivery
 version: "1.0.0"
 short-title: "Design Delivery Squad"
-description: "Converte design e output de ferramentas generativas em codigo pronto para sprint e sincronizacao com ClickUp."
+description: "Converte design e output de ferramentas generativas em codigo pronto para producao (plano, execucao e validacao)."
 slashPrefix: "design-delivery"
 
 components:
@@ -11,6 +11,7 @@ components:
     - dev.md
     - sm.md
     - po.md
+    - qa.md
     - devops.md
   workflows:
     - wf-design-delivery.yaml
@@ -25,6 +26,6 @@ routing_matrix:
   stitch_code:
     primary: dev
     triggers: ["google stitch", "stitch", "codigo gerado pelo stitch"]
-  sprint_sync:
+  plan_pipeline:
     primary: sm
-    triggers: ["criar sprint", "subir clickup", "sync clickup"]
+    triggers: ["plano de tela", "planejar entrega", "quebrar em tasks"]
